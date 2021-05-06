@@ -1,0 +1,5 @@
+env/
+models/neurons/__pycache__
+models/__pycache__
+models/figures
+models/saved_models
