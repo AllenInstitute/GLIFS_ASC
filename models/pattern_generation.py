@@ -1,3 +1,6 @@
+import matplotlib
+matplotlib.use('Agg')
+
 # author: @chloewin
 # 03/07/21
 import pickle
@@ -33,9 +36,9 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	base_name = "figures_wkof_050221/init_attempt_4_lowlr000075"
-	base_name_save = "traininfo_wkof_050221/init_attempt_4_lowlr000075"
-	base_name_model = "models_wkof_050221/init_attempt_4_lowlr000075"
+	base_name = "init_attempt_4_lowlr000075_longer"#"figures_wkof_050221/init_attempt_4_lowlr000075_longer"
+	base_name_save = "init_attempt_4_lowlr000075_longer"#"traininfo_wkof_050221/init_attempt_4_lowlr000075_longer"
+	base_name_model = "init_attempt_4_lowlr000075_longer"#"models_wkof_050221/init_attempt_4_lowlr000075_longer"
 	# Generate freqs
 	num_freqs = 4
 	freq_min = 0.001
@@ -60,9 +63,9 @@ def main():
 	model = RBNN(in_size = 1, hid_size = 200, out_size = 1, dt = dt, delay = delay)
 
 	# Train model
-	num_epochs = 1000
+	num_epochs = 2000
 	lr = 0.000075
-	reg_lambda = 1500
+	reg_lambda = 3000
 	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda)
 
 	colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green"]
@@ -72,7 +75,7 @@ def main():
 	final_outputs = training_info["final_outputs"]
 
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0,0].detach().numpy(), c = colors[i], label="freq {}".format(freqs[i]))
 		plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i])
 	plt.legend()
 	plt.savefig("figures/" + base_name + "_final_outputs")
@@ -80,7 +83,7 @@ def main():
 
 	final_outputs_driven = training_info["final_outputs_driven"]
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0,0].detach().numpy(), c = colors[i], label="freq {}".format(freqs[i]))
 		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i])
 	plt.legend()
 	plt.xlabel("time (ms)")
@@ -90,7 +93,7 @@ def main():
 
 	init_outputs = training_info["init_outputs"]
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0,0].detach().numpy(), c = colors[i], label="freq {}".format(freqs[i]))
 		plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i])
 	plt.legend()
 	plt.xlabel("time (ms)")
@@ -100,7 +103,7 @@ def main():
 
 	init_outputs_driven = training_info["init_outputs_driven"]
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, init_outputs_driven[i][0,:,0,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, init_outputs_driven[i][0,:,0,0].detach().numpy(), c = colors[i], label="freq {}".format(freqs[i]))
 		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i])
 	plt.legend()
 	plt.xlabel("time (ms)")
