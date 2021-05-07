@@ -129,7 +129,7 @@ class BNN3L(nn.Module):
 		# self.spikes_all = [torch.zeros(*self._layers[self.layers[-1]].cells_shape, dtype=torch.float)]
 		# for i in range(self.delay - 1):
 		# 	self.spikes_all.append(torch.zeros(*self._layers[self.layers[-1]].cells_shape, dtype=torch.float))
-
+		print(steps)
 		for step in range(steps):
 			# print(f"ii: {inputs.shape}")
 			x = inputs[step, :, :]

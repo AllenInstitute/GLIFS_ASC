@@ -31,19 +31,19 @@ class GLIFR(nn.Module):
 	asc_amp, asc_r, thresh, log of k_m set as nn.Parameters so learnable
 	asc_k initialized to uniform distribution
 	"""
-	def __init__(self, cells_shape, k_m, R, v_reset, thresh, spike_r, sigma_v, I0, k_syn, asc_amp, asc_r, asc_k, dt, delay, syncurrs_init = 0):
+	def __init__(self, cells_shape, dt, delay, k_m = 0.02, R = 0.1, v_reset = 0, thresh = 0, spike_r = 20, sigma_v = 50, I0 = 700, k_syn = 1, asc_amp = (-1, 1), asc_r = (1,-1), asc_k = None):
 		super().__init__()
 		self.cells_shape = cells_shape
 		self.delay = delay
 		if delay == None:
 			self.delay = -1
 
-		self.asc_init = [0,0]
-		s_hat = spike_r / 2
-		for i in range(len(asc_amp)):
-			self.asc_init[i] = asc_amp[i] * s_hat / (asc_k[i] - asc_r[i] * s_hat)
+		# self.asc_init = [0,0]
+		# s_hat = spike_r / 2
+		# for i in range(len(asc_amp)):
+		# 	self.asc_init[i] = asc_amp[i] * s_hat / (asc_k[i] - asc_r[i] * s_hat)
 
-		self.syncurrs_init = syncurrs_init
+		self.num_ascs = len(asc_amp)
 
 		# Fixed parameters
 		self.register_buffer("R", torch.tensor(R, dtype=torch.float))
@@ -56,7 +56,7 @@ class GLIFR(nn.Module):
 		ln_k_m = math.log(k_m)
 
 		# States
-		self.spikes_all = [torch.zeros(*cells_shape, dtype=torch.float)]
+		self.history = [torch.zeros(*cells_shape, dtype=torch.float)]
 		self.register_buffer("voltage", torch.empty(*cells_shape, dtype=torch.float))
 		self.register_buffer("SYNcurrents", torch.empty(cells_shape, dtype=torch.float, requires_grad=False))
 		self.register_buffer("AScurrents", torch.empty((len(asc_amp),)+cells_shape, dtype=torch.float, requires_grad=False))
@@ -67,8 +67,8 @@ class GLIFR(nn.Module):
 		self.ln_k_m = Parameter(ln_k_m * torch.ones(*cells_shape, dtype=torch.float), requires_grad=True)
 		# nn.init.uniform_(self.ln_k_m, -5, 0)
 		self.asc_amp = Parameter(torch.tensor(asc_amp).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 * torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
-		ln_asc_k = [math.log(k_j) for k_j in asc_k]
-		self.asc_k = Parameter(torch.tensor(ln_asc_k).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 * torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
+		# ln_asc_k = [math.log(k_j) for k_j in asc_k]
+		self.asc_k = Parameter(torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
 		self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 *  torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
 		# self.asc_k = Parameter(torch.uniform(ln_asc_k).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 * torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
 		nn.init.uniform_(self.asc_k, -5, 3)
@@ -94,20 +94,25 @@ class GLIFR(nn.Module):
 		Resets voltage, spikes, after spike currents, and synaptic currents to 0.
 		param batch_size: current batch size (initalizes neuron layer shape to accomodate for that)
 		"""
+		a,b,c = self.cells_shape
+
+		self.cells_shape = (batch_size, b, c)
+		# print(self.cells_shape)
 		with torch.no_grad():
 			self.voltage.fill_(0.0)#(0.0)
-			self.spikes_all = [torch.zeros(*self.cells_shape, dtype=torch.float)]
-			self.voltages = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
 			for i in range(self.delay - 1):
-				self.spikes_all.append(torch.zeros(*self.cells_shape, dtype=torch.float))
-				self.voltages.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+			self.voltage = torch.empty(*self.cells_shape, dtype=torch.float)
+			self.SYNcurrents = torch.empty(self.cells_shape, dtype=torch.float, requires_grad=False)
+			self.AScurrents = torch.empty((self.num_ascs,)+self.cells_shape, dtype=torch.float, requires_grad=False)
 			self.AScurrents.fill_(0.0)
 			self.SYNcurrents.fill_(0.0)
 			self.AScurrents = self.AScurrents.detach()
 			self.SYNcurrents = self.SYNcurrents.detach()
 			self.voltage = self.voltage.detach()
 
-	def update_spikes(self, rnn=False):
+	def update_spikes(self):
 		"""
 		Updates firing rates based on current voltage.
 		"""
@@ -116,8 +121,7 @@ class GLIFR(nn.Module):
 			self.thresh, 
 			self.spike_r, 
 			self.sigma_v, 
-			self.dt,
-			rnn
+			self.dt
 			)
 		# return spikes#.clone() ## CLONE TODO
 
@@ -127,15 +131,14 @@ class GLIFR(nn.Module):
 		"""
 		self.AScurrents = self.AScurrents_update(
 			self.AScurrents,
-			self.spikes_all[-1],
+			self.history[-1],
 			self.asc_amp,
 			torch.exp(self.asc_k),
 			self.asc_r,
-			self.dt,
-			rnn
+			self.dt
 			)
 
-	def update_SYNcurrents(self, incoming, rnn=False):
+	def update_SYNcurrents(self, incoming):
 		"""
 		Updates synaptic currents based on incoming firing rates.
 		"""
@@ -144,11 +147,10 @@ class GLIFR(nn.Module):
 			incoming,
 			self.k_syn,
 			self.dt,
-			rnn
 			)
 		# print(self.SYNcurrents)
 
-	def update_voltage(self, rnn):
+	def update_voltage(self):
 		"""
 		Updates voltage based on currents and previous firing rates.
 		"""
@@ -160,28 +162,27 @@ class GLIFR(nn.Module):
 			self.I0,
 			self.AScurrents,
 			self.SYNcurrents,
-			self.spikes_all[-1],
-			self.dt,
-			rnn
-			)
+			self.history[-1],
+			self.dt
+		)
 		# print(self.voltage)
 		# print(self.voltage)
 
-	def forward(self, incoming, rnn=False):
+	def forward(self, incoming):
 		"""
 		Updates states based on incoming firing rates (size: (batch_size, 1, number_cells))
 		Returns firing rates based on delay
 		"""
 		# incoming = self.fold(incoming)
-		self.update_AScurrents(rnn)
-		self.update_SYNcurrents(incoming, rnn)
+		self.update_AScurrents()
+		self.update_SYNcurrents(incoming)
 		
-		self.update_voltage(rnn)
+		self.update_voltage()
 		
-		spikes = self.update_spikes(rnn)
-		self.spikes_all.append(spikes)
-		self.voltages.append(self.voltage)
-		return self.spikes_all[-self.delay]#.clone() #TODO
+		spikes = self.update_spikes()
+
+		self.history.append(spikes)
+		return self.history[-self.delay]#.clone() #TODO
 
 class RNNC(nn.Module):
 	def __init__(self, cells_shape, in_size, delay, dt, spike_r = 1, sigma_v = 1):
@@ -214,9 +215,9 @@ class RNNC(nn.Module):
 
 	def update_voltage(self, x):
 		# print(x.shape)
-		# print(self.spikes_all[-self.delay].shape)
+		# print(self.history[-self.delay].shape)
 		b, _, _ = x.shape
-		prev_spikes = self.spikes_all[-self.delay]
+		prev_spikes = self.history[-self.delay]
 		if prev_spikes.shape[0] == 1:
 			prev_spikes = prev_spikes.repeat(b,1,1)
 		# print(prev_spikes.shape)
@@ -231,17 +232,17 @@ class RNNC(nn.Module):
 		self.cells_shape = (batch_size, b, c)
 		with torch.no_grad():
 			self.voltage.fill_(0.0)
-			self.spikes_all = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
 			for i in range(self.delay - 1):
-				self.spikes_all.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
 
 	def forward(self, incoming):
 		b, _, _ = incoming.shape
 		self.update_voltage(incoming)
 		# print(torch.mean(self.voltage))
 		spikes = self.update_spikes()
-		self.spikes_all.append(spikes)
-		return self.spikes_all[-self.delay]
+		self.history.append(spikes)
+		return self.history[-self.delay]
 
 # class RNNC(nn.Module):
 # 	r""" Defines RNN cell.
@@ -259,7 +260,7 @@ class RNNC(nn.Module):
 
 # 		# States
 # 		# print(cells_shape)
-# 		self.spikes_all = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+# 		self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
 # 		# self.register_buffer("spikes", torch.empty(*cells_shape, dtype=torch.float))
 
 # 		self.cell = nn.RNNCell(input_size = self.input_size, hidden_size = hidden_size)
@@ -277,16 +278,16 @@ class RNNC(nn.Module):
 # 	def reset_state(self):
 # 		r""" Resets voltage, spikes, AScurrents, and SYNcurrents"""
 # 		with torch.no_grad():
-# 			self.spikes_all = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+# 			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
 # 			for i in range(self.delay - 1):
-# 				self.spikes_all.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+# 				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
 # 		# self.cell.init_hidden(self.cells_shape[0])
 # 		## TODO: detach?
 
 # 	def update_spikes(self, incoming):
-# 		# print(self.spikes_all[-1].shape)
+# 		# print(self.history[-1].shape)
 # 		# print(incoming.shape)
-# 		return self.cell.forward(incoming, torch.squeeze(self.spikes_all[-self.delay], 1))
+# 		return self.cell.forward(incoming, torch.squeeze(self.history[-self.delay], 1))
 # 		# return spikes#.clone() ## CLONE TODO
 
 # 	def forward(self, incoming):
@@ -296,9 +297,9 @@ class RNNC(nn.Module):
 # 		# print(f"after fold: {incoming.shape}")
 # 		spikes = self.update_spikes(incoming)
 # 		# print(f"spikes_shape: {spikes.shape}")
-# 		self.spikes_all.append(torch.unsqueeze(spikes, 1))
-# 		# print(len(self.spikes_all))
-# 		return self.spikes_all[-self.delay]#.clone() #TODO
+# 		self.history.append(torch.unsqueeze(spikes, 1))
+# 		# print(len(self.history))
+# 		return self.history[-self.delay]#.clone() #TODO
 
 
 
@@ -358,13 +359,13 @@ class Placeholder(nn.Module):
 
 		# self.cells_shape = (batch_size, b, c)
 		with torch.no_grad():
-			self.spikes_all = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
 			for i in range(self.delay - 1):
-				self.spikes_all.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
 			
 	def forward(self, incoming, rnn=False):
-		self.spikes_all.append(incoming)
-		return self.spikes_all[-self.delay]#.clone() #TODO
+		self.history.append(incoming)
+		return self.history[-self.delay]#.clone() #TODO
 
 class PlaceholderWt(nn.Module):
 	r""" Defines rate-based GLIF model.
@@ -404,10 +405,10 @@ class PlaceholderWt(nn.Module):
 
 		self.cells_shape = (batch_size, b, c)
 		with torch.no_grad():
-			self.spikes_all = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
 			for i in range(self.delay - 1):
-				self.spikes_all.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
 			
 	def forward(self, incoming, rnn=False):
-		self.spikes_all.append(self.linear(incoming))
-		return self.spikes_all[-self.delay]#.clone() #TODO
+		self.history.append(self.linear(incoming))
+		return self.history[-self.delay]#.clone() #TODO
