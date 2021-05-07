@@ -6,7 +6,7 @@ matplotlib.use('Agg')
 import pickle
 import datetime
 import utils as ut
-from networks import RBNN
+from networks import RBNN, RNNFC
 from neurons.glif_new import GLIFR, RNNC, Placeholder
 
 import matplotlib.pyplot as plt
@@ -36,9 +36,19 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
+    
 	base_name = "init_attempt_4_lowlr000075_longer"#"figures_wkof_050221/init_attempt_4_lowlr000075_longer"
 	base_name_save = "init_attempt_4_lowlr000075_longer"#"traininfo_wkof_050221/init_attempt_4_lowlr000075_longer"
 	base_name_model = "init_attempt_4_lowlr000075_longer"#"models_wkof_050221/init_attempt_4_lowlr000075_longer"
+
+        '''
+	base_name = "figures_wkof_050221/rnn"
+	base_name_save = "traininfo_wkof_050221/rnn"
+	base_name_model = "models_wkof_050221/rnn"
+
+	use_rnn = True
+	'''
+
 	# Generate freqs
 	num_freqs = 4
 	freq_min = 0.001
@@ -60,14 +70,23 @@ def main():
 
 	# Generate model
 	delay = int(0.5 / dt)
-	model = RBNN(in_size = 1, hid_size = 200, out_size = 1, dt = dt, delay = delay)
+	if use_rnn:
+		model = RNNFC(in_size = 1, hid_size = 200, out_size = 1)
+	else:
+		model = RBNN(in_size = 1, hid_size = 200, out_size = 1, dt = dt, delay = delay)
 
 	# Train model
+        
 	num_epochs = 2000
 	lr = 0.000075
 	reg_lambda = 3000
 	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda)
-
+	'''
+        num_epochs = 250
+	lr = 0.000075
+	reg_lambda = 1500
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn)
+        '''
 	colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green"]
 
 	# Plot outputs
