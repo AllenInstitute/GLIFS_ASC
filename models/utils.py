@@ -1,5 +1,6 @@
 import numpy as np
 import statistics as stat
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
@@ -45,17 +46,21 @@ def create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs):
         freq = 2 * np.pi * freqs[i]
         
         targets[:, i] = amp * np.sin(freq * time) + noise + offset
-        inputs[i] = offset
-    
+        inputs[:,i] = offset
+
     return inputs, targets
 
 def create_dataset(inputs, targets):
     nsteps, n = inputs.shape
+
+    inputs = np.moveaxis(inputs, 0,1)
+    targets = np.moveaxis(targets, 0,1)
+
     inputs = inputs.reshape((n, nsteps, 1, 1))
     targets = targets.reshape((n, nsteps, 1, 1))
     return tud.TensorDataset(torch.tensor(targets).float(), torch.tensor(targets).float())
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True):
     """
     Train RBNN model using trainloader and track metrics.
 
@@ -77,6 +82,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         whether to print loss
     predrive : boolean, optional, default True
         whether to apply predrive in training
+    glifr : boolean, optional, default True
+        whether to expect fields existing in GLIFR class
     
     Returns
     -------
@@ -186,9 +193,14 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
             outputs = model(inputs)
             outputs = outputs[:, -nsteps:, :, :]
+            plt.plot(outputs.detach().numpy().reshape(nsteps),label="output")
+            plt.plot(inputs.detach().numpy().reshape(nsteps), label="input")
+            plt.legend()
+            plt.show()
 
             loss = loss + loss_fn(outputs, targets)
-            loss = loss + km_reg(model, reg_lambda)
+            if glifr:
+                loss = loss + km_reg(model, reg_lambda)
             loss.backward()
 
             optimizer.step()
@@ -199,21 +211,26 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
 
         training_info["losses"].append(tot_loss)
         training_info["weights"][0].append([model.input_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
-        training_info["weights"][1].append([model.rec_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
+        if glifr:
+            training_info["weights"][1].append([model.rec_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         training_info["weights"][2].append([model.output_linear.weight[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        training_info["k_ms"].append([torch.exp(model.neuron_layer.ln_k_m[0,0,j])  + 0.0 for j in range(model.hid_size)])
-        training_info["threshes"].append([model.neuron_layer.thresh[0,0,j]  + 0.0 for j in range(model.hid_size)])
-        training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-        training_info["asc_rs"].append([model.neuron_layer.asc_r[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+        
+        if glifr:
+            training_info["k_ms"].append([torch.exp(model.neuron_layer.ln_k_m[0,0,j])  + 0.0 for j in range(model.hid_size)])
+            training_info["threshes"].append([model.neuron_layer.thresh[0,0,j]  + 0.0 for j in range(model.hid_size)])
+            training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            training_info["asc_rs"].append([model.neuron_layer.asc_r[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
 
         training_info["weight_grads"][0].append([model.input_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
-        training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
+        if glifr:
+            training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,0,j]  + 0.0 for j in range(model.hid_size)])
-        training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,0,j]  + 0.0 for j in range(model.hid_size)])
-        training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-        training_info["asc_r_grads"].append([model.neuron_layer.asc_r.grad[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-    
+        if glifr:
+            training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,0,j]  + 0.0 for j in range(model.hid_size)])
+            training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,0,j]  + 0.0 for j in range(model.hid_size)])
+            training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            training_info["asc_r_grads"].append([model.neuron_layer.asc_r.grad[j,0,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+        
     final_outputs = []
     model.eval()
     for batch_ndx, sample in enumerate(init_dataloader):

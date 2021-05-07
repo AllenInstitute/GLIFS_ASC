@@ -87,3 +87,65 @@ class RBNN(nn.Module):
 		"""
 		self.batch_size = batch_size
 		self.neuron_layer.reset_state(batch_size)
+
+
+class RNNFC(nn.Module):
+	"""
+	Defines a single recurrent layer network.
+
+	Parameters
+	----------
+	in_size : int
+		number of inputs
+	hid_size : int
+		number of neurons in hidden layer
+	out_size : int
+		number of outputs
+	"""
+	def __init__(self, in_size, hid_size, out_size):
+		super().__init__()
+
+		self.input_linear = nn.Linear(in_features = in_size, out_features = hid_size, bias = True)
+		self.rec_linear = nn.Linear(in_features = hid_size, out_features = hid_size, bias = True)
+		self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
+		self.neuron_layer = nn.RNNCell(input_size = hid_size, hidden_size = hid_size, bias = True)
+
+		self.in_size = in_size
+		self.hid_size = hid_size
+		self.out_size = out_size
+
+		self.reset_state()
+
+	def forward(self, input):
+		"""
+		Propagates input through network.
+
+		Parameters
+		----------
+		input : Tensor(batch_size, nsteps, 1, in_size)
+			input signal to be input over time
+		"""
+
+		# input = torch.squeeze(input, dim=2)
+		_, nsteps, _, in_size = input.shape
+		assert(in_size == self.in_size), f"input has {in_size} size but network accepts {self.in_size} inputs"
+
+		# outputs = []
+		outputs = torch.empty((self.batch_size, nsteps, 1, self.out_size))
+
+		h = torch.zeros((self.batch_size, self.hid_size))
+		c = torch.zeros((self.batch_size, self.hid_size))
+		
+		for step in range(nsteps):
+			x = input[:, step, :, :]
+			x = self.input_linear(x)
+			# h, c = self.neuron_layer(torch.squeeze(x,1), (h,c))
+			h = self.neuron_layer(torch.squeeze(x,1), h)
+			x = self.output_linear(torch.unsqueeze(h, 1))
+			# print(x.shape)
+			outputs[:, step, :, :] = x
+			# outputs.append(x)
+		return outputs
+
+	def reset_state(self, batch_size = 1):
+		self.batch_size = 1
