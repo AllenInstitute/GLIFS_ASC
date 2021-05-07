@@ -55,7 +55,7 @@ def create_dataset(inputs, targets):
     targets = targets.reshape((n, nsteps, 1, 1))
     return tud.TensorDataset(torch.tensor(targets).float(), torch.tensor(targets).float())
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True):
     """
     Train RBNN model using trainloader and track metrics.
 
@@ -75,6 +75,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         regularization constant to use for time constant
     verbose : boolean, optional, default True
         whether to print loss
+    predrive : boolean, optional, default True
+        whether to apply predrive in training
     
     Returns
     -------
@@ -139,18 +141,19 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
     init_outputs = []
     for batch_ndx, sample in enumerate(init_dataloader):
         inputs, targets = sample
+        _, nsteps, _, _ = inputs.shape
         model.reset_state()
-        init_outputs.append(model.forward(inputs))
+        init_outputs.append(model.forward(inputs)[:, -nsteps:, :, :])
     training_info["init_outputs"] = init_outputs
 
     init_outputs_driven = []
     for batch_ndx, sample in enumerate(init_dataloader):
         inputs, targets = sample
-        nsteps, _, _, _ = inputs.shape
+        _, nsteps, _, _ = inputs.shape
         model.reset_state()
 
         model(targets) # Predrive
-        init_outputs_driven.append(model.forward(inputs)[-nsteps:])
+        init_outputs_driven.append(model.forward(inputs)[:, -nsteps:, :, :])
     training_info["init_outputs_driven"] = init_outputs_driven
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -176,8 +179,9 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             model.reset_state(len(targets))
             optimizer.zero_grad()
 
-            with torch.no_grad():
-                model(targets)
+            if predrive:
+                with torch.no_grad():
+                    model(targets)
 
             # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
             outputs = model(inputs)
@@ -191,7 +195,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             tot_loss += loss.item()
             loss_batch.append(loss.item() / len(targets))
         if verbose:
-            print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {stat.variance(loss_batch)}")
+            print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)}")
 
         training_info["losses"].append(tot_loss)
         training_info["weights"][0].append([model.input_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
@@ -214,15 +218,16 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
     model.eval()
     for batch_ndx, sample in enumerate(init_dataloader):
         inputs, _ = sample
+        _, nsteps, _, _ = inputs.shape
         model.reset_state()
-        final_outputs.append(model.forward(inputs))
+        final_outputs.append(model.forward(inputs)[:, -nsteps:, :, :])
     training_info["final_outputs"] = final_outputs
 
     final_outputs_driven = []
     for batch_ndx, sample in enumerate(init_dataloader):
         inputs, targets = sample
         _, nsteps, _, _ = inputs.shape
-        model.reset_state()
+        model.reset_state(batch_size = 1)
 
         model(targets) # Predrive first dimension is batch so 1
         final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :, :]))

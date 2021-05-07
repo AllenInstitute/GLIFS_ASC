@@ -33,33 +33,35 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	base_name = "figures_wkof_050221/init_attempt_5"
+	base_name = "figures_wkof_050221/init_attempt_4_lowlr000075"
+	base_name_save = "traininfo_wkof_050221/init_attempt_4_lowlr000075"
+	base_name_model = "models_wkof_050221/init_attempt_4_lowlr000075"
 	# Generate freqs
-	num_freqs = 6
+	num_freqs = 4
 	freq_min = 0.001
 	freq_max = 0.6
 
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 4.0
+	sim_time = 10
 	dt = 0.05
-	amp = 1.0
+	amp = 1
 	noise_mean = 0
 	noise_std = 0
 
-	batch_size = 3
+	batch_size = 1
 
 	inputs, targets = ut.create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs)
 	traindataset = ut.create_dataset(inputs, targets)
 
 	# Generate model
-	delay = int(1 / dt)
-	model = RBNN(in_size = 1, hid_size = 500, out_size = 1, dt = dt, delay = delay)
+	delay = int(0.5 / dt)
+	model = RBNN(in_size = 1, hid_size = 200, out_size = 1, dt = dt, delay = delay)
 
 	# Train model
-	num_epochs = 250
-	lr = 0.005
+	num_epochs = 1000
+	lr = 0.000075
 	reg_lambda = 1500
 	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda)
 
@@ -112,8 +114,9 @@ def main():
 	plt.ylabel("loss")
 	plt.savefig("figures/" + base_name + "_losses")
 
+	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 	
-	with open('filename.pickle', 'wb') as handle:
+	with open("traininfo/" + base_name_save + ".pickle", 'wb') as handle:
 		pickle.dump(training_info, handle)
 
 if __name__ == '__main__':
