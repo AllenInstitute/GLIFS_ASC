@@ -39,7 +39,8 @@ def voltage_update(voltage, v_reset, k_m, R, I0, AScurrents, SYNcurrents, curr_f
 	"""
 	currents_sum = I0 + (SYNcurrents) + torch.sum(AScurrents, dim=0) # (batch_size, 1, N)
 	rates = curr_firing * dt
-	v_delta = (-dt * k_m - rates) * voltage + rates * v_reset
+	v_delta = 0
+	# v_delta = (-dt * k_m - rates) * voltage + rates * v_reset
 	v_delta = v_delta + R * k_m * currents_sum * dt
 	voltage = voltage + v_delta
 	return voltage

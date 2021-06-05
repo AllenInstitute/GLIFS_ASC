@@ -1,11 +1,142 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from torch.nn.parameter import Parameter
 
 import matplotlib.pyplot as plt
 import math
 
 import neurons.utils_glif_new as uts
+
+
+class BNNC(nn.Module):
+	def __init__(self, input_size, hidden_size, bias = True):
+		super().__init__()
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.num_ascs = 2
+
+		# self.batchnorm_voltage = nn.BatchNorm1d(num_features = input_size)
+		# self.batchnorm_activation = nn.BatchNorm1d(num_features = hidden_size)
+		
+		self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
+		self.I0 = 700
+		self.c_m_inv = 0.02
+		# self.weight_hh = Parameter(torch.randn((input_size, hidden_size)))
+
+		# self.bias_ih = Parameter(torch.randn((1, hidden_size)))
+		# self.bias_hh = Parameter(torch.randn((1, hidden_size)))
+
+		self.thresh = Parameter(torch.zeros((1, hidden_size), dtype=torch.float), requires_grad=True)
+		ln_k_m = math.log(0.01)
+		self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+		asc_amp = (-1, 1)
+		asc_r = (1,-1)
+		# self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		# self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+
+		self.asc_amp = Parameter(torch.tensor(asc_amp).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp),1,hidden_size), dtype=torch.float) + 0 * torch.randn((len(asc_amp),1,hidden_size), dtype=torch.float), requires_grad=True)
+		self.ln_asc_k = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp), 1, hidden_size), dtype=torch.float) + 0 *  torch.randn((len(asc_amp), 1, hidden_size), dtype=torch.float), requires_grad=True)		
+		# nn.init.uniform_(self.ln_asc_k, -.2, .3)
+		# nn.init.uniform_(self.asc_r, -.2, .3)
+		# nn.init.uniform_(self.asc_amp, -.2, .3)
+
+		self.v_reset = 0#Parameter(torch.randn((1, hidden_size), dtype=torch.float))
+		self.R = 0.1
+
+		self.sigma_v = 10
+		self.gamma = 20
+		self.dt = 0.05
+
+		with torch.no_grad():
+			# wt_mean = 1 / (self.dt * self.hidden_size) # for whole layer sum
+			# wt_var = 1 / (self.dt * self.hidden_size * self.input_size / self.c_m)
+
+			# range_wt = math.sqrt(12 * wt_var)
+
+			# min_wt = wt_mean - (range_wt / 2)
+			# max_wt = wt_mean + (range_wt / 2)
+
+			nn.init.uniform_(self.weight_iv, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+
+			wt_mean = 1 / ((self.dt ** 2) * self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m))) # for whole layer sum
+			wt_var = 1 / ((self.dt ** 2) + self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m)))
+			range_wt = math.sqrt(12 * wt_var)
+			print(range_wt)
+
+			min_wt = wt_mean - (range_wt / 2)
+			max_wt = wt_mean + (range_wt / 2)
+			# nn.init.uniform_(self.asc_r, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.asc_amp, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.weight_iv, min_wt, max_wt)
+			# nn.init.uniform_(self.weight_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.bias_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.bias_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# self.weight_iv /= self.gamma
+
+	def spike_fn(self, x):
+		"""
+		Propagates input through spiking activation function.
+		
+		Parameters
+		----------
+		x : Tensor(any size)
+			input to spiking function
+		
+		Returns
+		-------
+		Tensor(same size as x)
+			tanh(x)
+		"""
+		# x = self.batchnorm_voltage(x)
+		activation = (x - self.thresh) / self.sigma_v
+		# activation = self.batchnorm_activation(activation)
+		return torch.sigmoid(activation)
+		# return torch.tanh(x - (self.thresh))
+	
+	def forward(self, x, firing, voltage, ascurrent, syncurrent):
+		# 1.5, -0.5 for lnasck
+		syncurrent = x @ self.weight_iv
+		ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
+		# ascurrent = ascurrent * 0
+		voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * torch.sum(ascurrent, dim=0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
+		firing = self.spike_fn(voltage)#x @ self.weight_ih + (1 - self.dt * torch.exp(self.ln_k_m)) * hidden)# + self.bias_ih) #+ hidden @ self.weight_hh + self.bias_hh)
+		return firing, voltage, ascurrent, syncurrent
+
+class RNNC(nn.Module): # The true RNNC
+	def __init__(self, input_size, hidden_size, bias = True):
+		super().__init__()
+		self.weight_ih = Parameter(torch.randn((input_size, hidden_size)))
+		self.weight_hh = Parameter(torch.randn((hidden_size, hidden_size)))
+
+		self.bias = torch.zeros((1, hidden_size))
+
+		# self.bias_ih = Parameter(torch.randn((1, hidden_size)))
+		# self.bias_hh = Parameter(torch.randn((1, hidden_size)))
+
+		with torch.no_grad():
+			nn.init.normal_(self.weight_ih, 0, 1 / math.sqrt(hidden_size))
+			nn.init.normal_(self.weight_hh, 0, 1 / math.sqrt(hidden_size))
+		# 	# nn.init.xavier_uniform_(self.weight_ih)
+		# 	# nn.init.xavier_uniform_(self.weight_hh)
+		# 	# nn.init.uniform_(self.weight_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+		# 	# nn.init.uniform_(self.weight_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+		# 	nn.init.constant_(self.bias_ih, 0)#nn.init.uniform_(self.bias_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+		# 	nn.init.constant_(self.bias_hh, 0)#nn.init.uniform_(self.bias_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+
+	def forward(self, x, hidden):
+		hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden, self.weight_hh) + self.bias
+		hidden = torch.tanh(hidden)
+		# print("")
+		# print(torch.mean(self.weight_ih))
+		# print(torch.mean(self.weight_hh))
+		# # print(f"multiplying {x.shape} and {self.weight_ih.shape} to get mm = {torch.mm(x, self.weight_ih)} or matmul = {torch.matmul(x, self.weight_ih)}")
+		# # print(f"multiplying {hidden.shape} and {self.weight_hh.shape} to get mm = {torch.mm(hidden, self.weight_hh)} or matmul = {torch.matmul(hidden, self.weight_hh)}")
+		# hidden = torch.mm(x, self.weight_ih) + self.bias_ih + torch.mm(hidden, self.weight_hh) + self.bias_hh#torch.tanh(x @ self.weight_ih + self.bias_ih + hidden @ self.weight_hh + self.bias_hh)
+		# # print(torch.mean(hidden))
+		# hidden = torch.tanh(hidden)# print(torch.mean(hidden))
+		return hidden
 
 
 """
@@ -66,12 +197,12 @@ class GLIFR(nn.Module):
 		self.thresh = Parameter(thresh * torch.ones(*cells_shape, dtype=torch.float) + 0 * torch.randn(*cells_shape, dtype=torch.float), requires_grad=True)
 		self.ln_k_m = Parameter(ln_k_m * torch.ones(*cells_shape, dtype=torch.float), requires_grad=True)
 		# nn.init.uniform_(self.ln_k_m, -5, 0)
-		self.asc_amp = Parameter(torch.tensor(asc_amp).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 * torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
+		self.asc_amp = Parameter(torch.tensor(asc_amp).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float))# + 0.000001 * torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
 		# ln_asc_k = [math.log(k_j) for k_j in asc_k]
 		self.asc_k = Parameter(torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
-		self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 *  torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
+		self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float))# + 0.000001 *  torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
 		# self.asc_k = Parameter(torch.uniform(ln_asc_k).reshape((len(asc_amp), 1, 1, 1)) * torch.ones((len(asc_amp),)+cells_shape, dtype=torch.float) + 0.000001 * torch.randn((len(asc_amp),)+cells_shape, dtype=torch.float), requires_grad=True)
-		nn.init.uniform_(self.asc_k, -5, 3)
+		# nn.init.uniform_(self.asc_k, -5, 3)
 
 		# Update functions
 		self.spike_update = uts.exponential_spiking
@@ -184,65 +315,65 @@ class GLIFR(nn.Module):
 		self.history.append(spikes)
 		return self.history[-self.delay]#.clone() #TODO
 
-class RNNC(nn.Module):
-	def __init__(self, cells_shape, in_size, delay, dt, spike_r = 1, sigma_v = 1):
-		super().__init__()
-		self.cells_shape = cells_shape
-		self.delay = delay
-		if delay == None:
-			self.delay = 1
-		self.linear = nn.Linear(in_features=cells_shape[2] + in_size, out_features=cells_shape[2])
-		with torch.no_grad():
-			self.linear.bias *= 0# nn.init.constant_(self.linear.weight,2)
-		self.register_buffer("voltage", torch.empty(*cells_shape, dtype=torch.float)) # the hidden stated
-		self.thresh = 0
-		self.spike_r = spike_r
-		self.sigma_v = sigma_v
-		self.dt = dt
+# class RNNC(nn.Module):
+# 	def __init__(self, cells_shape, in_size, delay, dt, spike_r = 1, sigma_v = 1):
+# 		super().__init__()
+# 		self.cells_shape = cells_shape
+# 		self.delay = delay
+# 		if delay == None:
+# 			self.delay = 1
+# 		self.linear = nn.Linear(in_features=cells_shape[2] + in_size, out_features=cells_shape[2])
+# 		with torch.no_grad():
+# 			self.linear.bias *= 0# nn.init.constant_(self.linear.weight,2)
+# 		self.register_buffer("voltage", torch.empty(*cells_shape, dtype=torch.float)) # the hidden stated
+# 		self.thresh = 0
+# 		self.spike_r = spike_r
+# 		self.sigma_v = sigma_v
+# 		self.dt = dt
 
-		self.spike_update = uts.exponential_spiking
-		self.reset_state()
+# 		self.spike_update = uts.exponential_spiking
+# 		self.reset_state()
 	
-	def update_spikes(self):
-		# print(self.voltage)
-		return self.spike_update(
-			self.voltage, 
-			self.thresh, 
-			self.spike_r, 
-			self.sigma_v, 
-			self.dt,
-			)
+# 	def update_spikes(self):
+# 		# print(self.voltage)
+# 		return self.spike_update(
+# 			self.voltage, 
+# 			self.thresh, 
+# 			self.spike_r, 
+# 			self.sigma_v, 
+# 			self.dt,
+# 			)
 
-	def update_voltage(self, x):
-		# print(x.shape)
-		# print(self.history[-self.delay].shape)
-		b, _, _ = x.shape
-		prev_spikes = self.history[-self.delay]
-		if prev_spikes.shape[0] == 1:
-			prev_spikes = prev_spikes.repeat(b,1,1)
-		# print(prev_spikes.shape)
-		# print(f"x:{torch.mean(x)}")
-		input_signal = torch.cat((x, prev_spikes), dim=-1)
-		# print(f"is:{torch.mean(input_signal)}")# print(input_signal.shape)
-		self.voltage = self.linear(input_signal)
+# 	def update_voltage(self, x):
+# 		# print(x.shape)
+# 		# print(self.history[-self.delay].shape)
+# 		b, _, _ = x.shape
+# 		prev_spikes = self.history[-self.delay]
+# 		if prev_spikes.shape[0] == 1:
+# 			prev_spikes = prev_spikes.repeat(b,1,1)
+# 		# print(prev_spikes.shape)
+# 		# print(f"x:{torch.mean(x)}")
+# 		input_signal = torch.cat((x, prev_spikes), dim=-1)
+# 		# print(f"is:{torch.mean(input_signal)}")# print(input_signal.shape)
+# 		self.voltage = self.linear(input_signal)
 
-	def reset_state(self, batch_size = 1):
-		r""" Resets voltage, spikes, AScurrents, and SYNcurrents"""
-		a, b, c  = self.cells_shape
-		self.cells_shape = (batch_size, b, c)
-		with torch.no_grad():
-			self.voltage.fill_(0.0)
-			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
-			for i in range(self.delay - 1):
-				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
+# 	def reset_state(self, batch_size = 1):
+# 		r""" Resets voltage, spikes, AScurrents, and SYNcurrents"""
+# 		a, b, c  = self.cells_shape
+# 		self.cells_shape = (batch_size, b, c)
+# 		with torch.no_grad():
+# 			self.voltage.fill_(0.0)
+# 			self.history = [torch.zeros(*self.cells_shape, dtype=torch.float)]
+# 			for i in range(self.delay - 1):
+# 				self.history.append(torch.zeros(*self.cells_shape, dtype=torch.float))
 
-	def forward(self, incoming):
-		b, _, _ = incoming.shape
-		self.update_voltage(incoming)
-		# print(torch.mean(self.voltage))
-		spikes = self.update_spikes()
-		self.history.append(spikes)
-		return self.history[-self.delay]
+# 	def forward(self, incoming):
+# 		b, _, _ = incoming.shape
+# 		self.update_voltage(incoming)
+# 		# print(torch.mean(self.voltage))
+# 		spikes = self.update_spikes()
+# 		self.history.append(spikes)
+# 		return self.history[-self.delay]
 
 # class RNNC(nn.Module):
 # 	r""" Defines RNN cell.

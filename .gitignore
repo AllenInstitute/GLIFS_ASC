@@ -4,3 +4,5 @@ models/__pycache__
 models/figures
 models/saved_models
 models/traininfo
+models/MNIST
+models/data
