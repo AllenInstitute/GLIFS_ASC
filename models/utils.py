@@ -807,8 +807,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             model.reset_state()
             outputs = model.forward(inputs)
             for dim in range(outputs.shape[-1]):
-                init_outputs.append(outputs[:,:,dim])
-        training_info["final_outputs"] = init_outputs
+                final_outputs.append(outputs[:,:,dim])
+        training_info["final_outputs"] = final_outputs
     return training_info
 
 def km_reg(rbnn, reg_lambda):

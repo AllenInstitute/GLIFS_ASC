@@ -75,8 +75,8 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 500
-	lr = 0.0025#0.001#0.0025#0.0025#25#1#25
+	num_epochs = 200
+	lr = 0.005#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]
@@ -90,7 +90,7 @@ def main():
 	final_outputs = training_info["final_outputs"]
 
 	for i in range(num_freqs):
-		print(final_outputs[i].shape)
+		# print(final_outputs[i].shape)
 		plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, final_outputs[i][0,:].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
 		plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, targets[:,:, i], '--', c = colors[i % len(colors)])
 	# plt.legend()
