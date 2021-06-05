@@ -13,9 +13,9 @@ import torch
 import torch.nn as nn
 import torch.utils.data as tud
 from torchvision import datasets, transforms
-from myterial import salmon, light_green_dark, indigo_light
-from pyrnn._plot import clean_axes
-from rich.progress import track
+# from myterial import salmon, light_green_dark, indigo_light
+# from pyrnn._plot import clean_axes
+# from rich.progress import track
 
 def mnist_generator(root, batch_size):
     # def set_header_for(url, filename):
