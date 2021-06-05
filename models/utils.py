@@ -706,7 +706,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
                 outputs = model(inputs)
                 outputs = outputs[:, -nsteps:, :]
-                print(outputs.shape)
+                #print(outputs.shape)
                 # plt.plot(outputs[0,:,0].detach().numpy())
                 # plt.plot(targets[0,:,0].detach().numpy())
                 # plt.show()
@@ -720,7 +720,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 # if i % n_subiter == 0:
                 #     print(loss.item() / len(targets))
                 if glifr:
-                    loss = loss + aa_reg(model, reg_lambda = reg_lambda)
+                    #loss = loss + aa_reg(model, reg_lambda = reg_lambda)
                     reg_lambda *= 0.9
                 # if glifr:
                 #     loss = loss + km_reg(model, reg_lambda)
