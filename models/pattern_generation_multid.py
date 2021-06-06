@@ -36,14 +36,14 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	main_name = "3dsine_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+	main_name = "3dsine_rnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 	base_name = main_name#"figures_wkof_053021/" + main_name
 	base_name_save = main_name#"traininfo_wkof_053021/" + main_name
 	base_name_model = main_name#"models_wkof_053021/" + main_name
 
-	use_rnn = False
-	hid_size = 128
-	input_size = 8
+	use_rnn = True
+	hid_size = 500#128
+	input_size = 128#8
 	output_size = 3
 
 	# Generate freqs
@@ -54,7 +54,7 @@ def main():
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 100
+	sim_time = 50
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
@@ -75,8 +75,8 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 200
-	lr = 0.005#0.0025#0.0025#25#1#25
+	num_epochs = 1000
+	lr = 0.001#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]

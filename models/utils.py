@@ -632,7 +632,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             _, nsteps, _ = inputs.shape
             model.reset_state()
 
-            # model(targets) # Predrive
+            model(targets) # Predrive
             # model(targets_pre) # Predrive
             init_outputs_driven.append(model.forward(inputs)[:, -nsteps:, :])
         training_info["init_outputs_driven"] = init_outputs_driven
@@ -649,7 +649,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         training_info["init_outputs"] = init_outputs
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=1)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.98)
     loss_fn = nn.MSELoss()
     # loss_fn = nn.SmoothL1Loss()
     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
@@ -739,7 +739,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
 
                 optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
-                # scheduler.step()
+                #scheduler.step()
                 
                 tot_loss += loss.item()
                 loss_batch.append(loss.item() / len(targets))
@@ -784,7 +784,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             final_outputs.append(model.forward(inputs)[:, -nsteps:, :])
             plt.plot(model.forward(inputs)[0, -nsteps:, 0].detach().numpy())
             plt.plot(targets[0, -nsteps:, 0].detach().numpy())
-            plt.show()
+            plt.close()
         training_info["final_outputs"] = final_outputs
 
         final_outputs_driven = []
