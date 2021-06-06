@@ -20,7 +20,7 @@ class BNNC(nn.Module):
 		# self.batchnorm_activation = nn.BatchNorm1d(num_features = hidden_size)
 		
 		self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
-		self.I0 = 700
+		# self.I0 = Parameter(700*torch.ones((1, hidden_size), dtype=torch.float))
 		self.c_m_inv = 0.02
 		# self.weight_hh = Parameter(torch.randn((input_size, hidden_size)))
 
@@ -45,7 +45,7 @@ class BNNC(nn.Module):
 		self.v_reset = 0#Parameter(torch.randn((1, hidden_size), dtype=torch.float))
 		self.R = 0.1
 
-		self.sigma_v = 10
+		self.sigma_v = 100
 		self.gamma = 20
 		self.dt = 0.05
 
@@ -59,6 +59,7 @@ class BNNC(nn.Module):
 			# max_wt = wt_mean + (range_wt / 2)
 
 			nn.init.uniform_(self.weight_iv, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.orthogonal_(self.weight_iv)
 
 			wt_mean = 1 / ((self.dt ** 2) * self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m))) # for whole layer sum
 			wt_var = 1 / ((self.dt ** 2) + self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m)))

@@ -108,7 +108,8 @@ class BNNFC(nn.Module):
 		self.input_linear = nn.Linear(in_features = in_size, out_features = hid_size, bias = True)
 		self.rec_linear = nn.Linear(in_features = hid_size, out_features = hid_size, bias = True)
 		self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-		self.neuron_layer = BNNC(input_size = hid_size + in_size, hidden_size = hid_size, bias = True)
+		# self.neuron_layer = BNNC(input_size = hid_size + in_size, hidden_size = hid_size, bias = True)
+		self.neuron_layer = BNNC(input_size = out_size + in_size, hidden_size = hid_size, bias = True)
 
 		self.batchnorm_neuron = nn.BatchNorm1d(num_features = hid_size + in_size)
 		# self.batchnorm_output = nn.BatchNorm1d(num_features = hid_size)
@@ -122,7 +123,7 @@ class BNNFC(nn.Module):
 
 		self.reset_state()
 
-	def forward(self, input):
+	def forward(self, input, target=None):
 		"""
 		Propagates input through network.
 
@@ -144,19 +145,26 @@ class BNNFC(nn.Module):
 		for step in range(nsteps):
 			x = input[:, step, :]
 			# x = self.input_linear(x)
-			x = torch.cat((x, self.firing), dim = -1) # input to neuron including recurrence
+			if target is None:
+				x = torch.cat((x, self.last_output), dim=-1)
+			else:
+				x = torch.cat((x, target[:,step,:]), dim=-1)
+			# x = torch.cat((x, self.firing), dim = -1) # input to neuron including recurrence
 			# x = self.batchnorm_neuron(x)
 
 			# h, c = self.neuron_layer(torch.squeeze(x,1), (h,c))
 			self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent)
 			x = self.output_linear(self.firing)
 			outputs[:, step, :] = x
+			self.last_output = x
 			# outputs.append(x)
 		return outputs
 
 	def reset_state(self, batch_size = 1):
 		self.batch_size = batch_size
 
+		self.last_output = torch.zeros((self.batch_size, self.out_size))
+		
 		self.firing = torch.zeros((self.batch_size, self.hid_size))
 		self.voltage = torch.zeros((self.batch_size, self.hid_size))
 		self.syncurrent = torch.zeros((self.batch_size, self.hid_size))

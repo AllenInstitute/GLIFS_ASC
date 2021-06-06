@@ -649,7 +649,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         training_info["init_outputs"] = init_outputs
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=1)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=1)
     loss_fn = nn.MSELoss()
     # loss_fn = nn.SmoothL1Loss()
     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
@@ -704,9 +704,9 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                         # plt.show()
 
                 # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
-                outputs = model(inputs)
+                outputs = model(inputs, targets)
                 outputs = outputs[:, -nsteps:, :]
-                print(outputs.shape)
+                # print(outputs.shape)
                 # plt.plot(outputs[0,:,0].detach().numpy())
                 # plt.plot(targets[0,:,0].detach().numpy())
                 # plt.show()
@@ -739,7 +739,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
 
                 optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
-                # scheduler.step()
+                scheduler.step()
                 
                 tot_loss += loss.item()
                 loss_batch.append(loss.item() / len(targets))
@@ -766,6 +766,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
         if glifr and epoch % 10 == 0:
+            print(torch.mean(model.neuron_layer.ln_k_m.grad))
+            print(torch.mean(model.neuron_layer.thresh.grad))
+            print(torch.mean(model.neuron_layer.ln_asc_k.grad))
+            print(torch.mean(model.neuron_layer.asc_amp.grad))
             training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["asc_k_grads"].append([model.neuron_layer.ln_asc_k.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
