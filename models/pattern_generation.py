@@ -170,9 +170,6 @@ def main():
 	batch_size = 5
 
 	inputs, targets = ut.create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size = input_size)
-	# inputs, _, _, targets = ut.generate_click_task_data(batch_size, seq_len, n_neuron, recall_duration, p_group, f0=0.5,
-    #                          n_cues=7, t_cue=100, t_interval=150,
-    #                          n_input_symbols=4)
 	traindataset = ut.create_dataset(inputs, targets, input_size)
 
 	# traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
@@ -190,7 +187,7 @@ def main():
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]
-	# training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
+	#training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
 	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn)
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
@@ -199,18 +196,38 @@ def main():
 
 	# Plot outputs
 
-	# ut.plot_predictions(model, int(sim_time / dt), batch_size)
-	# plt.savefig("figures/" + base_name + "_final_outputs")
-	# plt.close()
+	#ut.plot_predictions(model, int(sim_time / dt), batch_size)
+	#plt.savefig("figures/" + base_name + "_final_outputs")
+	#plt.close()
 
 
 	final_outputs = training_info["final_outputs"]
 
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-		plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-	# plt.legend()
+	    plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+	    plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# # plt.legend()
 	plt.savefig("figures/" + base_name + "_final_outputs")
+	plt.close()
+
+	# final_outputs_driven = training_info["final_outputs_driven"]
+	# for i in range(num_freqs):
+	# 	plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+	# 	plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# # plt.legend()
+	# plt.xlabel("time (ms)")
+	# plt.ylabel("firing rate (1/ms)")
+	# plt.savefig("figures/" + base_name + "_final_outputs_driven")
+	# plt.close()
+
+	init_outputs = training_info["init_outputs"]
+	for i in range(num_freqs):
+	    plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+	    plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# plt.legend()
+	plt.xlabel("time (ms)")
+	plt.ylabel("firing rate (1/ms)")
+	plt.savefig("figures/" + base_name + "_init_outputs")
 	plt.close()
 
 	final_outputs_driven = training_info["final_outputs_driven"]
