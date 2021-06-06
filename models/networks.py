@@ -157,6 +157,7 @@ class BNNFC(nn.Module):
 			x = self.output_linear(self.firing)
 			outputs[:, step, :] = x
 			self.last_output = x
+			self.voltages.append(self.voltage)
 			# outputs.append(x)
 		return outputs
 
@@ -164,6 +165,7 @@ class BNNFC(nn.Module):
 		self.batch_size = batch_size
 
 		self.last_output = torch.zeros((self.batch_size, self.out_size))
+		self.voltages = []
 		
 		self.firing = torch.zeros((self.batch_size, self.hid_size))
 		self.voltage = torch.zeros((self.batch_size, self.hid_size))

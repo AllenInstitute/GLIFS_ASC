@@ -143,7 +143,7 @@ def main():
 	# plt.show()
 	
 	# quit()
-	main_name = "smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+	main_name = "smnist_brnn_lastaspred"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 	base_name = "figures_wkof_051621/" + main_name
 	base_name_save = "traininfo_wkof_051621/" + main_name
 	base_name_model = "models_wkof_051621/" + main_name
@@ -185,7 +185,7 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 10
+	num_epochs = 20
 	lr = 0.001#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 

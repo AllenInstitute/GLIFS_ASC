@@ -148,20 +148,20 @@ def main():
 	base_name_save = "traininfo_wkof_051621/" + main_name
 	base_name_model = "models_wkof_051621/" + main_name
 
-	use_rnn = False
-	hid_size = 200
+	use_rnn = True
+	hid_size = 1
 	input_size = 1
 	output_size = 1
 
 	# Generate freqs
-	num_freqs = 10
+	num_freqs = 1
 	freq_min = 0.08#0.001
 	freq_max = 0.6
 
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 100
+	sim_time = 5
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
@@ -182,8 +182,8 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 500
-	lr = 0.005#0.0025#0.0025#25#1#25
+	num_epochs = 1000
+	lr = 0.001#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]
