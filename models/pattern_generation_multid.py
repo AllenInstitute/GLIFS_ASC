@@ -42,7 +42,8 @@ def main():
 	base_name_model = "models_wkof_053021/" + main_name
 
 	use_rnn = False
-	hid_size = 64#128
+
+	hid_size = 64
 	input_size = 8#8
 	output_size = 5
 
