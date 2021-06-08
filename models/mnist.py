@@ -167,7 +167,7 @@ def main():
 	# noise_mean = 0
 	# noise_std = 0
 
-	batch_size = 100
+	batch_size = 512
 
 	# inputs, targets = ut.create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size = input_size)
 	# # inputs, _, _, targets = ut.generate_click_task_data(batch_size, seq_len, n_neuron, recall_duration, p_group, f0=0.5,
@@ -185,8 +185,8 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 20
-	lr = 0.001#0.0025#0.0025#25#1#25
+	num_epochs = 200
+	lr = 1e-8#0.001#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]
