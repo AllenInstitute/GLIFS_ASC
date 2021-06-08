@@ -102,7 +102,7 @@ class BNNFC(nn.Module):
 	out_size : int
 		number of outputs
 	"""
-	def __init__(self, in_size, hid_size, out_size):
+	def __init__(self, in_size, hid_size, out_size, dt=0.05):
 		super().__init__()
 
 		self.input_linear = nn.Linear(in_features = in_size, out_features = hid_size, bias = True)
@@ -119,6 +119,7 @@ class BNNFC(nn.Module):
 		self.out_size = out_size
 
 		self.num_ascs = self.neuron_layer.num_ascs
+		self.dt = dt
 
 
 		self.reset_state()
@@ -140,13 +141,15 @@ class BNNFC(nn.Module):
 		assert(in_size == self.in_size), f"input has {in_size} size but network accepts {self.in_size} inputs"
 
 		# outputs = []
+		delay = int(1 / self.dt)
 		outputs = torch.empty((self.batch_size, nsteps, self.out_size))
+		outputs_ = [torch.zeros((self.batch_size, self.out_size)) for i in range(delay)]
 		
 		for step in range(nsteps):
 			x = input[:, step, :]
 			# x = self.input_linear(x)
 			if target is None:
-				x = torch.cat((x, self.last_output), dim=-1)
+				x = torch.cat((x, outputs_[-delay]), dim=-1)
 			else:
 				x = torch.cat((x, target[:,step,:]), dim=-1)
 			# x = torch.cat((x, self.firing), dim = -1) # input to neuron including recurrence
@@ -158,6 +161,7 @@ class BNNFC(nn.Module):
 			outputs[:, step, :] = x
 			self.last_output = x
 			self.voltages.append(self.voltage)
+			outputs_.append(x)
 			# outputs.append(x)
 		return outputs
 

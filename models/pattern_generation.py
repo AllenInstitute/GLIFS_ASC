@@ -143,29 +143,29 @@ def main():
 	# plt.show()
 	
 	# quit()
-	main_name = "test"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-	base_name = "figures_wkof_051621/" + main_name
-	base_name_save = "traininfo_wkof_051621/" + main_name
-	base_name_model = "models_wkof_051621/" + main_name
+	main_name = "brnn_patterngen_10sines_128unit"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+	base_name = "figures_wkof_053021/" + main_name
+	base_name_save = "traininfo_wkof_053021/" + main_name
+	base_name_model = "models_wkof_053021/" + main_name
 
-	use_rnn = True
-	hid_size = 1
+	use_rnn = False
+	hid_size = 128
 	input_size = 1
 	output_size = 1
 
 	# Generate freqs
-	num_freqs = 1
-	freq_min = 0.08#0.001
+	num_freqs = 10
+	freq_min = 0.01#01
 	freq_max = 0.6
 
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 5
+	sim_time = 20
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
-	noise_std = 0
+	noise_std = 0.005
 
 	batch_size = 5
 
@@ -180,15 +180,15 @@ def main():
 		model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	else:
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
+	# model.load_state_dict(torch.load("saved_models/models_wkof_053021/brnn_patterngen.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 1000
-	lr = 0.001#0.0025#0.0025#25#1#25
+	num_epochs = 1500
+	lr = 0.0025*(0.995**300)#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]
 	#training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
-	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn)
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, decay=False, task="pattern")
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 
@@ -204,8 +204,9 @@ def main():
 	final_outputs = training_info["final_outputs"]
 
 	for i in range(num_freqs):
-	    plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-	    plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+		print(len(final_outputs))
+		plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
 	# # plt.legend()
 	plt.savefig("figures/" + base_name + "_final_outputs")
 	plt.close()
@@ -222,8 +223,8 @@ def main():
 
 	init_outputs = training_info["init_outputs"]
 	for i in range(num_freqs):
-	    plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-	    plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
 	# plt.legend()
 	plt.xlabel("time (ms)")
 	plt.ylabel("firing rate (1/ms)")
@@ -232,7 +233,7 @@ def main():
 
 	final_outputs_driven = training_info["final_outputs_driven"]
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
 		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
 	# plt.legend()
 	plt.xlabel("time (ms)")
@@ -242,7 +243,7 @@ def main():
 
 	init_outputs = training_info["init_outputs"]
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
 		plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
 	plt.legend()
 	plt.xlabel("time (ms)")
@@ -252,7 +253,7 @@ def main():
 
 	init_outputs_driven = training_info["init_outputs_driven"]
 	for i in range(num_freqs):
-		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, init_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, init_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
 		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
 	plt.legend()
 	plt.xlabel("time (ms)")
@@ -272,13 +273,13 @@ def main():
 
 	if not use_rnn:
 		i = -1
-		for name in ["threshes", "k_ms", "asc_amps", "asc_rs", "asc_ks"]:
+		for name in ["asc_amps", "asc_rs", "asc_ks", "threshes", "k_ms"]:
 			print(name)
 			i += 1
 			_, l = np.array(training_info[name]).shape
 			for j in range(l):
 				plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
-		plt.legend()
+		# plt.legend()
 		plt.xlabel('epoch')
 		plt.ylabel('parameter')
 		plt.savefig("figures/" + base_name + "_parameters")
@@ -292,7 +293,7 @@ def main():
 			_, l = np.array(training_info[name]).shape
 			for j in range(l):
 				plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
-		plt.legend()
+		# plt.legend()
 		plt.xlabel('epoch')
 		plt.ylabel('parameter')
 		plt.savefig("figures/" + base_name + "_parameter_grads")

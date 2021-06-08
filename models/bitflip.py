@@ -1,5 +1,5 @@
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 # author: @chloewin
 # 03/07/21
@@ -36,36 +36,23 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	main_name = "5dsine_brnn_short060621_20ms_lowersigmav5"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+	main_name = "3bit"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 	base_name = "figures_wkof_053021/" + main_name
 	base_name_save = "traininfo_wkof_053021/" + main_name
 	base_name_model = "models_wkof_053021/" + main_name
 
-	use_rnn = False
-	hid_size = 64#128
-	input_size = 8#8
-	output_size = 5
-
-	# Generate freqs
-	num_freqs = output_size
-	freq_min = 0.08#0.001
-	freq_max = 0.6
-
-	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
+	use_rnn = True
+	hid_size = 64
+	input_size = 3
+	output_size = 3
 
 	# Generate data
-	sim_time = 20
+	sim_time = 2056 * 0.05
 	dt = 0.05
-	amp = 1
-	noise_mean = 0
-	noise_std = 0
+	
+	batch_size = 256
 
-	batch_size = 1
-
-	inputs, targets = ut.create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size)
-	traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
-
-	# # traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
+	traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=2048)
 
 	# # Generate model
 	# delay = int(0.5 / dt)
@@ -73,41 +60,22 @@ def main():
 		model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	else:
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-	# model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
+	# model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 1500
-	lr = 0.005#0.00025#0.0025#0.0025#25#1#25
-	reg_lambda = 1500
+	num_epochs = 20
+	lr = 0.0025
 
 	# num_epochss = [200,100,50,10,1,1]
-	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, task = "pattern_multid", decay=False)
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, glifr = not use_rnn)
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 
 	colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green", "lightgreen"]
 
 	# Plot outputs
-	final_outputs = training_info["final_outputs"]
 
-	for i in range(num_freqs):
-		# print(final_outputs[i].shape)
-		plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, final_outputs[i][0,:].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-		plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, targets[:,:, i], '--', c = colors[i % len(colors)])
-	# plt.legend()
-	plt.xlabel("time (ms)")
-	plt.ylabel("firing rate (1/ms)")
+	ut.plot_predictions(model, int(sim_time / dt), batch_size)
 	plt.savefig("figures/" + base_name + "_final_outputs")
-	plt.close()
-
-
-	init_outputs = training_info["init_outputs"]
-	for i in range(num_freqs):
-		plt.plot(np.arange(len(init_outputs[i][0,:])) * dt, init_outputs[i][0,:].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-		plt.plot(np.arange(len(init_outputs[i][0,:])) * dt, targets[:, :, i], '--', c = colors[i % len(colors)])
-	# plt.legend()
-	plt.xlabel("time (ms)")
-	plt.ylabel("firing rate (1/ms)")
-	plt.savefig("figures/" + base_name + "_init_outputs")
 	plt.close()
 
 	# Plot losses
