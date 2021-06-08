@@ -42,7 +42,7 @@ def main():
 	base_name_model = main_name#"models_wkof_053021/" + main_name
 
 	use_rnn = False
-	hid_size = 200#128
+	hid_size = 500#128
 	input_size = 8#8
 	output_size = 3
 
@@ -75,8 +75,8 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 	# model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
-	num_epochs = 500
-	lr = 0.0005#0.0025#0.0025#25#1#25
+	num_epochs = 5000
+	lr = 0.0015#0.0025#0.0025#25#1#25
 	reg_lambda = 1500
 
 	# num_epochss = [200,100,50,10,1,1]
