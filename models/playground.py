@@ -44,7 +44,7 @@ def plot_overall_response(model):
     dt = 0.05
     nsteps = int(sim_time / dt)
 
-    num_freqs = 5#8
+    num_freqs = 3#8
     freq_min = 0.08#01
     freq_max = 0.6
     
@@ -110,10 +110,10 @@ def plot_responses(model):
 
 input_size = 8
 hid_size = 64
-output_size = 5
+output_size = 3
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_053021/5dsine_brnn_short060621_20ms_lowersigmav.pt"))
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/3dsine_brnn_short060621_10ms_nogamma.pt"))
 
 plot_overall_response(model_glif)
 
@@ -142,17 +142,17 @@ plot_overall_response(model_glif)
 # model_glif.load_state_dict(torch.load("saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_agn_nodivstart.pt"))
 
 # plot_overall_response(model_glif)
-
+# print(torch.exp(model_glif.neuron_layer.ln_k_m).shape)
 plt.hist(torch.exp(model_glif.neuron_layer.ln_k_m[0,:]).detach().numpy(), color = 'k')
 plt.xlabel('k_m', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
-plt.xlim([0,0.05])
+# plt.xlim([0,0.05])
 plt.show()
 
 plt.hist(model_glif.neuron_layer.thresh[0,:].detach().numpy(), color = 'k')
 plt.xlabel('threshold', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
-plt.xlim([-0.5,0.5])
+# plt.xlim([-0.5,0.5])
 plt.show()
 
 plt.hist(torch.cat((model_glif.neuron_layer.asc_amp[0, 0,:], model_glif.neuron_layer.asc_amp[1, 0,:]), axis = 0).detach().numpy(), color = 'k', bins = 50)

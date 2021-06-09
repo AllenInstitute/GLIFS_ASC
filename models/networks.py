@@ -173,6 +173,7 @@ class BNNFC(nn.Module):
 		
 		self.firing = torch.zeros((self.batch_size, self.hid_size))
 		self.voltage = torch.zeros((self.batch_size, self.hid_size))
+		self.voltage = self.neuron_layer.v_reset + (self.neuron_layer.thresh - self.neuron_layer.v_reset) * torch.rand((self.batch_size, self.hid_size))
 		self.syncurrent = torch.zeros((self.batch_size, self.hid_size))
 		self.ascurrents = torch.zeros((self.num_ascs, self.batch_size, self.hid_size))
 

@@ -914,6 +914,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         training_info["init_outputs"] = init_outputs
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.4)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.99)
     loss_fn = nn.MSELoss()
     # loss_fn = nn.SmoothL1Loss()
@@ -991,6 +992,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 # if glifr:
                 #     loss = loss + km_reg(model, reg_lambda)
                 loss.backward()
+                # torch.nn.utils.clip_grad_norm(model.parameters(),clip=1)
                 
                 if glifr:
                     with torch.no_grad():
