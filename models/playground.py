@@ -44,7 +44,7 @@ def plot_overall_response(model):
     dt = 0.05
     nsteps = int(sim_time / dt)
 
-    num_freqs = 3#8
+    num_freqs = 10#8
     freq_min = 0.08#01
     freq_max = 0.6
     
@@ -79,7 +79,7 @@ def plot_responses(model):
     sim_time = 30
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = torch.ones(1, nsteps, output_size + input_size)
+    input = 1000 * torch.ones(1, nsteps, output_size + input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -110,10 +110,10 @@ def plot_responses(model):
 
 input_size = 8
 hid_size = 64
-output_size = 3
+output_size = 10
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/3dsine_brnn_short060621_10ms_nogamma.pt"))
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/10dsine_brnn_short060621_10ms_nogamma.pt"))
 
 plot_overall_response(model_glif)
 
@@ -143,13 +143,19 @@ plot_overall_response(model_glif)
 
 # plot_overall_response(model_glif)
 # print(torch.exp(model_glif.neuron_layer.ln_k_m).shape)
-plt.hist(torch.exp(model_glif.neuron_layer.ln_k_m[0,:]).detach().numpy(), color = 'k')
+plt.hist(torch.exp(model_glif.neuron_layer.ln_k_m[0,:]).detach().numpy(), color = 'k', bins=50)
 plt.xlabel('k_m', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
 # plt.xlim([0,0.05])
 plt.show()
 
-plt.hist(model_glif.neuron_layer.thresh[0,:].detach().numpy(), color = 'k')
+# plt.hist(torch.exp(model_glif.neuron_layer.ln_k_syn[0,:]).detach().numpy(), color = 'k', bins=50)
+# plt.xlabel('k_syn', fontsize = fontsize)
+# plt.ylabel('counts', fontsize = fontsize)
+# # plt.xlim([0,0.05])
+# plt.show()
+
+plt.hist(model_glif.neuron_layer.thresh[0,:].detach().numpy(), color = 'k', bins=50)
 plt.xlabel('threshold', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
 # plt.xlim([-0.5,0.5])
@@ -171,5 +177,5 @@ plt.ylabel('counts', fontsize = fontsize)
 plt.show()
 
 # print(torch.mean(model_glif.neuron_layer.weight_iv))
-# nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.0001)
+nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.0001)
 plot_responses(model_glif)

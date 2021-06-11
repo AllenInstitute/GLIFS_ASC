@@ -29,7 +29,9 @@ class BNNC(nn.Module):
 
 		self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
 		ln_k_m = math.log(.05)#0.01)
+		ln_k_syn = math.log(0.005)
 		self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+		# self.ln_k_syn = Parameter(ln_k_syn * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
 		asc_amp = (-1, 1)
 		asc_r = (1,-1)
 		# self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
@@ -42,10 +44,12 @@ class BNNC(nn.Module):
 		self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp), 1, hidden_size), dtype=torch.float) + 0 *  torch.randn((len(asc_amp), 1, hidden_size), dtype=torch.float), requires_grad=True)		
 		# nn.init.uniform_(self.ln_asc_k, -.2, .3)
 		nn.init.normal_(self.asc_r, 0, 0.01)
-		nn.init.normal_(self.asc_amp, 0, .01)
+		nn.init.normal_(self.asc_amp, 0, 0.01)
+		# nn.init.constant_(self.asc_r, 1)
+		# nn.init.constant_(self.asc_amp, 1)
 		# nn.init.normal_(self.thresh, 0, .01)
 
-		self.v_reset =0#Parameter(torch.randn((1, hidden_size), dtype=torch.float))
+		self.v_reset = 0#Parameter(torch.zeros((1, hidden_size), dtype=torch.float), requires_grad=True)
 		
 
 		self.sigma_v = 1
@@ -103,7 +107,7 @@ class BNNC(nn.Module):
 	
 	def forward(self, x, firing, voltage, ascurrent, syncurrent):
 		# 1.5, -0.5 for lnasck
-		syncurrent = x @ self.weight_iv
+		syncurrent = x @ self.weight_iv# + (1 - self.dt * torch.exp(self.ln_k_syn)) * syncurrent
 		ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
 		# ascurrent = ascurrent * 0
 		voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * torch.sum(ascurrent, dim=0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
