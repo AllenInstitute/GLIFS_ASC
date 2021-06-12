@@ -48,9 +48,9 @@ def main():
             base_name_model = "models_wkof_053021/" + main_name
 
         use_rnn = False
-        hid_size = 3
+        hid_size = 16#64
         input_size = 3
-        output_size = 16#64
+        output_size = 3
 
         # Generate data
         sim_time = 512 * 0.05 #2056 * 0.05

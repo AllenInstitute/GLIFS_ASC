@@ -36,6 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
+<<<<<<< HEAD
         # sim_time = 4
         # dt = 0.05
         # nsteps = int(sim_time / dt)
@@ -120,32 +121,10 @@ def main():
         # plt.show()
 
         # plt.plot(np.arange(len(outputs[0])) * dt, outputs[0,:,0].detach().numpy(), label = 'learned')
-        # plt.plot(np.arange(len(targets[0])) * dt, targets[0,:,0].detach().numpy(), label = 'target')
-        # plt.plot(np.arange(len(initials[0])) * dt, initials[0,:,0].detach().numpy(), label = 'initial')
-        # plt.xticks(fontsize = fontsize - 2)
-        # plt.yticks(fontsize = fontsize - 2)
-        # plt.xlabel('time (ms)', fontsize = fontsize)
-        # plt.ylabel('firing rate', fontsize = fontsize)
-        # plt.legend(fontsize = fontsize)
-        # plt.show()
-
-        # plt.plot(k_ms, label = 'k_m')
-        # plt.plot(threshes, label = 'thresh')
-        # plt.plot(asc_rs, label ='asc_r')
-        # plt.plot(asc_ks, label = 'asc_k')
-        # plt.plot(asc_amps, label = 'asc_amp')
-        # plt.plot(weights, label = 'weight')
-        # plt.xticks(fontsize = fontsize - 2)
-        # plt.yticks(fontsize = fontsize - 2)
-        # plt.xlabel('epoch #', fontsize = fontsize)
-        # plt.ylabel('difference from target', fontsize = fontsize)
-        # plt.legend()
-        # plt.show()
-        
-        # quit()
+        # plt.plot(np.arange(len(targets[0])) * dt, targets[0,:,0].
 
         on_server = True
-        main_name = "brnn_patterngen_10sines_128unit_newinit_morefreqs"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "brnn_patterngen_10sines_128unit_100ms_newinit_morefreqs_wreg"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         if on_server:
             base_name = main_name
             base_name_save = main_name
@@ -158,171 +137,171 @@ def main():
         use_rnn = False
         hid_size = 128
         input_size = 1
-        output_size = 1
-
+	
         # Generate freqs
-        num_freqs = 20
-        freq_min = 0.01#01
-        freq_max = 0.6
+	num_freqs = 10
+	freq_min = 0.01#01
+	freq_max = 0.6
 
-        freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
+	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
-        # Generate data
-        sim_time = 10
-        dt = 0.05
-        amp = 1
-        noise_mean = 0
-        noise_std = 0
+	# Generate data
+	sim_time = 100
+	dt = 0.05
+	amp = 1
+	noise_mean = 0
+	noise_std = 0.005
 
-        batch_size = 10
+	batch_size = 5
 
-        inputs, targets = ut.create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size = input_size)
-        traindataset = ut.create_dataset(inputs, targets, input_size)
+	inputs, targets = ut.create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size = input_size)
+	traindataset = ut.create_dataset(inputs, targets, input_size)
 
-        # traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
+	# traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
 
-        # # Generate model
-        # delay = int(0.5 / dt)
-        if use_rnn:
-                model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-        else:
-                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-        # model.load_state_dict(torch.load("saved_models/models_wkof_053021/brnn_patterngen.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
-        # Train model
-        num_epochs = 1500
-        lr = 0.0005#*(0.995**300)#0.0025#0.0025#25#1#25
-        reg_lambda = 1500
+	# # Generate model
+	# delay = int(0.5 / dt)
+	if use_rnn:
+		model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+	else:
+		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+	# model.load_state_dict(torch.load("saved_models/models_wkof_053021/brnn_patterngen.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
+	# Train model
+	num_epochs = 1500
+	lr = 0.01#*(0.995**300)#0.0025#0.0025#25#1#25
+	reg_lambda = 0.01
 
-        # num_epochss = [200,100,50,10,1,1]
-        #training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
-        training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, decay=False, task="pattern")
+	# num_epochss = [200,100,50,10,1,1]
+	#training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, decay=False, task="pattern", lbfgs=True)
 
-        torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
+	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 
-        colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green", "lightgreen"]
+	colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green", "lightgreen"]
 
-        # Plot outputs
+	# Plot outputs
 
-        #ut.plot_predictions(model, int(sim_time / dt), batch_size)
-        #plt.savefig("figures/" + base_name + "_final_outputs")
-        #plt.close()
+	#ut.plot_predictions(model, int(sim_time / dt), batch_size)
+	#plt.savefig("figures/" + base_name + "_final_outputs")
+	#plt.close()
 
 
-        final_outputs = training_info["final_outputs"]
+	final_outputs = training_info["final_outputs"]
 
-        for i in range(num_freqs):
-                print(len(final_outputs))
-                plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
-                plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-        # # plt.legend()
-        plt.savefig("figures/" + base_name + "_final_outputs")
-        plt.close()
+	for i in range(num_freqs):
+		print(len(final_outputs))
+		plt.plot(np.arange(len(final_outputs[i][0])) * dt, final_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(final_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# # plt.legend()
+	plt.savefig("figures/" + base_name + "_final_outputs")
+	plt.close()
 
-        # final_outputs_driven = training_info["final_outputs_driven"]
-        # for i in range(num_freqs):
-        #       plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-        #       plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-        # # plt.legend()
-        # plt.xlabel("time (ms)")
-        # plt.ylabel("firing rate (1/ms)")
-        # plt.savefig("figures/" + base_name + "_final_outputs_driven")
-        # plt.close()
+	# final_outputs_driven = training_info["final_outputs_driven"]
+	# for i in range(num_freqs):
+	# 	plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
+	# 	plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# # plt.legend()
+	# plt.xlabel("time (ms)")
+	# plt.ylabel("firing rate (1/ms)")
+	# plt.savefig("figures/" + base_name + "_final_outputs_driven")
+	# plt.close()
 
-        init_outputs = training_info["init_outputs"]
-        for i in range(num_freqs):
-                plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
-                plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-        # plt.legend()
-        plt.xlabel("time (ms)")
-        plt.ylabel("firing rate (1/ms)")
-        plt.savefig("figures/" + base_name + "_init_outputs")
-        plt.close()
+	init_outputs = training_info["init_outputs"]
+	for i in range(num_freqs):
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# plt.legend()
+	plt.xlabel("time (ms)")
+	plt.ylabel("firing rate (1/ms)")
+	plt.savefig("figures/" + base_name + "_init_outputs")
+	plt.close()
 
-        final_outputs_driven = training_info["final_outputs_driven"]
-        for i in range(num_freqs):
-                plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
-                plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-        # plt.legend()
-        plt.xlabel("time (ms)")
-        plt.ylabel("firing rate (1/ms)")
-        plt.savefig("figures/" + base_name + "_final_outputs_driven")
-        plt.close()
+	final_outputs_driven = training_info["final_outputs_driven"]
+	for i in range(num_freqs):
+		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	# plt.legend()
+	plt.xlabel("time (ms)")
+	plt.ylabel("firing rate (1/ms)")
+	plt.savefig("figures/" + base_name + "_final_outputs_driven")
+	plt.close()
 
-        init_outputs = training_info["init_outputs"]
-        for i in range(num_freqs):
-                plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
-                plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-        plt.legend()
-        plt.xlabel("time (ms)")
-        plt.ylabel("firing rate (1/ms)")
-        plt.savefig("figures/" + base_name + "_init_outputs")
-        plt.close()
+	init_outputs = training_info["init_outputs"]
+	for i in range(num_freqs):
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, init_outputs[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(init_outputs[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	plt.legend()
+	plt.xlabel("time (ms)")
+	plt.ylabel("firing rate (1/ms)")
+	plt.savefig("figures/" + base_name + "_init_outputs")
+	plt.close()
 
-        init_outputs_driven = training_info["init_outputs_driven"]
-        for i in range(num_freqs):
-                plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, init_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
-                plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
-        plt.legend()
-        plt.xlabel("time (ms)")
-        plt.ylabel("firing rate (1/ms)")
-        plt.savefig("figures/" + base_name + "_init_outputs_driven")
-        plt.close()
+	init_outputs_driven = training_info["init_outputs_driven"]
+	for i in range(num_freqs):
+		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, init_outputs_driven[i][0,:,0].detach().numpy(), c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+		plt.plot(np.arange(len(init_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+	plt.legend()
+	plt.xlabel("time (ms)")
+	plt.ylabel("firing rate (1/ms)")
+	plt.savefig("figures/" + base_name + "_init_outputs_driven")
+	plt.close()
 
-        # Plot losses
-        plt.plot(training_info["losses"])
-        plt.xlabel("epoch #")
-        plt.ylabel("loss")
-        plt.savefig("figures/" + base_name + "_losses")
-        plt.close()
-        torch.save(training_info["losses"], "traininfo/" + base_name_save + "_losses.pt")
+	# Plot losses
+	plt.plot(training_info["losses"])
+	plt.xlabel("epoch #")
+	plt.ylabel("loss")
+	plt.savefig("figures/" + base_name + "_losses")
+	plt.close()
+	torch.save(training_info["losses"], "traininfo/" + base_name_save + "_losses.pt")
 
-        colors = ["sienna", "gold", "chartreuse", "darkgreen", "lightseagreen", "deepskyblue", "blue", "darkorchid", "plum", "darkorange", "fuchsia", "tomato", "cyan", "greenyellow", "cornflowerblue", "limegreen", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen"]
+	colors = ["sienna", "gold", "chartreuse", "darkgreen", "lightseagreen", "deepskyblue", "blue", "darkorchid", "plum", "darkorange", "fuchsia", "tomato", "cyan", "greenyellow", "cornflowerblue", "limegreen", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen"]
 
-        if not use_rnn:
-                i = -1
-                for name in ["asc_amps", "asc_rs", "asc_ks", "threshes", "k_ms"]:
-                        print(name)
-                        i += 1
-                        _, l = np.array(training_info[name]).shape
-                        for j in range(l):
-                                plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
-                # plt.legend()
-                plt.xlabel('epoch')
-                plt.ylabel('parameter')
-                plt.savefig("figures/" + base_name + "_parameters")
-                plt.close()
-        
-        if not use_rnn:
-                i = -1
-                for name in []:#["thresh_grads", "k_m_grads", "asc_amp_grads", "asc_r_grads"]:
-                        print(name)
-                        i += 1
-                        _, l = np.array(training_info[name]).shape
-                        for j in range(l):
-                                plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
-                # plt.legend()
-                plt.xlabel('epoch')
-                plt.ylabel('parameter')
-                plt.savefig("figures/" + base_name + "_parameter_grads")
-                plt.close()
-        
-                # names = ["input_linear", "rec_linear", "output_linear"]
-                # i = 0
-                # for i in range(3):
-                #       i += 1
-                #       name = names[i]
-                #       _, l = np.array(training_info["weights"][i]).shape
-                #       for j in range(l):
-                #               plt.plot(np.array(training_info["weights"][i])[:, j], color = colors[i], label = name if j == 0 else "")
-                # plt.legend()
-                # plt.xlabel('epoch')
-                # plt.ylabel('parameter')
-                # plt.savefig("figures/" + base_name + "_weights")
-                # plt.close()
-        
-        # torch.save(training_info["losses"], "traininfo/" + base_name_save + "_losses.pt")
-        with open("traininfo/" + base_name_save + ".pickle", 'wb') as handle:
-                pickle.dump(training_info, handle)
+	if not use_rnn:
+		i = -1
+		for name in ["asc_amps", "asc_rs", "asc_ks", "threshes", "k_ms"]:
+			print(name)
+			i += 1
+			_, l = np.array(training_info[name]).shape
+			for j in range(l):
+				plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
+		# plt.legend()
+		plt.xlabel('epoch')
+		plt.ylabel('parameter')
+		plt.savefig("figures/" + base_name + "_parameters")
+		plt.close()
+	
+	if not use_rnn:
+		i = -1
+		for name in ["thresh_grads", "k_m_grads", "asc_amp_grads", "asc_r_grads"]:
+			print(name)
+			i += 1
+			_, l = np.array(training_info[name]).shape
+			for j in range(l):
+				plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
+		# plt.legend()
+		plt.xlabel('epoch')
+		plt.ylabel('parameter')
+		plt.savefig("figures/" + base_name + "_parameter_grads")
+		plt.close()
+	
+		# names = ["input_linear", "rec_linear", "output_linear"]
+		# i = 0
+		# for i in range(3):
+		# 	i += 1
+		# 	name = names[i]
+		# 	_, l = np.array(training_info["weights"][i]).shape
+		# 	for j in range(l):
+		# 		plt.plot(np.array(training_info["weights"][i])[:, j], color = colors[i], label = name if j == 0 else "")
+		# plt.legend()
+		# plt.xlabel('epoch')
+		# plt.ylabel('parameter')
+		# plt.savefig("figures/" + base_name + "_weights")
+		# plt.close()
+	
+	# torch.save(training_info["losses"], "traininfo/" + base_name_save + "_losses.pt")
+	with open("traininfo/" + base_name_save + ".pickle", 'wb') as handle:
+		pickle.dump(training_info, handle)
+>>>>>>> d82a63eb447122ea8a60be4a32f4672ca396388f
 
 if __name__ == '__main__':
         main()
