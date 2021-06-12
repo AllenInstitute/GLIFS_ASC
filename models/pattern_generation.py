@@ -36,124 +36,109 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	# sim_time = 4
-	# dt = 0.05
-	# nsteps = int(sim_time / dt)
+<<<<<<< HEAD
+        # sim_time = 4
+        # dt = 0.05
+        # nsteps = int(sim_time / dt)
 
-	# neuron = BNNC(input_size = 1, hidden_size = 1)
-	# nn.init.constant_(neuron.ln_k_m, math.log(0.1))
-	# nn.init.uniform_(neuron.thresh, -10, 10)
-	# # nn.init.uniform_(neuron.asc_amp, -2, 2)
-	# # nn.init.uniform_(neuron.asc_r, -2, 2)
-	# # nn.init.uniform_(neuron.ln_asc_k, -3, 3)
+        # neuron = BNNC(input_size = 1, hidden_size = 1)
+        # nn.init.constant_(neuron.ln_k_m, math.log(0.1))
+        # nn.init.uniform_(neuron.thresh, -10, 10)
+        # # nn.init.uniform_(neuron.asc_amp, -2, 2)
+        # # nn.init.uniform_(neuron.asc_r, -2, 2)
+        # # nn.init.uniform_(neuron.ln_asc_k, -3, 3)
 
-	# initials = torch.empty((1, nsteps, 1))
-	# input = torch.ones((1, nsteps, 1))
-	# firing = torch.zeros((1, 1))
-	# voltage = torch.zeros((1, 1))
-	# syncurrent = torch.zeros((1, 1))
-	# ascurrents = torch.zeros((2, 1, 1))
+        # initials = torch.empty((1, nsteps, 1))
+        # input = torch.ones((1, nsteps, 1))
+        # firing = torch.zeros((1, 1))
+        # voltage = torch.zeros((1, 1))
+        # syncurrent = torch.zeros((1, 1))
+        # ascurrents = torch.zeros((2, 1, 1))
 
-	# for step in range(nsteps):
-	# 	x = input[:, step, :]
-	# 	firing, voltage, ascurrents, syncurrent = neuron(x, firing, voltage, ascurrents, syncurrent)
-	# 	initials[:, step, :] = firing.detach()
+        # for step in range(nsteps):
+        #       x = input[:, step, :]
+        #       firing, voltage, ascurrents, syncurrent = neuron(x, firing, voltage, ascurrents, syncurrent)
+        #       initials[:, step, :] = firing.detach()
 
-	# neuron_init = BNNC(input_size = 1, hidden_size = 1)
-	# targets = torch.empty((1, nsteps, 1))
-	# input = torch.ones((1, nsteps, 1))
-	# firing = torch.zeros((1, 1))
-	# voltage = torch.zeros((1, 1))
-	# syncurrent = torch.zeros((1, 1))
-	# ascurrents = torch.zeros((2, 1, 1))
+        # neuron_init = BNNC(input_size = 1, hidden_size = 1)
+        # targets = torch.empty((1, nsteps, 1))
+        # input = torch.ones((1, nsteps, 1))
+        # firing = torch.zeros((1, 1))
+        # voltage = torch.zeros((1, 1))
+        # syncurrent = torch.zeros((1, 1))
+        # ascurrents = torch.zeros((2, 1, 1))
 
-	# for step in range(nsteps):
-	# 	x = input[:, step, :]
-	# 	firing, voltage, ascurrents, syncurrent = neuron_init(x, firing, voltage, ascurrents, syncurrent)
-	# 	targets[:, step, :] = firing.detach()
+        # for step in range(nsteps):
+        #       x = input[:, step, :]
+        #       firing, voltage, ascurrents, syncurrent = neuron_init(x, firing, voltage, ascurrents, syncurrent)
+        #       targets[:, step, :] = firing.detach()
 
-	# optimizer = torch.optim.Adam(neuron.parameters(), lr = 0.025)
-	# loss_fn = nn.MSELoss()
-	# losses = []
-	# k_ms = []
-	# threshes = []
-	# asc_rs = []
-	# asc_ks = []
-	# asc_amps = []
-	# weights = []
-	# for i in range(120):
-	# 	if i % 10 == 0:
-	# 		print(i)
-	# 	loss = 0.0
-	# 	optimizer.zero_grad()
-	# 	outputs = torch.empty((1, nsteps, 1))
-	# 	input = torch.ones((1, nsteps, 1))
-	# 	firing = torch.zeros((1, 1))
-	# 	voltage = torch.zeros((1, 1))
-	# 	syncurrent = torch.zeros((1, 1))
-	# 	ascurrents = torch.zeros((2, 1, 1))
+        # optimizer = torch.optim.Adam(neuron.parameters(), lr = 0.025)
+        # loss_fn = nn.MSELoss()
+        # losses = []
+        # k_ms = []
+        # threshes = []
+        # asc_rs = []
+        # asc_ks = []
+        # asc_amps = []
+        # weights = []
+        # for i in range(120):
+        #       if i % 10 == 0:
+        #               print(i)
+        #       loss = 0.0
+        #       optimizer.zero_grad()
+        #       outputs = torch.empty((1, nsteps, 1))
+        #       input = torch.ones((1, nsteps, 1))
+        #       firing = torch.zeros((1, 1))
+        #       voltage = torch.zeros((1, 1))
+        #       syncurrent = torch.zeros((1, 1))
+        #       ascurrents = torch.zeros((2, 1, 1))
 
-	# 	for step in range(nsteps):
-	# 		x = input[:, step, :]
-	# 		firing, voltage, ascurrents, syncurrent = neuron(x, firing, voltage, ascurrents, syncurrent)
-	# 		outputs[:, step, :] = firing
+        #       for step in range(nsteps):
+        #               x = input[:, step, :]
+        #               firing, voltage, ascurrents, syncurrent = neuron(x, firing, voltage, ascurrents, syncurrent)
+        #               outputs[:, step, :] = firing
 
 
-	# 	k_ms.append([torch.exp(neuron.ln_k_m[0,j]) - torch.exp(neuron_init.ln_k_m[0,j])  + 0.0 for j in range(1)])
-	# 	threshes.append([neuron.thresh[0,j] - neuron_init.thresh[0,j]  + 0.0 for j in range(1)])
-	# 	asc_ks.append([torch.exp(neuron.ln_asc_k[j,0,m]) - torch.exp(neuron_init.ln_asc_k[j,0,m])  + 0.0 for j in range(2) for m in range(1)])
-	# 	asc_amps.append([neuron.asc_amp[j,0,m] - neuron_init.asc_amp[j,0,m]  + 0.0 for j in range(2) for m in range(1)])
-	# 	asc_rs.append([neuron.asc_r[j,0,m] - neuron_init.asc_r[j,0,m] + 0.0 for j in range(2) for m in range(1)])
-	# 	weights.append([torch.mean(neuron.weight_iv[:,m] - neuron_init.weight_iv[:,m])  + 0.0 for m in range(1)])
+        #       k_ms.append([torch.exp(neuron.ln_k_m[0,j]) - torch.exp(neuron_init.ln_k_m[0,j])  + 0.0 for j in range(1)])
+        #       threshes.append([neuron.thresh[0,j] - neuron_init.thresh[0,j]  + 0.0 for j in range(1)])
+        #       asc_ks.append([torch.exp(neuron.ln_asc_k[j,0,m]) - torch.exp(neuron_init.ln_asc_k[j,0,m])  + 0.0 for j in range(2) for m in range(1)])
+        #       asc_amps.append([neuron.asc_amp[j,0,m] - neuron_init.asc_amp[j,0,m]  + 0.0 for j in range(2) for m in range(1)])
+        #       asc_rs.append([neuron.asc_r[j,0,m] - neuron_init.asc_r[j,0,m] + 0.0 for j in range(2) for m in range(1)])
+        #       weights.append([torch.mean(neuron.weight_iv[:,m] - neuron_init.weight_iv[:,m])  + 0.0 for m in range(1)])
 
-	# 	loss = loss + loss_fn(outputs, targets)
-	# 	loss.backward()
-	# 	optimizer.step()
-	# 	losses.append(loss.item())
+        #       loss = loss + loss_fn(outputs, targets)
+        #       loss.backward()
+        #       optimizer.step()
+        #       losses.append(loss.item())
 
-	# fontsize = 16
-	# plt.plot(losses)
-	# plt.xticks(fontsize = fontsize - 2)
-	# plt.yticks(fontsize = fontsize - 2)
-	# plt.xlabel('epoch #', fontsize = fontsize)
-	# plt.ylabel('MSE loss', fontsize = fontsize)
-	# plt.show()
+        # fontsize = 16
+        # plt.plot(losses)
+        # plt.xticks(fontsize = fontsize - 2)
+        # plt.yticks(fontsize = fontsize - 2)
+        # plt.xlabel('epoch #', fontsize = fontsize)
+        # plt.ylabel('MSE loss', fontsize = fontsize)
+        # plt.show()
 
-	# plt.plot(np.arange(len(outputs[0])) * dt, outputs[0,:,0].detach().numpy(), label = 'learned')
-	# plt.plot(np.arange(len(targets[0])) * dt, targets[0,:,0].detach().numpy(), label = 'target')
-	# plt.plot(np.arange(len(initials[0])) * dt, initials[0,:,0].detach().numpy(), label = 'initial')
-	# plt.xticks(fontsize = fontsize - 2)
-	# plt.yticks(fontsize = fontsize - 2)
-	# plt.xlabel('time (ms)', fontsize = fontsize)
-	# plt.ylabel('firing rate', fontsize = fontsize)
-	# plt.legend(fontsize = fontsize)
-	# plt.show()
+        # plt.plot(np.arange(len(outputs[0])) * dt, outputs[0,:,0].detach().numpy(), label = 'learned')
+        # plt.plot(np.arange(len(targets[0])) * dt, targets[0,:,0].
 
-	# plt.plot(k_ms, label = 'k_m')
-	# plt.plot(threshes, label = 'thresh')
-	# plt.plot(asc_rs, label ='asc_r')
-	# plt.plot(asc_ks, label = 'asc_k')
-	# plt.plot(asc_amps, label = 'asc_amp')
-	# plt.plot(weights, label = 'weight')
-	# plt.xticks(fontsize = fontsize - 2)
-	# plt.yticks(fontsize = fontsize - 2)
-	# plt.xlabel('epoch #', fontsize = fontsize)
-	# plt.ylabel('difference from target', fontsize = fontsize)
-	# plt.legend()
-	# plt.show()
+        on_server = True
+        main_name = "brnn_patterngen_10sines_128unit_100ms_newinit_morefreqs_wreg"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        if on_server:
+            base_name = main_name
+            base_name_save = main_name
+            base_name_model = main_name
+        else: 
+            base_name = "figures_wkof_060621/" + main_name
+            base_name_save = "traininfo_wkof_060621/" + main_name
+            base_name_model = "models_wkof_060621/" + main_name
+
+        use_rnn = False
+        hid_size = 128
+        input_size = 1
 	
-	# quit()
-	main_name = "brnn_patterngen_10sines_128unit_newinit_wreg"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-	base_name = "figures_wkof_060621/" + main_name
-	base_name_save = "traininfo_wkof_060621/" + main_name
-	base_name_model = "models_wkof_060621/" + main_name
-
-	use_rnn = False
-	hid_size = 128
-	input_size = 1
-	output_size = 1
-
-	# Generate freqs
+        # Generate freqs
 	num_freqs = 10
 	freq_min = 0.01#01
 	freq_max = 0.6
@@ -161,7 +146,7 @@ def main():
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 20
+	sim_time = 100
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
@@ -184,7 +169,7 @@ def main():
 	# Train model
 	num_epochs = 1500
 	lr = 0.01#*(0.995**300)#0.0025#0.0025#25#1#25
-	reg_lambda = 0
+	reg_lambda = 0.01
 
 	# num_epochss = [200,100,50,10,1,1]
 	#training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
@@ -316,6 +301,7 @@ def main():
 	# torch.save(training_info["losses"], "traininfo/" + base_name_save + "_losses.pt")
 	with open("traininfo/" + base_name_save + ".pickle", 'wb') as handle:
 		pickle.dump(training_info, handle)
+>>>>>>> d82a63eb447122ea8a60be4a32f4672ca396388f
 
 if __name__ == '__main__':
-	main()
+        main()
