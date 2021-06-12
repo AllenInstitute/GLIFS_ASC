@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "10dsine_brnn_short060621_100ms_nogamma_wreg"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "cuedsine_brnn_short060621_100ms_nogamma_wreg"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         on_server = False
 
         if on_server:
@@ -52,10 +52,10 @@ def main():
 
         hid_size = 64
         input_size = 8#8
-        output_size = 10
+        output_size = 1
 
         # Generate freqs
-        num_freqs = output_size
+        num_freqs = 10
         freq_min = 0.01#8#0.001
         freq_max = 0.6
 
@@ -68,9 +68,9 @@ def main():
         noise_mean = 0
         noise_std = 0
 
-        batch_size = 1
+        batch_size = 5
 
-        inputs, targets = ut.create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size)
+        inputs, targets = ut.create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size)
         traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
 
         # # traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
@@ -145,19 +145,19 @@ def main():
                 plt.savefig("figures/" + base_name + "_parameters")
                 plt.close()
         
-        if not use_rnn:
-                i = -1
-                for name in ["asc_amp_grads", "asc_r_grads", "thresh_grads", "k_m_grads"]:
-                        print(name)
-                        i += 1
-                        _, l = np.array(training_info[name]).shape
-                        for j in range(l):
-                                plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
-                plt.legend()
-                plt.xlabel('epoch')
-                plt.ylabel('parameter')
-                plt.savefig("figures/" + base_name + "_parameter_grads")
-                plt.close()
+        # if not use_rnn:
+        #         i = -1
+        #         for name in ["asc_amp_grads", "asc_r_grads", "thresh_grads", "k_m_grads"]:
+        #                 print(name)
+        #                 i += 1
+        #                 _, l = np.array(training_info[name]).shape
+        #                 for j in range(l):
+        #                         plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
+        #         plt.legend()
+        #         plt.xlabel('epoch')
+        #         plt.ylabel('parameter')
+        #         plt.savefig("figures/" + base_name + "_parameter_grads")
+        #         plt.close()
         
                 # names = ["input_linear", "rec_linear", "output_linear"]
                 # i = 0

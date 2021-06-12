@@ -37,7 +37,7 @@ There are other specifications including amount of time, number of epochs, learn
 
 def main():
         main_name = "brnn_3bit_shortsim_newinit_moreepochs_hilr_16units"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-        on_server = True
+        on_server = False
         if on_server:
             base_name = main_name
             base_name_save = main_name

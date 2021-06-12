@@ -143,7 +143,7 @@ def main():
         # plt.show()
         
         # quit()
-        on_server = True
+        on_server = False
         main_name = "smnist_rnn_lastaspred_128unit_pixelbypixel_newinit"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         if on_server:
             base_name = main_name
