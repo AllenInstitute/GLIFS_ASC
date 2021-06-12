@@ -143,7 +143,7 @@ def main():
 	# plt.show()
 	
 	# quit()
-	main_name = "brnn_patterngen_10sines_128unit_newinit"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+	main_name = "brnn_patterngen_10sines_128unit_newinit_wreg"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 	base_name = "figures_wkof_060621/" + main_name
 	base_name_save = "traininfo_wkof_060621/" + main_name
 	base_name_model = "models_wkof_060621/" + main_name
@@ -161,7 +161,7 @@ def main():
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 10
+	sim_time = 20
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
@@ -183,12 +183,12 @@ def main():
 	# model.load_state_dict(torch.load("saved_models/models_wkof_053021/brnn_patterngen.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
 	num_epochs = 1500
-	lr = 0.001#*(0.995**300)#0.0025#0.0025#25#1#25
-	reg_lambda = 1500
+	lr = 0.01#*(0.995**300)#0.0025#0.0025#25#1#25
+	reg_lambda = 0
 
 	# num_epochss = [200,100,50,10,1,1]
 	#training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
-	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, decay=False, task="pattern")
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, decay=False, task="pattern", lbfgs=True)
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 

@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	main_name = "10dsine_brnn_short060621_200ms_nogamma_dtofpt5"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+	main_name = "10dsine_brnn_short060621_20ms_nogamma_wreg"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 	base_name = "figures_wkof_060621/" + main_name
 	base_name_save = "traininfo_wkof_060621/" + main_name
 	base_name_model = "models_wkof_060621/" + main_name
@@ -55,13 +55,13 @@ def main():
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 200
-	dt = 0.5
+	sim_time = 20
+	dt = 0.05
 	amp = 1
 	noise_mean = 0
 	noise_std = 0
 
-	batch_size = 5
+	batch_size = 1
 
 	inputs, targets = ut.create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size)
 	traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
@@ -77,8 +77,8 @@ def main():
 	# model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
 	num_epochs = 1500
-	lr = 0.005#0.005
-	reg_lambda = 1500
+	lr = 0.01#05#0.005
+	reg_lambda = 0.01
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + "_init.pt")
 
 	# num_epochss = [200,100,50,10,1,1]

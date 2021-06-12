@@ -790,7 +790,7 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     test(sl_last, nrepeat)
     return training_info
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False, lbfgs=False):
     """
     Train RBNN model using trainloader and track metrics.
 
@@ -917,7 +917,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 init_outputs.append(outputs[:,:,dim])
         training_info["init_outputs"] = init_outputs
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    if lbfgs:
+        optimizer = torch.optim.LBFGS(model.parameters(), lr=lr)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.4)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
     loss_fn = nn.MSELoss()
@@ -939,7 +942,6 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         #     print(model.neuron_layer.ln_asc_k)
         #     print(model.neuron_layer.ln_asc_k.grad) # -4 and -1 isn't good..-1 and 0 isn't good
         # for epoch in range(num_epochs):
-        reg_lambda = 0.01
         for batch_ndx, sample in enumerate(trainloader):
             # print(batch_ndx)
             n_subiter = 1
@@ -960,43 +962,55 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 #         inputs[:, a:a+5, :] = 0
                 tot_pairs += len(targets)
 
-                if True:#batch_ndx == 0:
+                def closure():
+                    if torch.is_grad_enabled():
+                        optimizer.zero_grad()
                     model.reset_state(len(targets))
-                optimizer.zero_grad()
+                    outputs = model(inputs)
+                    outputs = outputs[:, -nsteps:, :]
+                    loss = loss_fn(outputs, targets)
+                    if loss.requires_grad:
+                        loss.backward()
+                    return loss
+                if not lbfgs:
+                    if True:#batch_ndx == 0:
+                        model.reset_state(len(targets))
+                    optimizer.zero_grad()
 
-                # if predrive:
-                #     with torch.no_grad():
-                #         model(targets)
-                # if False:#predrive:
-                #     with torch.no_grad():
-                #         model(targets_pre)
-                        # plt.plot(targets_pre[0,:,0])
-                        # plt.show()
+                    # if predrive:
+                    #     with torch.no_grad():
+                    #         model(targets)
+                    # if False:#predrive:
+                    #     with torch.no_grad():
+                    #         model(targets_pre)
+                            # plt.plot(targets_pre[0,:,0])
+                            # plt.show()
 
-                # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
-                outputs = model(inputs)
-                outputs = outputs[:, -nsteps:, :]
-                #print(outputs.shape)
-                # plt.plot(outputs[0,:,0].detach().numpy())
-                # plt.plot(targets[0,:,0].detach().numpy())
-                # plt.show()
+                    # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
+                    outputs = model(inputs)
+                    outputs = outputs[:, -nsteps:, :]
+                    #print(outputs.shape)
+                    # plt.plot(outputs[0,:,0].detach().numpy())
+                    # plt.plot(targets[0,:,0].detach().numpy())
+                    # plt.show()
 
-                if task == "copy" and epoch == num_epochs - 1:
-                    np.savetxt('outputs_rnn_1000lng.txt', torch.squeeze(outputs).detach().numpy(), fmt="%i")
-                    np.savetxt('targets_rnn_1000lng.txt', torch.squeeze(targets).detach().numpy(), fmt="%i")
-                    np.savetxt('inputs_rnn_1000lng.txt', torch.squeeze(inputs).detach().numpy(), fmt="%i")
+                    if task == "copy" and epoch == num_epochs - 1:
+                        np.savetxt('outputs_rnn_1000lng.txt', torch.squeeze(outputs).detach().numpy(), fmt="%i")
+                        np.savetxt('targets_rnn_1000lng.txt', torch.squeeze(targets).detach().numpy(), fmt="%i")
+                        np.savetxt('inputs_rnn_1000lng.txt', torch.squeeze(inputs).detach().numpy(), fmt="%i")
 
-                loss = loss + loss_fn(outputs, targets)
-                null_loss = loss_fn(outputs*0, targets)
-                # if i % n_subiter == 0:
-                #     print(loss.item() / len(targets))
-                if glifr:
-                    #loss = loss + aa_reg(model, reg_lambda = reg_lambda)
-                    reg_lambda *= 0.9
-                # if glifr:
-                #     loss = loss + km_reg(model, reg_lambda)
-                loss.backward()
-                # torch.nn.utils.clip_grad_norm(model.parameters(),clip=1)
+                    loss = loss + loss_fn(outputs, targets)
+                    null_loss = loss_fn(outputs*0, targets)
+                    orig_loss = loss.item()
+                    # if i % n_subiter == 0:
+                    #     print(loss.item() / len(targets))
+                    if glifr:
+                        loss = loss + aa_reg(model, reg_lambda = reg_lambda)
+                        # reg_lambda *= 0.9
+                    # if glifr:
+                    #     loss = loss + km_reg(model, reg_lambda)
+                    loss.backward()
+                    # torch.nn.utils.clip_grad_norm(model.parameters(),clip=1)
                 
                 if glifr:
                     with torch.no_grad():
@@ -1009,15 +1023,21 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                         # model.output_linear.weight.grad *= 0
                         pass
 
-                optimizer.step()
+                if lbfgs:
+                    optimizer.step(closure)
+                else:
+                    optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
                 if decay:# and epoch < 150:
                     scheduler.step()
-                
-                tot_loss += loss.item()
-                loss_batch.append(loss.item() / len(targets))
+                if not lbfgs:
+                    tot_loss += loss.item()
+                    loss_batch.append(loss.item() / len(targets))
         if verbose:
-            print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)} and null loss {null_loss}")
+            if lbfgs:
+                print(f"epoch {epoch}/{num_epochs}: loss of {closure()}")
+            else:
+                print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with original {orig_loss} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)} and null loss {null_loss}")
 
         training_info["losses"].append(tot_loss)
         # training_info["weights"][0].append([model.input_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
