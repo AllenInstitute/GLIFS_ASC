@@ -27,7 +27,7 @@ class BNNC(nn.Module):
 		# self.bias_ih = Parameter(torch.randn((1, hidden_size)))
 		# self.bias_hh = Parameter(torch.randn((1, hidden_size)))
 
-		self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+		self.thresh = Parameter(torch.zeros((1, hidden_size), dtype=torch.float), requires_grad=True)
 		ln_k_m = math.log(.05)#0.01)
 		ln_k_syn = math.log(0.005)
 		self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)

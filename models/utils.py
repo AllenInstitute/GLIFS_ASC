@@ -1119,7 +1119,7 @@ def km_reg(rbnn, reg_lambda):
 	return reg_lambda * torch.mean((torch.exp(rbnn.neuron_layer.ln_k_m)) ** 2)
 
 def aa_reg(rbnn, reg_lambda):
-	return reg_lambda * (torch.mean(torch.exp(rbnn.neuron_layer.ln_k_m) ** 2) + torch.mean(torch.exp(rbnn.neuron_layer.ln_asc_k) ** 2) + torch.mean(rbnn.neuron_layer.asc_r ** 2) + torch.mean(rbnn.neuron_layer.asc_amp ** 2))
+	return reg_lambda * (torch.mean(torch.exp(rbnn.neuron_layer.ln_k_m) ** 2) + torch.mean(torch.exp(rbnn.neuron_layer.ln_asc_k) ** 2))# + torch.mean(rbnn.neuron_layer.asc_r ** 2) + torch.mean(rbnn.neuron_layer.asc_amp ** 2))
 
 
 def train_rbnn_hfo(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
