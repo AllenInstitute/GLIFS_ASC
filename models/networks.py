@@ -160,7 +160,6 @@ class BNNFC(nn.Module):
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
                         self.last_output = x
-                        self.voltages.append(self.voltage)
                         outputs_.append(x)
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
