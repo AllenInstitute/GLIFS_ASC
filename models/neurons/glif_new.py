@@ -1,3 +1,4 @@
+  
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,112 +11,109 @@ import neurons.utils_glif_new as uts
 
 
 class BNNC(nn.Module):
-        def __init__(self, input_size, hidden_size, bias = True):
-                super().__init__()
-                self.input_size = input_size
-                self.hidden_size = hidden_size
-                self.num_ascs = 2
+	def __init__(self, input_size, hidden_size, bias = True):
+		super().__init__()
+		self.input_size = input_size
+		self.hidden_size = hidden_size
+		self.num_ascs = 2
 
-                # self.batchnorm_voltage = nn.BatchNorm1d(num_features = input_size)
-                # self.batchnorm_activation = nn.BatchNorm1d(num_features = hidden_size)
-                
-                self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
-                # self.I0 = Parameter(700*torch.ones((1, hidden_size), dtype=torch.float))
-                self.c_m_inv = 0.02
-                self.ln_c_m = Parameter(math.log(0.02) * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                # self.weight_hh = Parameter(torch.randn((input_size, hidden_size)))
+		# self.batchnorm_voltage = nn.BatchNorm1d(num_features = input_size)
+		# self.batchnorm_activation = nn.BatchNorm1d(num_features = hidden_size)
+		
+		self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
+		# self.I0 = Parameter(700*torch.ones((1, hidden_size), dtype=torch.float))
+		self.c_m_inv = 0.02
+		# self.weight_hh = Parameter(torch.randn((input_size, hidden_size)))
 
-                # self.bias_ih = Parameter(torch.randn((1, hidden_size)))
-                # self.bias_hh = Parameter(torch.randn((1, hidden_size)))
+		# self.bias_ih = Parameter(torch.randn((1, hidden_size)))
+		# self.bias_hh = Parameter(torch.randn((1, hidden_size)))
 
-                self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                ln_k_m = math.log(2)#0.01)
-                ln_k_syn = math.log(2)
-                ln_asc_k = math.log(10)#math.log(0.05)
-                self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                self.ln_k_syn = Parameter(ln_k_syn * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                asc_amp = (-1, 1)
-                asc_r = (1,-1)
-                # self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                # self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+		ln_k_m = math.log(.05)#0.01)
+		ln_k_syn = math.log(0.005)
+		self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+		# self.ln_k_syn = Parameter(ln_k_syn * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+		asc_amp = (-1, 1)
+		asc_r = (1,-1)
+		# self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		# self.asc_r = Parameter(0.01 * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
 
-                self.asc_amp = Parameter(torch.tensor(asc_amp).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp),1,hidden_size), dtype=torch.float) + 0 * torch.randn((len(asc_amp),1,hidden_size), dtype=torch.float), requires_grad=True)
-                # self.asc_amp = Parameter(torch.zeros((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                self.ln_asc_k = Parameter(ln_asc_k * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                # self.asc_r = Parameter(torch.zeros((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp), 1, hidden_size), dtype=torch.float) + 0 *  torch.randn((len(asc_amp), 1, hidden_size), dtype=torch.float), requires_grad=True)             
-                # nn.init.uniform_(self.ln_asc_k, -.2, .3)
-                nn.init.normal_(self.asc_r, 0, 0.01)
-                nn.init.normal_(self.asc_amp, 0, 0.01)
-                # nn.init.constant_(self.asc_r, 1)
-                # nn.init.constant_(self.asc_amp, 1)
-                # nn.init.normal_(self.thresh, 0, .01)
+		self.asc_amp = Parameter(torch.tensor(asc_amp).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp),1,hidden_size), dtype=torch.float) + 0 * torch.randn((len(asc_amp),1,hidden_size), dtype=torch.float), requires_grad=True)
+		# self.asc_amp = Parameter(torch.zeros((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		self.ln_asc_k = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		# self.asc_r = Parameter(torch.zeros((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+		self.asc_r = Parameter(torch.tensor(asc_r).reshape((len(asc_amp), 1, 1)) * torch.ones((len(asc_amp), 1, hidden_size), dtype=torch.float) + 0 *  torch.randn((len(asc_amp), 1, hidden_size), dtype=torch.float), requires_grad=True)		
+		# nn.init.uniform_(self.ln_asc_k, -.2, .3)
+		nn.init.normal_(self.asc_r, 0, 0.01)
+		nn.init.normal_(self.asc_amp, 0, 0.01)
+		# nn.init.constant_(self.asc_r, 1)
+		# nn.init.constant_(self.asc_amp, 1)
+		# nn.init.normal_(self.thresh, 0, .01)
 
-                self.v_reset = 0#Parameter(torch.zeros((1, hidden_size), dtype=torch.float), requires_grad=True)
-                
+		self.v_reset = 0#Parameter(torch.zeros((1, hidden_size), dtype=torch.float), requires_grad=True)
+		
 
-                self.sigma_v = 1
-                self.gamma = 1
-                self.dt = 0.05
-                self.I0 = 400
+		self.sigma_v = 1
+		self.gamma = 1
+		self.dt = 0.05
 
-                self.R = 0.1#Parameter(0.1 * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)#10#1 / (self.dt * math.exp(ln_k_m))#0.1
+		self.R = 0.1#1 / (self.dt * math.exp(ln_k_m))#0.1
 
-                with torch.no_grad():
-                        # wt_mean = 1 / (self.dt * self.hidden_size) # for whole layer sum
-                        # wt_var = 1 / (self.dt * self.hidden_size * self.input_size / self.c_m)
+		with torch.no_grad():
+			# wt_mean = 1 / (self.dt * self.hidden_size) # for whole layer sum
+			# wt_var = 1 / (self.dt * self.hidden_size * self.input_size / self.c_m)
 
-                        # range_wt = math.sqrt(12 * wt_var)
+			# range_wt = math.sqrt(12 * wt_var)
 
-                        # min_wt = wt_mean - (range_wt / 2)
-                        # max_wt = wt_mean + (range_wt / 2)
+			# min_wt = wt_mean - (range_wt / 2)
+			# max_wt = wt_mean + (range_wt / 2)
 
-                        nn.init.uniform_(self.weight_iv, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        # nn.init.eye_(self.weight_iv)
+			nn.init.uniform_(self.weight_iv, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.eye_(self.weight_iv)
 
-                        wt_mean = 1 / ((self.dt ** 2) * self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m))) # for whole layer sum
-                        wt_var = 1 / ((self.dt ** 2) + self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m)))
-                        range_wt = math.sqrt(12 * wt_var)
-                        print(range_wt)
+			wt_mean = 1 / ((self.dt ** 2) * self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m))) # for whole layer sum
+			wt_var = 1 / ((self.dt ** 2) + self.hidden_size * torch.mean(self.R * torch.exp(self.ln_k_m)))
+			range_wt = math.sqrt(12 * wt_var)
+			print(range_wt)
 
-                        min_wt = wt_mean - (range_wt / 2)
-                        max_wt = wt_mean + (range_wt / 2)
-                        # nn.init.uniform_(self.asc_r, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        # nn.init.uniform_(self.asc_amp, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        # nn.init.uniform_(self.weight_iv, min_wt, max_wt)
-                        # nn.init.uniform_(self.weight_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        # nn.init.uniform_(self.bias_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        # nn.init.uniform_(self.bias_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        # self.weight_iv /= self.gamma
+			min_wt = wt_mean - (range_wt / 2)
+			max_wt = wt_mean + (range_wt / 2)
+			# nn.init.uniform_(self.asc_r, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.asc_amp, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.weight_iv, min_wt, max_wt)
+			# nn.init.uniform_(self.weight_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.bias_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# nn.init.uniform_(self.bias_hh, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+			# self.weight_iv /= self.gamma
 
-        def spike_fn(self, x):
-                """
-                Propagates input through spiking activation function.
-                
-                Parameters
-                ----------
-                x : Tensor(any size)
-                        input to spiking function
-                
-                Returns
-                -------
-                Tensor(same size as x)
-                        tanh(x)
-                """
-                # x = self.batchnorm_voltage(x)
-                activation = self.gamma * (x - self.thresh) / self.sigma_v
-                # activation = self.batchnorm_activation(activation)
-                return torch.sigmoid(activation)
-                # return torch.tanh(x - (self.thresh))
-        
-        def forward(self, x, firing, voltage, ascurrent, syncurrent):
-                # 1.5, -0.5 for lnasck
-                syncurrent = x @ self.weight_iv + (1 - self.dt * torch.exp(self.ln_k_syn)) * syncurrent
-                ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
-                # ascurrent = ascurrent * 0
-                voltage = syncurrent + self.dt * torch.exp(self.ln_c_m) * (self.I0 + torch.sum(ascurrent, dim=0)) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
-                firing = self.spike_fn(voltage)#x @ self.weight_ih + (1 - self.dt * torch.exp(self.ln_k_m)) * hidden)# + self.bias_ih) #+ hidden @ self.weight_hh + self.bias_hh)
-                return firing, voltage, ascurrent, syncurrent
+	def spike_fn(self, x):
+		"""
+		Propagates input through spiking activation function.
+		
+		Parameters
+		----------
+		x : Tensor(any size)
+			input to spiking function
+		
+		Returns
+		-------
+		Tensor(same size as x)
+			tanh(x)
+		"""
+		# x = self.batchnorm_voltage(x)
+		activation = self.gamma * (x - self.thresh) / self.sigma_v
+		# activation = self.batchnorm_activation(activation)
+		return torch.sigmoid(activation)
+		# return torch.tanh(x - (self.thresh))
+	
+	def forward(self, x, firing, voltage, ascurrent, syncurrent):
+		# 1.5, -0.5 for lnasck
+		syncurrent = x @ self.weight_iv# + (1 - self.dt * torch.exp(self.ln_k_syn)) * syncurrent
+		ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
+		# ascurrent = ascurrent * 0
+		voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * torch.sum(ascurrent, dim=0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
+		firing = self.spike_fn(voltage)#x @ self.weight_ih + (1 - self.dt * torch.exp(self.ln_k_m)) * hidden)# + self.bias_ih) #+ hidden @ self.weight_hh + self.bias_hh)
+		return firing, voltage, ascurrent, syncurrent
 
 class RNNC(nn.Module): # The true RNNC
         def __init__(self, input_size, hidden_size, bias = True):

@@ -50,21 +50,24 @@ def plot_overall_response(model):
     
     freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
-    # inputs, targets = ut.create_sines_cued(sim_time, dt, amp = 1, noise_mean = 0, noise_std = 0, freqs = freqs, input_size = 16)
-    # traindataset = ut.create_dataset(inputs, targets, input_size)
+    hid_size = 128#64
+    input_size = 20#8
+    output_size = 1
+    inputs, targets = ut.create_sines_cued(sim_time, dt, amp = 1, noise_mean = 0, noise_std = 0, freqs = freqs, input_size = input_size)
+    traindataset = ut.create_dataset(inputs, targets, input_size)
 
-    inputs, targets = ut.create_multid_pattern(sim_time, dt, 1, 0, 0, freqs, input_size)
-    traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
+    # inputs, targets = ut.create_multid_pattern(sim_time, dt, 1, 0, 0, freqs, input_size)
+    # traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
 
     trainloader = tud.DataLoader(traindataset, batch_size = 1)
 
     for batch_ndx, sample in enumerate(trainloader):
         input, target = sample
         model.reset_state(1)
-        # with torch.no_grad():
-        #     model(input)
-        output = model(input)
-        for j in range(num_freqs):
+        with torch.no_grad():
+            output = model(input)
+        # output = model(input)
+        for j in range(1):
             plt.plot(np.arange(len(output[0])) * dt, output[0,:,j].detach().numpy(), 'k', label=f"predicted")
             plt.plot(np.arange(len(output[0])) * dt, target[0,:,j], 'k--', label = "target")
             plt.xlabel('time (ms)', fontsize = fontsize)
@@ -79,7 +82,7 @@ def plot_responses(model):
     sim_time = 30
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = torch.ones(1, nsteps, output_size + input_size)
+    input = 1 * torch.ones(1, nsteps, output_size + input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -112,11 +115,18 @@ input_size = 8
 hid_size = 64
 output_size = 10
 
+# hid_size = 128#64
+# input_size = 20#8
+# output_size = 1
+
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/10dsine_brnn_short060621_10ms_64units_incompletereset_ksynones.pt"))
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/10dsine_brnn_short060621_10ms_nogamma_agn_woffset.pt"))
+print(torch.mean(model_glif.neuron_layer.weight_iv))
+
 with torch.no_grad():
-    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.05)
+    nn.init.constant_(model_glif.neuron_layer.weight_iv, .01)
     plot_responses(model_glif)
+
 with torch.no_grad():
     plot_overall_response(model_glif)
 
@@ -147,7 +157,7 @@ with torch.no_grad():
 # plot_overall_response(model_glif)
 # print(torch.exp(model_glif.neuron_layer.ln_k_m).shape)
 plt.hist(torch.exp(model_glif.neuron_layer.ln_k_m[0,:]).detach().numpy(), color = 'k', bins=50)
-plt.xlabel('k_m', fontsize = fontsize)
+plt.xlabel('k_m (ms)', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
 # plt.xlim([0,0.05])
 plt.show()
@@ -159,7 +169,7 @@ plt.show()
 # plt.show()
 
 plt.hist(model_glif.neuron_layer.thresh[0,:].detach().numpy(), color = 'k', bins=50)
-plt.xlabel('threshold', fontsize = fontsize)
+plt.xlabel('threshold (mV)', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
 # plt.xlim([-0.5,0.5])
 plt.show()
@@ -175,11 +185,11 @@ plt.ylabel('counts', fontsize = fontsize)
 plt.show()
 
 plt.hist(torch.cat((torch.exp(model_glif.neuron_layer.ln_asc_k[0, 0,:]), torch.exp(model_glif.neuron_layer.ln_asc_k[1, 0,:])), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('k_j', fontsize = fontsize)
+plt.xlabel('k_j (ms)', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
 plt.show()
 
-# print(torch.mean(model_glif.neuron_layer.weight_iv))
+print(torch.mean(model_glif.neuron_layer.weight_iv))
 with torch.no_grad():
     nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.01)
     plot_responses(model_glif)

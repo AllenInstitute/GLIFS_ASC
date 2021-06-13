@@ -58,7 +58,6 @@ def mnist_generator(root, batch_size):
 def create_copy(sim_time, dt, noise_mean, noise_std, n):
     """
     Create a dataset of different frequency sinusoids based on (David Sussillo, Omri Barak, 2013) pattern generation task
-
     Parameters
     ----------
     sim_time : float
@@ -71,7 +70,6 @@ def create_copy(sim_time, dt, noise_mean, noise_std, n):
         std of noise added to sinusoid
     n : int
         number of input/target sequences
-
     Returns
     -------
     Numpy Array(nsteps, len(freqs))
@@ -118,7 +116,6 @@ def memory_capacity(sim_time, dt, lookback, noise_mean=0, noise_std=1, input_siz
 def create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
     """
     Create a dataset of different frequency sinusoids based on (David Sussillo, Omri Barak, 2013) pattern generation task
-
     Parameters
     ----------
     sim_time : float
@@ -133,7 +130,6 @@ def create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
         std of noise added to sinusoid
     freqs : List
         list of frequencies (1/ms or kHz) of sinusoids
-
     Returns
     -------
     Numpy Array(nsteps, len(freqs))
@@ -178,7 +174,6 @@ def create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
 def create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
     """
     Create a dataset of three-dimensional patterns based on Task 1.1 Pattern Generation in https://arxiv.org/pdf/1901.09049.pdf
-
     Parameters
     ----------
     sim_time : float
@@ -193,7 +188,6 @@ def create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input
         std of noise added to sinusoid
     freqs : List
         list of frequencies (1/ms or kHz) of sinusoids
-
     Returns
     -------
     Numpy Array(nsteps, len(freqs))
@@ -246,7 +240,6 @@ def create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input
 def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
     """
     Create a dataset of different frequency sinusoids based on (David Sussillo, Omri Barak, 2013) pattern generation task
-
     Parameters
     ----------
     sim_time : float
@@ -263,7 +256,6 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
         list of frequencies (1/ms or kHz) of sinusoids
     input_size : int
         number of neurons receiving inputs
-
     Returns
     -------
     Numpy Array(nsteps, len(freqs), input_size)
@@ -310,7 +302,6 @@ def create_dataset(inputs, targets, input_size = 1, target_size = 1):
 def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
-
     Parameters
     ----------
     model : RBNN
@@ -495,7 +486,6 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
         # if glifr:
         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        """
         if glifr and epoch % 10 == 0:
             training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])
@@ -503,7 +493,6 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
             training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             training_info["asc_r_grads"].append([model.neuron_layer.asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m])  + 0.0 for m in range(model.hid_size)])
-        """
 
     final_outputs = []
     model.eval()
@@ -550,7 +539,6 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
 def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_size, verbose = True):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
-
     Parameters
     ----------
     model : RBNN
@@ -792,10 +780,9 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     test(sl_last, nrepeat)
     return training_info
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False, lbfgs=False):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
     """
     Train RBNN model using trainloader and track metrics.
-
     Parameters
     ----------
     model : RBNN
@@ -903,7 +890,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             _, nsteps, _ = inputs.shape
             model.reset_state()
 
-            model(targets) # Predrive
+            # model(targets) # Predrive
             # model(targets_pre) # Predrive
             init_outputs_driven.append(model.forward(inputs)[:, -nsteps:, :])
         training_info["init_outputs_driven"] = init_outputs_driven
@@ -919,12 +906,9 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 init_outputs.append(outputs[:,:,dim])
         training_info["init_outputs"] = init_outputs
 
-    if lbfgs:
-        optimizer = torch.optim.LBFGS(model.parameters(), lr=lr)
-    else:
-        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-        #optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.1)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.99)#MultiStepLR(optimizer, [10, 20, 50, 100, 200, 300, 400, 600, 800, 1000, 1200, 1400], 0.8, verbose=True)#ExponentialLR(optimizer=optimizer, gamma=0.99)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.4)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
     loss_fn = nn.MSELoss()
     # loss_fn = nn.SmoothL1Loss()
     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
@@ -944,6 +928,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         #     print(model.neuron_layer.ln_asc_k)
         #     print(model.neuron_layer.ln_asc_k.grad) # -4 and -1 isn't good..-1 and 0 isn't good
         # for epoch in range(num_epochs):
+        reg_lambda = 0.01
         for batch_ndx, sample in enumerate(trainloader):
             # print(batch_ndx)
             n_subiter = 1
@@ -964,88 +949,43 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 #         inputs[:, a:a+5, :] = 0
                 tot_pairs += len(targets)
 
-                def closure():
-                    if torch.is_grad_enabled():
-                        optimizer.zero_grad()
+                if True:#batch_ndx == 0:
                     model.reset_state(len(targets))
-                    outputs = model(inputs)
-                    outputs = outputs[:, -nsteps:, :]
-                    loss = loss_fn(outputs, targets)
-                    if loss.requires_grad:
-                        loss.backward()
-                    return loss
-                if not lbfgs:
-                    if epoch % 10 == 0:#batch_ndx == 0:
-                        model.reset_state(len(targets))
-                    else:
-                        model.reset_state(len(targets), full_reset = False)
-                    optimizer.zero_grad()
-                    inputs = inputs[:,(epoch % 10) * 10:10 + ((epoch % 10) * 10),:]
-                    targets = targets[:,(epoch % 10) * 10:10 + ((epoch % 10) * 10),:]
+                optimizer.zero_grad()
 
-                    # if predrive:
-                    #     with torch.no_grad():
-                    #         model(targets)
-                    # if False:#predrive:
-                    #     with torch.no_grad():
-                    #         model(targets_pre)
-                            # plt.plot(targets_pre[0,:,0])
-                            # plt.show()
+                # if predrive:
+                #     with torch.no_grad():
+                #         model(targets)
+                # if False:#predrive:
+                #     with torch.no_grad():
+                #         model(targets_pre)
+                        # plt.plot(targets_pre[0,:,0])
+                        # plt.show()
 
-                    # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
-                    """
-                    if epoch < 400 and epoch % 10 == 0:
-                        inputs = inputs[:,:int(10 / 0.05),:]
-                        targets = targets[:,:int(10 / 0.05),:]
-                    """
-                    
-                    """
-                    if epoch < 250:
-                        inputs = inputs[:,:int(10 / 0.05),:]
-                        targets = targets[:,:int(10/0.05),:]
-                    elif epoch < 500:
-                        inputs = inputs[:,:int(20 / 0.05),:]
-                        targets = targets[:,:int(20 / 0.05),:]
-                    elif epoch < 750:
-                        inputs = inputs[:,:int(30 / 0.05),:]
-                        targets = targets[:,:int(30 / 0.05),:]
-                    elif epoch < 1000:
-                        inputs = inputs[:,:int(40 / 0.05),:]
-                        targets = targets[:,:int(40 / 0.05),:]
-                    elif epoch < 1250:
-                        inputs = inputs[:,:int(50 / 0.05),:]
-                        targets = targets[:,:int(50 / 0.05),:]
-                    elif epoch < 1500:
-                        inputs = inputs[:,:int(60 / 0.05),:]
-                        targets = targets[:,:int(60 / 0.05),:]
-                    elif epoch < 1750:
-                        inputs = inputs[:,:int(80 / 0.05),:]
-                        targets = targets[:,:int(80 / 0.05),:]
-                    """
-                    outputs = model(inputs)
-                    outputs = outputs#[:, -nsteps:, :]
-                    #print(outputs.shape)
-                    # plt.plot(outputs[0,:,0].detach().numpy())
-                    # plt.plot(targets[0,:,0].detach().numpy())
-                    # plt.show()
+                # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
+                outputs = model(inputs)
+                outputs = outputs[:, -nsteps:, :]
+                #print(outputs.shape)
+                # plt.plot(outputs[0,:,0].detach().numpy())
+                # plt.plot(targets[0,:,0].detach().numpy())
+                # plt.show()
 
-                    if task == "copy" and epoch == num_epochs - 1:
-                        np.savetxt('outputs_rnn_1000lng.txt', torch.squeeze(outputs).detach().numpy(), fmt="%i")
-                        np.savetxt('targets_rnn_1000lng.txt', torch.squeeze(targets).detach().numpy(), fmt="%i")
-                        np.savetxt('inputs_rnn_1000lng.txt', torch.squeeze(inputs).detach().numpy(), fmt="%i")
+                if task == "copy" and epoch == num_epochs - 1:
+                    np.savetxt('outputs_rnn_1000lng.txt', torch.squeeze(outputs).detach().numpy(), fmt="%i")
+                    np.savetxt('targets_rnn_1000lng.txt', torch.squeeze(targets).detach().numpy(), fmt="%i")
+                    np.savetxt('inputs_rnn_1000lng.txt', torch.squeeze(inputs).detach().numpy(), fmt="%i")
 
-                    loss = loss + loss_fn(outputs, targets)
-                    null_loss = loss_fn(outputs*0, targets)
-                    orig_loss = loss.item()
-                    # if i % n_subiter == 0:
-                    #     print(loss.item() / len(targets))
-                    if glifr:
-                        loss = loss + aa_reg(model, reg_lambda = reg_lambda)
-                        #reg_lambda *= 0.95
-                    # if glifr:
-                    #     loss = loss + km_reg(model, reg_lambda)
-                    loss.backward()
-                    # torch.nn.utils.clip_grad_norm(model.parameters(),clip=1)
+                loss = loss + loss_fn(outputs, targets)
+                null_loss = loss_fn(outputs*0, targets)
+                # if i % n_subiter == 0:
+                #     print(loss.item() / len(targets))
+                if glifr:
+                    #loss = loss + aa_reg(model, reg_lambda = reg_lambda)
+                    reg_lambda *= 0.9
+                # if glifr:
+                #     loss = loss + km_reg(model, reg_lambda)
+                loss.backward()
+                # torch.nn.utils.clip_grad_norm(model.parameters(),clip=1)
                 
                 if glifr:
                     with torch.no_grad():
@@ -1058,21 +998,15 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                         # model.output_linear.weight.grad *= 0
                         pass
 
-                if lbfgs:
-                    optimizer.step(closure)
-                else:
-                    optimizer.step()
+                optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
-                if decay and batch_ndx == 0 and epoch < 200:# and epoch < 150:
+                if decay:# and epoch < 150:
                     scheduler.step()
-                if not lbfgs:
-                    tot_loss += loss.item()
-                    loss_batch.append(loss.item() / len(targets))
+                
+                tot_loss += loss.item()
+                loss_batch.append(loss.item() / len(targets))
         if verbose:
-            if lbfgs:
-                print(f"epoch {epoch}/{num_epochs}: loss of {closure()}")
-            else:
-                print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with original {orig_loss} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)} and null loss {null_loss}")
+            print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)} and null loss {null_loss}")
 
         training_info["losses"].append(tot_loss)
         # training_info["weights"][0].append([model.input_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
@@ -1097,15 +1031,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
         if glifr and epoch % 10 == 0:
             print(torch.mean(model.neuron_layer.ln_k_m.grad))
-            print(torch.mean(model.neuron_layer.ln_k_syn.grad))
             # print(torch.mean(model.neuron_layer.v_reset.grad))
             print(torch.mean(model.neuron_layer.thresh.grad))
             print(torch.mean(model.neuron_layer.ln_asc_k.grad))
             print(torch.mean(model.neuron_layer.asc_amp.grad))
-            print(torch.mean(model.neuron_layer.asc_r.grad))
-            print(f"lnkm: {torch.mean(torch.exp(model.neuron_layer.ln_k_m))}")
-            print(f"lnasck: {torch.mean(torch.exp(model.neuron_layer.ln_asc_k))}")
-            """training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             print(torch.mean(model.neuron_layer.asc_r.grad))
             print(torch.mean(model.neuron_layer.weight_iv.grad))
             training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
@@ -1114,7 +1043,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             # training_info["v_reset_grads"].append([model.neuron_layer.v_reset.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["asc_k_grads"].append([model.neuron_layer.ln_asc_k.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_r_grads"].append([model.neuron_layer.asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])"""
+            training_info["asc_r_grads"].append([model.neuron_layer.asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m])  + 0.0 for m in range(model.hid_size)])
 
     
@@ -1159,13 +1088,12 @@ def km_reg(rbnn, reg_lambda):
 	return reg_lambda * torch.mean((torch.exp(rbnn.neuron_layer.ln_k_m)) ** 2)
 
 def aa_reg(rbnn, reg_lambda):
-	return reg_lambda * (torch.mean(torch.exp(rbnn.neuron_layer.ln_k_m) ** 2) + torch.mean(torch.exp(rbnn.neuron_layer.ln_asc_k) ** 2))# + torch.mean(rbnn.neuron_layer.asc_r ** 2) + torch.mean(rbnn.neuron_layer.asc_amp ** 2))
+	return reg_lambda * (torch.mean(torch.exp(rbnn.neuron_layer.ln_k_m) ** 2) + torch.mean(torch.exp(rbnn.neuron_layer.ln_asc_k) ** 2) + torch.mean(rbnn.neuron_layer.asc_r ** 2) + torch.mean(rbnn.neuron_layer.asc_amp ** 2))
 
 
 def train_rbnn_hfo(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
-
     Parameters
     ----------
     model : RBNN
