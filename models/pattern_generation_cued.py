@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "cuedsine_brnn_short060621_100ms_nogamma_wreg_128units"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "cuedsine_brnn_short060621_10ms_nogamma_128units"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         on_server = True
 
         if on_server:
@@ -62,7 +62,7 @@ def main():
         freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
         # Generate data
-        sim_time = 100
+        sim_time = 10
         dt = 0.05
         amp = 1
         noise_mean = 0
@@ -84,15 +84,14 @@ def main():
         # model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
         # Train model
         num_epochs = 1500
-        lr = 0.001#0.005
-        reg_lambda = 0.001
+        lr = 0.0005#0.005
+        reg_lambda = 0
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "_init.pt")
 
         # num_epochss = [200,100,50,10,1,1]
         # for p in model.parameters():
         #       p.register_hook(lambda grad: torch.clamp(grad, -0.5, 0.5))
-        training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, task = "pattern_multid", decay=True)
-
+        training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, task = "pattern", decay=False)
         torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 
         colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green", "lightgreen"]
@@ -103,7 +102,7 @@ def main():
         for i in range(num_freqs):
                 # print(final_outputs[i].shape)
                 plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, final_outputs[i][0,:].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-                plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, targets[:,:, i], '--', c = colors[i % len(colors)])
+                plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, targets[:, :, i], '--', c = colors[i % len(colors)])
         # plt.legend()
         plt.xlabel("time (ms)")
         plt.ylabel("firing rate (1/ms)")

@@ -903,7 +903,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             _, nsteps, _ = inputs.shape
             model.reset_state()
 
-            model(targets) # Predrive
+            #model(targets) # Predrive
             # model(targets_pre) # Predrive
             init_outputs_driven.append(model.forward(inputs)[:, -nsteps:, :])
         training_info["init_outputs_driven"] = init_outputs_driven
@@ -975,14 +975,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                         loss.backward()
                     return loss
                 if not lbfgs:
-                    if epoch % 10 == 0:#batch_ndx == 0:
-                        model.reset_state(len(targets))
-                    else:
-                        model.reset_state(len(targets), full_reset = False)
-                    optimizer.zero_grad()
-                    inputs = inputs[:,(epoch % 10) * 10:10 + ((epoch % 10) * 10),:]
-                    targets = targets[:,(epoch % 10) * 10:10 + ((epoch % 10) * 10),:]
-
+                    model.reset_state(len(targets))
+                    
                     # if predrive:
                     #     with torch.no_grad():
                     #         model(targets)
@@ -992,36 +986,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                             # plt.plot(targets_pre[0,:,0])
                             # plt.show()
 
-                    # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
-                    """
-                    if epoch < 400 and epoch % 10 == 0:
-                        inputs = inputs[:,:int(10 / 0.05),:]
-                        targets = targets[:,:int(10 / 0.05),:]
-                    """
-                    
-                    """
-                    if epoch < 250:
-                        inputs = inputs[:,:int(10 / 0.05),:]
-                        targets = targets[:,:int(10/0.05),:]
-                    elif epoch < 500:
-                        inputs = inputs[:,:int(20 / 0.05),:]
-                        targets = targets[:,:int(20 / 0.05),:]
-                    elif epoch < 750:
-                        inputs = inputs[:,:int(30 / 0.05),:]
-                        targets = targets[:,:int(30 / 0.05),:]
-                    elif epoch < 1000:
-                        inputs = inputs[:,:int(40 / 0.05),:]
-                        targets = targets[:,:int(40 / 0.05),:]
-                    elif epoch < 1250:
-                        inputs = inputs[:,:int(50 / 0.05),:]
-                        targets = targets[:,:int(50 / 0.05),:]
-                    elif epoch < 1500:
-                        inputs = inputs[:,:int(60 / 0.05),:]
-                        targets = targets[:,:int(60 / 0.05),:]
-                    elif epoch < 1750:
-                        inputs = inputs[:,:int(80 / 0.05),:]
-                        targets = targets[:,:int(80 / 0.05),:]
-                    """
+                    # outputs = torch.stack(model(inputs)[-nsteps:], dim=
                     outputs = model(inputs)
                     outputs = outputs#[:, -nsteps:, :]
                     #print(outputs.shape)
@@ -1064,7 +1029,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                     optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
                 if decay and batch_ndx == 0 and epoch < 200:# and epoch < 150:
-                    scheduler.step()
+                    pass
+                #scheduler.step()
                 if not lbfgs:
                     tot_loss += loss.item()
                     loss_batch.append(loss.item() / len(targets))
@@ -1097,7 +1063,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
         if glifr and epoch % 10 == 0:
             print(torch.mean(model.neuron_layer.ln_k_m.grad))
-            print(torch.mean(model.neuron_layer.ln_k_syn.grad))
+            #print(torch.mean(model.neuron_layer.ln_k_syn.grad))
             # print(torch.mean(model.neuron_layer.v_reset.grad))
             print(torch.mean(model.neuron_layer.thresh.grad))
             print(torch.mean(model.neuron_layer.ln_asc_k.grad))
