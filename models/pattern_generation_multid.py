@@ -74,7 +74,7 @@ def main():
 	# model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
 	# Train model
 	num_epochs = 1000
-	lr = 0.0005#0.005#0.005
+	lr = 0.005#0.005#0.005
 	reg_lambda = 1500
 	# torch.save(model.state_dict(), "saved_models/" + base_name_model + "_init.pt")
 
