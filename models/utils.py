@@ -1061,7 +1061,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 else:
                     optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
-                if decay and batch_ndx == 0 and epoch < 250:# and epoch < 150:
+                if decay and batch_ndx == 0 and epoch < 200:# and epoch < 150:
                     scheduler.step()
                 if not lbfgs:
                     tot_loss += loss.item()

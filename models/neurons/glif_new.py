@@ -22,15 +22,16 @@ class BNNC(nn.Module):
                 self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
                 # self.I0 = Parameter(700*torch.ones((1, hidden_size), dtype=torch.float))
                 self.c_m_inv = 0.02
+                self.ln_c_m = Parameter(math.log(0.02) * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 # self.weight_hh = Parameter(torch.randn((input_size, hidden_size)))
 
                 # self.bias_ih = Parameter(torch.randn((1, hidden_size)))
                 # self.bias_hh = Parameter(torch.randn((1, hidden_size)))
 
-                self.thresh = Parameter(1e-3 * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                ln_k_m = 1#math.log(.05)#0.01)
-                ln_k_syn = 1#math.log(0.05)
-                ln_asc_k = 1#math.log(0.05)
+                self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+                ln_k_m = math.log(2)#0.01)
+                ln_k_syn = math.log(2)
+                ln_asc_k = math.log(10)#math.log(0.05)
                 self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 self.ln_k_syn = Parameter(ln_k_syn * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 asc_amp = (-1, 1)
@@ -56,8 +57,9 @@ class BNNC(nn.Module):
                 self.sigma_v = 1
                 self.gamma = 1
                 self.dt = 0.05
+                self.I0 = 400
 
-                self.R = 1 / (self.dt * math.exp(ln_k_m))#0.1
+                self.R = 0.1#Parameter(0.1 * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)#10#1 / (self.dt * math.exp(ln_k_m))#0.1
 
                 with torch.no_grad():
                         # wt_mean = 1 / (self.dt * self.hidden_size) # for whole layer sum
@@ -111,7 +113,7 @@ class BNNC(nn.Module):
                 syncurrent = x @ self.weight_iv + (1 - self.dt * torch.exp(self.ln_k_syn)) * syncurrent
                 ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
                 # ascurrent = ascurrent * 0
-                voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * torch.sum(ascurrent, dim=0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
+                voltage = syncurrent + self.dt * torch.exp(self.ln_c_m) * (self.I0 + torch.sum(ascurrent, dim=0)) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)#x @ self.weight_ih + (1 - self.dt * torch.exp(self.ln_k_m)) * hidden)# + self.bias_ih) #+ hidden @ self.weight_hh + self.bias_hh)
                 return firing, voltage, ascurrent, syncurrent
 

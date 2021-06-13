@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "10dsine_brnn_short060621_10ms_64units_incompletereset_allkmones_noreg"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "10dsine_brnn_short060621_10ms_64units_incompletereset_ksynones"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         on_server = True
 
         if on_server:
@@ -84,7 +84,7 @@ def main():
         # model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
         # Train model
         num_epochs = 1500
-        lr = 0.0025#0.005
+        lr = 0.0015#0.005
         reg_lambda = 0#0.0001
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "_init.pt")
 
