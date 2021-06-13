@@ -980,6 +980,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                     else:
                         model.reset_state(len(targets), full_reset = False)
                     optimizer.zero_grad()
+                    inputs = inputs[:,(epoch % 10) * 10:10 + (epoch % 10) * 10,:]
+                    targets = targets[:,(epoch % 10) * 10:10 + (epoch % 10) * 10,:]
 
                     # if predrive:
                     #     with torch.no_grad():

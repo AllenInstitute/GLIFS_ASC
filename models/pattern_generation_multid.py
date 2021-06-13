@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "10dsine_brnn_short060621_10ms_64units_incompletereset_ksynones"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "10dsine_brnn_short060621_10ms_64units_actualincompletereset_ksynones"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         on_server = True
 
         if on_server:
@@ -62,7 +62,7 @@ def main():
         freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
         # Generate data
-        sim_time = 10
+        sim_time = 100
         dt = 0.05
         amp = 1
         noise_mean = 0
