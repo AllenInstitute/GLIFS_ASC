@@ -143,7 +143,7 @@ def main():
         # plt.show()
         
         # quit()
-        on_server = False
+        on_server = True
         main_name = "smnist_rnn_lastaspred_128unit_pixelbypixel_newinit"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
         if on_server:
             base_name = main_name
@@ -154,7 +154,7 @@ def main():
             base_name_save = "traininfo_wkof_053021/" + main_name
             base_name_model = "models_wkof_053021/" + main_name
 
-        use_rnn = True
+        use_rnn = False
         hid_size = 128
         input_size = 1#28
         output_size = 10
@@ -191,8 +191,8 @@ def main():
                 model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
         # model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
         # Train model
-        num_epochs = 200
-        lr = 1e-6#1e-8#0.001#0.0025#0.0025#25#1#25
+        num_epochs = 20
+        lr = 1e-8#0.001#0.0025#0.0025#25#1#25
         reg_lambda = 1500
 
         # num_epochss = [200,100,50,10,1,1]

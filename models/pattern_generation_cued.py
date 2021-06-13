@@ -1,5 +1,5 @@
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 
 # author: @chloewin
 # 03/07/21
@@ -36,8 +36,8 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "cuedsine_brnn_short060621_100ms_nogamma_wreg"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-        on_server = False
+        main_name = "cuedsine_brnn_short060621_100ms_nogamma_wreg_128units"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        on_server = True
 
         if on_server:
             base_name = main_name
@@ -50,8 +50,8 @@ def main():
 
         use_rnn = False
 
-        hid_size = 64
-        input_size = 8#8
+        hid_size = 128#64
+        input_size = 20#8
         output_size = 1
 
         # Generate freqs
@@ -84,8 +84,8 @@ def main():
         # model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
         # Train model
         num_epochs = 1500
-        lr = 0.01#05#0.005
-        reg_lambda = 0.01
+        lr = 0.001#0.005
+        reg_lambda = 0.001
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "_init.pt")
 
         # num_epochss = [200,100,50,10,1,1]

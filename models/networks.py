@@ -166,16 +166,22 @@ class BNNFC(nn.Module):
                         # outputs.append(x)
                 return outputs
 
-        def reset_state(self, batch_size = 1):
+        def reset_state(self, batch_size = 1, full_reset = True):
                 self.batch_size = batch_size
 
                 self.last_output = torch.zeros((self.batch_size, self.out_size))
                 self.voltages = []
                 
-                self.firing = torch.zeros((self.batch_size, self.hid_size))
-                self.voltage = torch.zeros((self.batch_size, self.hid_size))
-                self.syncurrent = torch.zeros((self.batch_size, self.hid_size))
-                self.ascurrents = torch.zeros((self.num_ascs, self.batch_size, self.hid_size))
+                if full_reset:
+                    self.firing = torch.zeros((self.batch_size, self.hid_size))
+                    self.voltage = torch.zeros((self.batch_size, self.hid_size))
+                    self.syncurrent = torch.zeros((self.batch_size, self.hid_size))
+                    self.ascurrents = torch.zeros((self.num_ascs, self.batch_size, self.hid_size))
+                else:
+                    self.firing = self.firing.detach()
+                    self.voltage = self.voltage.detach()
+                    self.syncurrent = self.syncurrent.detach()
+                    self.ascurrents = self.ascurrents.detach()
 
 class RNNFC(nn.Module):
         """

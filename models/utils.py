@@ -923,8 +923,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         optimizer = torch.optim.LBFGS(model.parameters(), lr=lr)
     else:
         optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.4)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
+        #optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.1)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.99)#MultiStepLR(optimizer, [10, 20, 50, 100, 200, 300, 400, 600, 800, 1000, 1200, 1400], 0.8, verbose=True)#ExponentialLR(optimizer=optimizer, gamma=0.99)
     loss_fn = nn.MSELoss()
     # loss_fn = nn.SmoothL1Loss()
     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
@@ -975,8 +975,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                         loss.backward()
                     return loss
                 if not lbfgs:
-                    if True:#batch_ndx == 0:
+                    if epoch % 10 == 0:#batch_ndx == 0:
                         model.reset_state(len(targets))
+                    else:
+                        model.reset_state(len(targets), full_reset = False)
                     optimizer.zero_grad()
 
                     # if predrive:
@@ -989,8 +991,37 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                             # plt.show()
 
                     # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
+                    """
+                    if epoch < 400 and epoch % 10 == 0:
+                        inputs = inputs[:,:int(10 / 0.05),:]
+                        targets = targets[:,:int(10 / 0.05),:]
+                    """
+                    
+                    """
+                    if epoch < 250:
+                        inputs = inputs[:,:int(10 / 0.05),:]
+                        targets = targets[:,:int(10/0.05),:]
+                    elif epoch < 500:
+                        inputs = inputs[:,:int(20 / 0.05),:]
+                        targets = targets[:,:int(20 / 0.05),:]
+                    elif epoch < 750:
+                        inputs = inputs[:,:int(30 / 0.05),:]
+                        targets = targets[:,:int(30 / 0.05),:]
+                    elif epoch < 1000:
+                        inputs = inputs[:,:int(40 / 0.05),:]
+                        targets = targets[:,:int(40 / 0.05),:]
+                    elif epoch < 1250:
+                        inputs = inputs[:,:int(50 / 0.05),:]
+                        targets = targets[:,:int(50 / 0.05),:]
+                    elif epoch < 1500:
+                        inputs = inputs[:,:int(60 / 0.05),:]
+                        targets = targets[:,:int(60 / 0.05),:]
+                    elif epoch < 1750:
+                        inputs = inputs[:,:int(80 / 0.05),:]
+                        targets = targets[:,:int(80 / 0.05),:]
+                    """
                     outputs = model(inputs)
-                    outputs = outputs[:, -nsteps:, :]
+                    outputs = outputs#[:, -nsteps:, :]
                     #print(outputs.shape)
                     # plt.plot(outputs[0,:,0].detach().numpy())
                     # plt.plot(targets[0,:,0].detach().numpy())
@@ -1008,7 +1039,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                     #     print(loss.item() / len(targets))
                     if glifr:
                         loss = loss + aa_reg(model, reg_lambda = reg_lambda)
-                        # reg_lambda *= 0.9
+                        #reg_lambda *= 0.95
                     # if glifr:
                     #     loss = loss + km_reg(model, reg_lambda)
                     loss.backward()
@@ -1030,7 +1061,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 else:
                     optimizer.step()
                 # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
-                if decay:# and epoch < 150:
+                if decay and batch_ndx == 0 and epoch < 250:# and epoch < 150:
                     scheduler.step()
                 if not lbfgs:
                     tot_loss += loss.item()
@@ -1064,10 +1095,14 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
         if glifr and epoch % 10 == 0:
             print(torch.mean(model.neuron_layer.ln_k_m.grad))
+            print(torch.mean(model.neuron_layer.ln_k_syn.grad))
             # print(torch.mean(model.neuron_layer.v_reset.grad))
             print(torch.mean(model.neuron_layer.thresh.grad))
             print(torch.mean(model.neuron_layer.ln_asc_k.grad))
             print(torch.mean(model.neuron_layer.asc_amp.grad))
+            print(torch.mean(model.neuron_layer.asc_r.grad))
+            print(f"lnkm: {torch.mean(torch.exp(model.neuron_layer.ln_k_m))}")
+            print(f"lnasck: {torch.mean(torch.exp(model.neuron_layer.ln_asc_k))}")
             """training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             print(torch.mean(model.neuron_layer.asc_r.grad))
             print(torch.mean(model.neuron_layer.weight_iv.grad))
