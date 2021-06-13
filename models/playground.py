@@ -45,7 +45,7 @@ def plot_overall_response(model):
     nsteps = int(sim_time / dt)
 
     num_freqs = 10#8
-    freq_min = 0.08#01
+    freq_min = 0.01#01
     freq_max = 0.6
     
     freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
@@ -79,7 +79,7 @@ def plot_responses(model):
     sim_time = 30
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = 1000 * torch.ones(1, nsteps, output_size + input_size)
+    input = torch.ones(1, nsteps, output_size + input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -113,9 +113,12 @@ hid_size = 64
 output_size = 10
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/10dsine_brnn_short060621_10ms_nogamma.pt"))
-
-plot_overall_response(model_glif)
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/10dsine_brnn_short060621_10ms_64units_incompletereset_ksynones.pt"))
+with torch.no_grad():
+    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.05)
+    plot_responses(model_glif)
+with torch.no_grad():
+    plot_overall_response(model_glif)
 
 # input_size = 16
 # hid_size = 200
@@ -177,5 +180,6 @@ plt.ylabel('counts', fontsize = fontsize)
 plt.show()
 
 # print(torch.mean(model_glif.neuron_layer.weight_iv))
-nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.0001)
-plot_responses(model_glif)
+with torch.no_grad():
+    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.01)
+    plot_responses(model_glif)
