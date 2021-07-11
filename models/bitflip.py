@@ -7,7 +7,10 @@ import pickle
 import datetime
 import utils as ut
 from networks import RNNFC, BNNFC
+<<<<<<< HEAD
 #from neurons.glif_new import BNNC, RNNC, Placeholder
+=======
+>>>>>>> bc8b015d7cbb20c97400682be44eef99bdbb2841
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,16 +39,11 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "brnn_3bit_shortsim_newinit_moreepochs_hilr_64units"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-        on_server = True
-        if on_server:
-            base_name = main_name
-            base_name_save = main_name
-            base_name_model = main_name
-        else: 
-            base_name = "figures_wkof_053021/" + main_name
-            base_name_save = "traininfo_wkof_053021/" + main_name
-            base_name_model = "models_wkof_053021/" + main_name
+        main_name = "brnn_3bit"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+
+        base_name = "figures_wkof_070421/" + main_name
+        base_name_save = "traininfo_wkof_070421/" + main_name
+        base_name_model = "models_wkof_070421/" + main_name
 
         use_rnn = False
         hid_size = 64
