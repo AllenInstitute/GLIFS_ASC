@@ -124,7 +124,7 @@ model_glif.load_state_dict(torch.load("saved_models/models_wkof_070421/brnn_mult
 print(torch.mean(model_glif.neuron_layer.weight_iv))
 
 with torch.no_grad():
-    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.00000001)
+    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.1)
     plot_responses(model_glif)
 quit()
 # with torch.no_grad():

@@ -245,7 +245,7 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
     return inputs, targets
 
 
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -324,17 +324,18 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
     model.eval()
     
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=1)
     loss_fn = nn.CrossEntropyLoss()
     root = './data/mnist'
     trainloader, testloader = mnist_generator(root, batch_size)
     model.train()
-    input_channels = 1
+
+    if linebyline:
+        input_channels = 28
+    else:
+        input_channels = 1
     seq_length = int(784/input_channels)
     # for batch_ndx, sample in enumerate(trainloader):
     for epoch in range(num_epochs):
-        # if epoch % 1 == 0:
-        #     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
         tot_loss = 0
         tot_pairs = 0
         loss_batch = []
@@ -342,15 +343,16 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
         for batch_ndx, (data,target) in enumerate(trainloader):
             target = target.long()
 
-            # print(batch_ndx)
             n_subiter = 1
             if batch_ndx % 100 == 0 and batch_ndx > 0:
                 print(f"loss of {loss_batch[-1]} on batch {batch_ndx}/{len(trainloader)}")
             for i in range(n_subiter):
                 loss = 0.0
                 # print(data.shape)
-                # data = data.view(-1, 28, 28)
-                data = data.view(-1, 28 * 28, 1)
+                if linebyline:
+                    data = data.view(-1, 28, 28)
+                else:
+                    data = data.view(-1, 28 * 28, 1)
 
                 optimizer.zero_grad()
 
@@ -366,47 +368,22 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
                 optimizer.zero_grad()
 
                 outputs = model(data)
-                outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
+                if linebyline:
+                    outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]
+                else:
+                    outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
                 # outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]#torch.mean(outputs.reshape(len(target), 10, 28), -1)
                 loss = loss + loss_fn(outputs, target)
                 # if i % n_subiter == 0:
                 #     print(loss.item() / len(targets))
-                if glifr:
-                    loss = loss + aa_reg(model, reg_lambda = reg_lambda)
-                    reg_lambda *= 0.9
+                # if glifr:
+                #     loss = loss + aa_reg(model, reg_lambda = reg_lambda)
+                #     reg_lambda *= 0.9
                 # if glifr:
                 #     loss = loss + km_reg(model, reg_lambda)
                 loss.backward()
-                if glifr:
-                    pass
-                    # # print(f"weight: {torch.mean(model.neuron_layer.weight_iv.grad)}")
-                    # # print(f"v_reset: {torch.mean(model.neuron_layer.v_reset.grad)}")
-                    # print(f"lnkm: {torch.mean(model.neuron_layer.ln_k_m.grad)}")
-                    # print(f"lnasck: {torch.mean(model.neuron_layer.ln_asc_k.grad)}")
-                    # print(f"thresh: {torch.mean(model.neuron_layer.thresh.grad)}")
-                    # print(f"ascr: {torch.mean(model.neuron_layer.asc_r.grad)}")
-                    # print(f"ascamp: {torch.mean(model.neuron_layer.asc_amp.grad)}")
-                    # print(f"weight_out: {torch.mean(model.output_linear.weight.grad)}")
-                # else:
-                #     print(f"weight_ih: {torch.mean(model.neuron_layer.weight_ih.grad)}")
-                #     print(f"weight_hh: {torch.mean(model.neuron_layer.weight_hh.grad)}")
-                #     print(f"weight_out: {torch.mean(model.output_linear.weight.grad)}")
-
-                
-                if glifr:
-                    with torch.no_grad():
-                        # model.neuron_layer.thresh.grad *= 0
-                        # model.neuron_layer.ln_k_m.grad *= 0
-                        # model.neuron_layer.asc_amp.grad *= 0
-                        # model.neuron_layer.asc_r.grad *= 0
-                        # model.neuron_layer.ln_asc_k.grad *= 0
-                        # model.neuron_layer.weight_iv.grad *= 0
-                        # model.output_linear.weight.grad *= 0
-                        pass
-
+    
                 optimizer.step()
-                # if epoch % 2 == 0 and epoch < 20 and i % n_subiter == 0:
-                # scheduler.step()
                 
                 tot_loss += loss.item()
                 loss_batch.append(loss.item() / len(target))
@@ -451,21 +428,22 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#
             target = target.long()
             model.reset_state(len(target))
             # target = torch.unsqueeze(target, -1)
-            # data = data.view(-1, 28, 28)
-            data = data.view(-1, 28 * 28, 1)
+            if linebyline:
+                data = data.view(-1, 28, 28)
+            else:
+                data = data.view(-1, 28 * 28, 1)
             output = model(data)
-            output = output.reshape(len(target), 10, 28 * 28)[:,:,-1]
-            # output = output.reshape(len(target), 10, 28)[:,:,-1]
-            # output = torch.mean(output.reshape(len(target), 10, 28), -1)
+            if linebyline:
+                output = output.reshape(len(target), 10, 28)[:,:,-1]
+            else:
+                output = output.reshape(len(target), 10, 28 * 28)[:,:,-1]
             test_loss += loss_fn(output, target).item()
             pred = output.data.max(1, keepdim=True)[1]
-            # pred = torch.argmax(torch.sigmoid(output), 1, keepdim=True).long()
             print(pred.shape)
             print(target.shape)
             print(data.shape)
             print(correct)
             
-            # pred = torch.sigmoid(output).data.max(1, keepdim=True)[1]
             correct += (pred == ((target.data.view_as(pred)))).sum()
     test_loss = test_loss * 1.0 / len(testloader.dataset)
     
