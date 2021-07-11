@@ -36,8 +36,8 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "brnn_3bit_shortsim_newinit_moreepochs_hilr_16units"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-        on_server = False
+        main_name = "brnn_3bit_shortsim_newinit_moreepochs_hilr_64units"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        on_server = True
         if on_server:
             base_name = main_name
             base_name_save = main_name
@@ -48,7 +48,7 @@ def main():
             base_name_model = "models_wkof_053021/" + main_name
 
         use_rnn = False
-        hid_size = 16#64
+        hid_size = 64
         input_size = 3
         output_size = 3
 
@@ -68,8 +68,8 @@ def main():
                 model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
         # model.load_state_dict(torch.load("trained_model.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
         # Train model
-        num_epochs = 500
-        lr = 0.005#0.0015#25
+        num_epochs = 1500
+        lr = 0.001#0.0015#25
 
         # num_epochss = [200,100,50,10,1,1]
         training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, glifr = not use_rnn)
