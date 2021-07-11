@@ -6,8 +6,8 @@ matplotlib.use('Agg')
 import pickle
 import datetime
 import utils as ut
-from networks import RBNN, RNNFC, BNNFC
-from neurons.glif_new import BNNC, RNNC, Placeholder
+from networks import RNNFC, BNNFC
+#from neurons.glif_new import BNNC, RNNC, Placeholder
 
 import matplotlib.pyplot as plt
 import numpy as np

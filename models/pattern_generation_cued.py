@@ -29,7 +29,7 @@ Loss array and model information saved in folder specified by traininfo/base_nam
 """
 
 def main():
-	main_name = "brnn_cued_10ms_16units_10d"
+	main_name = "brnn_cued_50ms_64units_10d_longer"
 	base_name = "figures_wkof_070421/" + main_name
 	base_name_save = "traininfo_wkof_070421/" + main_name
 	base_name_model = "models_wkof_070421/" + main_name
@@ -38,12 +38,12 @@ def main():
 	use_rnn = False
 	use_lstm = False
 
-	hid_size = 128
+	hid_size = 64
 	input_size = 20#8
 	output_size = 1
 
 	# Target specifications
-	sim_time = 10
+	sim_time = 50
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
@@ -55,17 +55,17 @@ def main():
 	freq_max = 0.6
 
 	# Training specifications
-	num_epochs = 1000
-	lr = 0.005
-	reg_lambda = 1500
+	num_epochs = 3000
+	lr = 0.001#0.005
+	reg_lambda = 0#1500
 	decay = False
 
 	# Generate freqs
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
-	sim_time = 10
-	dt = 0.05
+	sim_time = 20
+	dt = 0.5
 	amp = 1
 	noise_mean = 0
 	noise_std = 0
@@ -84,7 +84,7 @@ def main():
 		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
 
 	# Train model
-	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, task = "pattern", decay=True)
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, task = "pattern", decay=decay)
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 
