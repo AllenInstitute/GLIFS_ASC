@@ -14,11 +14,11 @@ from networks import RNNFC, BNNFC
 
 fontsize = 18
 
-folder_loss = "traininfo_wkof_053021/"
-losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
-losses_glif = torch.load("traininfo/" + folder_loss + "5dsine_brnn_short060621_10ms_spontaneous_losses.pt")
-plt.plot(losses_rnn, color = 'orange', label = "RNN")
-plt.plot(losses_glif, 'purple', label = "GLIF_ASC")
+# folder_loss = "traininfo_wkof_053021/"
+# losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
+# losses_glif = torch.load("traininfo/" + folder_loss + "5dsine_brnn_short060621_10ms_spontaneous_losses.pt")
+# plt.plot(losses_rnn, color = 'orange', label = "RNN")
+# plt.plot(losses_glif, 'purple', label = "GLIF_ASC")
 # losses_rnn = torch.load("traininfo/" + folder_loss + "rnn200_sussillo8_batched_hisgmav_predrive_scaleasc_losses.pt")
 # losses_glif = torch.load("traininfo/" + folder_loss + "brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_agn_nodivstart_losses.pt")
 # losses_glifwt = torch.load("traininfo/" + folder_loss + "brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart_losses.pt")
@@ -31,13 +31,13 @@ plt.plot(losses_glif, 'purple', label = "GLIF_ASC")
 # # plt.plot(losses_glifpar, label = "GLIF_ASC-parameters")
 # plt.plot(losses_noasc, 'green', label = "LIF-both")
 
-plt.legend(fontsize = fontsize - 2)
-plt.xticks(fontsize = fontsize)
-plt.yticks(fontsize = fontsize)
-plt.xlim([0,250]) # TODO: please change as needed
-plt.xlabel("epoch #", fontsize = fontsize)
-plt.ylabel("mse loss", fontsize = fontsize)
-plt.show()
+# plt.legend(fontsize = fontsize - 2)
+# plt.xticks(fontsize = fontsize)
+# plt.yticks(fontsize = fontsize)
+# plt.xlim([0,250]) # TODO: please change as needed
+# plt.xlabel("epoch #", fontsize = fontsize)
+# plt.ylabel("mse loss", fontsize = fontsize)
+# plt.show()
 
 def plot_overall_response(model):
     sim_time = 40
@@ -111,8 +111,8 @@ def plot_responses(model):
             plt.yticks(fontsize = fontsize)
     plt.show()
 
-input_size = 8
-hid_size = 64
+input_size = 1
+hid_size = 16
 output_size = 10
 
 # hid_size = 128#64
@@ -120,15 +120,15 @@ output_size = 10
 # output_size = 1
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_060621/10dsine_brnn_short060621_10ms_nogamma_agn_woffset.pt"))
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_070421/brnn_multidim_10ms_16units_10d.pt"))
 print(torch.mean(model_glif.neuron_layer.weight_iv))
 
 with torch.no_grad():
-    nn.init.constant_(model_glif.neuron_layer.weight_iv, .01)
+    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.00000001)
     plot_responses(model_glif)
-
-with torch.no_grad():
-    plot_overall_response(model_glif)
+quit()
+# with torch.no_grad():
+#     plot_overall_response(model_glif)
 
 # input_size = 16
 # hid_size = 200

@@ -6,8 +6,8 @@ matplotlib.use('Agg')
 import pickle
 import datetime
 import utils as ut
-from networks import RBNN, RNNFC, BNNFC
-from neurons.glif_new import BNNC, RNNC, Placeholder
+import utils_task as utt
+from networks import RNNFC, BNNFC
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,44 +21,46 @@ import math
 
 # torch.autograd.set_detect_anomaly(True)
 """
-This file trains a network of rate-based GLIF neurons with after-spike currents on a pattern generation task.
-1. Single pattern generation: generate a sinusoid of a given frequency when provided with constant input
-2. Sussillo pattern generation: generate a sinusoid of a freuqency that is proportional to the amplitude of the constant input
-3. Bellec pattern generation: generation a sinusoid of a frequency that corresponds to the subset of input neurons receiving input
+This file trains a network of rate-based GLIF neurons with after-spike currents on a cued pattern generation task.
 
-Trained model is saved to the folder specified by model_name + date.
-Figures on learned outputs, parameters, weights, gradients, and losses over training are saved to the folder specified by fig_name + date
-
-Loss is printed on every epoch
-
-To alter model architecture, change sizes, layers, and conns dictionaries. 
-There are other specifications including amount of time, number of epochs, learning rate, etc.
+Trained model is saved to the folder specified by saved_models/base_name_model
+Figures on learned outputs, parameters, weights, gradients, and losses over training are saved to the folder specified by figures/base_name
+Loss array and model information saved in folder specified by traininfo/base_name_save
 """
 
 def main():
-	main_name = "cuedsine_rnn_short060621_100ms_nogamma_noreg_128units_agn_nooffset"#"3dsine_rnn_long"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-	on_server = False
+	main_name = "brnn_cued_10ms_16units_10d"
+	base_name = "figures_wkof_070421/" + main_name
+	base_name_save = "traininfo_wkof_070421/" + main_name
+	base_name_model = "models_wkof_070421/" + main_name
 
-	if on_server:
-		base_name = main_name
-		base_name_save = main_name
-		base_name_model = main_name
-	else:
-		base_name = "figures_wkof_060621/" + main_name
-		base_name_save = "traininfo_wkof_060621/" + main_name
-		base_name_model = "models_wkof_060621/" + main_name
+	# Model dimensions
+	use_rnn = False
+	use_lstm = False
 
-	use_rnn = True
-
-	hid_size = 128#64
+	hid_size = 128
 	input_size = 20#8
 	output_size = 1
 
-	# Generate freqs
+	# Target specifications
+	sim_time = 10
+	dt = 0.05
+	amp = 1
+	noise_mean = 0
+	noise_std = 0
+
+	batch_size = 1
 	num_freqs = 10
 	freq_min = 0.08#0.001
 	freq_max = 0.6
 
+	# Training specifications
+	num_epochs = 1000
+	lr = 0.005
+	reg_lambda = 1500
+	decay = False
+
+	# Generate freqs
 	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 	# Generate data
@@ -68,29 +70,20 @@ def main():
 	noise_mean = 0
 	noise_std = 0
 
-	batch_size = 5
+	batch_size = 1
 
-	inputs, targets = ut.create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size)
-	traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
+	inputs, targets = utt.create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size)
+	traindataset = utt.create_dataset(inputs, targets)
 
 	# # traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
 
 	# # Generate model
-	# delay = int(0.5 / dt)
 	if use_rnn:
-		model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+		model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
 	else:
-		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-	# model.load_state_dict(torch.load("saved_models/3dsine_rnn.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
-	# Train model
-	num_epochs = 1500
-	lr = 0.0025#0.005
-	reg_lambda = 0#0.001
-	torch.save(model.state_dict(), "saved_models/" + base_name_model + "_init.pt")
+		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
 
-	# num_epochss = [200,100,50,10,1,1]
-	# for p in model.parameters():
-	#       p.register_hook(lambda grad: torch.clamp(grad, -0.5, 0.5))
+	# Train model
 	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn, task = "pattern", decay=True)
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
@@ -101,9 +94,7 @@ def main():
 	final_outputs = training_info["final_outputs"]
 
 	for i in range(num_freqs):
-		# print(final_outputs[i].shape)
 		plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, final_outputs[i][0,:].detach().numpy(), c = colors[i], label=f"freq {freqs[i % len(colors)]}")
-		# print(targets.sj)
 		plt.plot(np.arange(len(final_outputs[i][0,:])) * dt, targets[:,i], '--', c = colors[i % len(colors)])
 	# plt.legend()
 	plt.xlabel("time (ms)")

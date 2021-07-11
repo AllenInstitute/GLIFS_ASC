@@ -14,9 +14,9 @@ import torch
 import torch.nn as nn
 import torch.utils.data as tud
 from torchvision import datasets, transforms
-from myterial import salmon, light_green_dark, indigo_light
-from pyrnn._plot import clean_axes
-from rich.progress import track
+# from myterial import salmon, light_green_dark, indigo_light
+# from pyrnn._plot import clean_axes
+# from rich.progress import track
 
 def mnist_generator(root, batch_size):
     # def set_header_for(url, filename):
@@ -78,21 +78,47 @@ def create_copy(sim_time, dt, noise_mean, noise_std, n):
         target sequences
     """
     nsteps = int(sim_time / dt)
-    time = np.arange(start = 0, stop = sim_time, step = dt)
+    # time = np.arange(start = 0, stop = sim_time, step = dt)
 
-    inputs = np.random.randint(1, 8, size = (nsteps, n))
-    targets = np.zeros((nsteps, n))
+    inputs = np.random.randint(0, 8, size = (nsteps, n), dtype=int)
+    targets = 8 * np.ones((nsteps, n), dtype=int)
+
+    inputs[10:, :] = 8
+    inputs[-11, :] = 9
+    
+
+    idx = np.random.randint(0, nsteps - 10, size = (n), dtype=int)
+    idx = [nsteps - 10 for i in range(len(idx))]
+    inputs[-10:, :] = 8
+    # for i in range(n):
+    #     inputs[idx[i] - nsteps:, :] = 8
+    #     targets[idx[i]-nsteps:idx[i]-nsteps + 10] = inputs[:10, :]
+    targets[-10:, :] = inputs[:10, :]
+    # targets[idx-nsteps:idx-nsteps + 10] = inputs[:10, :]
+
+    inputs_real = np.zeros((nsteps, n, 10), dtype=int)
+    targets_real = np.zeros((nsteps, n, 10), dtype=int)
 
     for i in range(n):
-        noise = np.random.normal(noise_mean, noise_std, nsteps)
+        for j in range(nsteps):
+            inputs_real[j, i, inputs[j, i]] = 1
+            targets_real[j, i, targets[j, i]] = 1
+
+    # noise = np.random.normal(noise_mean, noise_std, nsteps)
+    # targets = targets + noise.reshape(noise.shape[0], 1)
+
+
+
+    # for i in range(n):
+    #     noise = np.random.normal(noise_mean, noise_std, nsteps)
         
-        inputs[10:,i] = 0
-        inputs[-11:, i] = 9
-        targets[-10:, i] = inputs[0:10, i]
-        targets = targets + noise.reshape(noise.shape[0], 1)
-    targets = np.expand_dims(targets, -1)
-    inputs = np.expand_dims(inputs, -1)
-    return inputs, targets
+    #     inputs[10:,i] = 0
+    #     inputs[-11:, i] = 9
+    #     targets[-10:, i] = inputs[0:10, i]
+    #     targets = targets + noise.reshape(noise.shape[0], 1)
+    # targets = np.expand_dims(targets, )
+    # inputs = np.expand_dims(inputs, -1)
+    return inputs_real, targets
 
 def memory_capacity(sim_time, dt, lookback, noise_mean=0, noise_std=1, input_size=1):
     from scipy.signal import butter,filtfilt
@@ -171,71 +197,7 @@ def create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
 
     return inputs, targets
 
-def create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
-    """
-    Create a dataset of three-dimensional patterns based on Task 1.1 Pattern Generation in https://arxiv.org/pdf/1901.09049.pdf
-    Parameters
-    ----------
-    sim_time : float
-        number of ms of total simulation time
-    dt : float
-        number of ms in each timestep
-    amp : float
-        amplitude of the sinusoid
-    noise_mean : float
-        mean of noise added to sinusoid
-    noise_std : float
-        std of noise added to sinusoid
-    freqs : List
-        list of frequencies (1/ms or kHz) of sinusoids
-    Returns
-    -------
-    Numpy Array(nsteps, len(freqs))
-        input sequences
-    Numpy Arryay(nsteps, len(freqs))
-        target sequences
-    """
-    n = len(freqs)
-    nsteps = int(sim_time / dt)
-    time = np.arange(start = 0, stop = sim_time, step = dt)
 
-    targets = np.empty((nsteps, n))
-    inputs = np.empty((nsteps, input_size))
-
-    # nsteps_pre = max([min(200,int((1 / (freq)) / dt)) for freq in freqs])
-    # targets_pre = np.empty((nsteps_pre + 1, n))
-    # inputs_pre = np.empty((nsteps_pre + 1, n))
-
-    freq_in = 0.01 # 1/100ms = 0.01/ms
-
-    for i in range(input_size):
-        wave = amp * np.sin(2 * np.pi * freq_in * time + (2 * np.pi * i/ input_size))
-        inputs[:, i] = np.maximum(0,wave)
-
-    for i in range(n):
-        offset = 0#(i / n) + 0.25
-        noise = np.random.normal(noise_mean, noise_std, nsteps)
-        freq = 2 * np.pi * freqs[i]
-        
-        targets[:, i] = amp * np.sin(freq * time) + noise + offset
-        # inputs[:,i] = offset
-
-        
-        # period = min(int((1 / freqs[i]) / dt), 200)
-        # noise = np.random.normal(noise_mean, noise_std, period)
-        # time_pre =np.linspace(-1 / freqs[i], 0, num = period, endpoint = False)# np.arange(start = -1 / freqs[i], stop = 0, step = dt)
-        # inputs_pre[-period:, i] = offset
-        # # print((amp * np.sin(freq * time_pre) + noise + offset).shape)
-        # targets_pre[-period:, i] = (amp * np.sin(2 * np.pi * freqs[i] * time_pre) + noise + offset)[-period:]
-
-    # Change shape so that inputs and targets have nfreq as output dimension rather than num_samples
-    # nsteps, 1, n_out
-    inputs = np.expand_dims(inputs, 1)
-    targets = np.expand_dims(targets, 1)
-    # inputs_pre = np.expand_dims(inputs_pre, -1)
-    # targets_pre = np.expand_dims(targets_pre, -1)
-
-    return inputs, targets
 
 def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size):
     """
@@ -282,22 +244,6 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
 
     return inputs, targets
 
-def create_dataset(inputs, targets, input_size = 1, target_size = 1):
-    nsteps, n, _ = inputs.shape
-    # nsteps_pre, n_pre, _ = inputs_pre.shape
-
-    inputs = np.moveaxis(inputs, 0,1)
-    targets = np.moveaxis(targets, 0,1)
-    # inputs_pre = np.moveaxis(inputs_pre, 0,1)
-    # targets_pre = np.moveaxis(targets_pre, 0,1)
-
-    inputs = inputs.reshape((n, nsteps, input_size))
-    targets = targets.reshape((n, nsteps, target_size))
-
-    # print(inputs_pre.shape)
-    # inputs_pre = inputs_pre.reshape((n_pre, nsteps_pre, input_size))
-    # targets_pre = targets_pre.reshape((n_pre, nsteps_pre, target_size))
-    return tud.TensorDataset(torch.tensor(inputs).float(), torch.tensor(targets).float())#, torch.tensor(inputs_pre).float(), torch.tensor(targets_pre).float())
 
 def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
@@ -617,7 +563,7 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     # scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=1)
-    loss_fn = nn.MSELoss()
+    loss_fn = nn.CrossEntropyLoss()
     
     model.train()
     input_channels = 1
@@ -780,7 +726,7 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     test(sl_last, nrepeat)
     return training_info
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -851,10 +797,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             ith element is a list of asc_r gradients of neurons at
             the ith epoch
     """
-    if task == "copy":
-        with torch.no_grad():
-            data_gen = traindataset()
-            traindataset = next(data_gen)
+    # if task == "copy":
+    #     with torch.no_grad():
+    #         data_gen = traindataset()
+    #         traindataset = next(data_gen)
 
     training_info = {"losses": [],
                     "weights": [],
@@ -905,11 +851,16 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             for dim in range(outputs.shape[-1]):
                 init_outputs.append(outputs[:,:,dim])
         training_info["init_outputs"] = init_outputs
+    else:
+        init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.4)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
+    # optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
     loss_fn = nn.MSELoss()
+    if task == "copy":
+        loss_fn = nn.CrossEntropyLoss()
     # loss_fn = nn.SmoothL1Loss()
     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
     model.train()
@@ -917,10 +868,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
     for epoch in range(num_epochs):
         # if epoch % 1 == 0:
         #     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
-        if task == "copy":
-            with torch.no_grad():
-                traindataset = next(data_gen)
-                trainloader = tud.DataLoader(traindataset, batch_size, shuffle = True)
+        # if task == "copy":
+        #     with torch.no_grad():
+        #         traindataset = next(data_gen)
+        #         trainloader = tud.DataLoader(traindataset, batch_size, shuffle = True)
         tot_loss = 0
         tot_pairs = 0
         loss_batch = []
@@ -929,12 +880,21 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         #     print(model.neuron_layer.ln_asc_k.grad) # -4 and -1 isn't good..-1 and 0 isn't good
         # for epoch in range(num_epochs):
         reg_lambda = 0.01
+
+        if task == "copy":
+            new_dataset = data_gen()
+            trainloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
+
         for batch_ndx, sample in enumerate(trainloader):
             # print(batch_ndx)
             n_subiter = 1
             for i in range(n_subiter):
                 loss = 0.0
                 inputs, targets = sample
+
+                if task == "copy":
+                    inputs = inputs.float()
+                    targets = targets.long()
                 
                 # plt.plot(inputs[0,:,0].detach().numpy())
                 # plt.plot(targets[0,:,0].detach().numpy())
@@ -956,27 +916,23 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
                 # if predrive:
                 #     with torch.no_grad():
                 #         model(targets)
-                # if False:#predrive:
-                #     with torch.no_grad():
-                #         model(targets_pre)
-                        # plt.plot(targets_pre[0,:,0])
-                        # plt.show()
 
                 # outputs = torch.stack(model(inputs)[-nsteps:], dim=0)
                 outputs = model(inputs)
                 outputs = outputs[:, -nsteps:, :]
-                #print(outputs.shape)
-                # plt.plot(outputs[0,:,0].detach().numpy())
-                # plt.plot(targets[0,:,0].detach().numpy())
-                # plt.show()
 
-                if task == "copy" and epoch == num_epochs - 1:
-                    np.savetxt('outputs_rnn_1000lng.txt', torch.squeeze(outputs).detach().numpy(), fmt="%i")
-                    np.savetxt('targets_rnn_1000lng.txt', torch.squeeze(targets).detach().numpy(), fmt="%i")
-                    np.savetxt('inputs_rnn_1000lng.txt', torch.squeeze(inputs).detach().numpy(), fmt="%i")
+                # if task == "copy" and epoch == num_epochs - 1:
+                #     np.savetxt('outputs_rnn_1000lng.txt', torch.squeeze(outputs).detach().numpy(), fmt="%i")
+                #     np.savetxt('targets_rnn_1000lng.txt', torch.squeeze(targets).detach().numpy(), fmt="%i")
+                #     np.savetxt('inputs_rnn_1000lng.txt', torch.squeeze(inputs).detach().numpy(), fmt="%i")
 
-                loss = loss + loss_fn(outputs, targets)
-                null_loss = loss_fn(outputs*0, targets)
+                if task == "copy":
+                    # print(outputs.reshape((-1, outputs.shape[-1])).shape)
+                    # print(targets.reshape((-1)).shape)
+                    loss = loss_fn(outputs.reshape((-1, outputs.shape[-1])), targets.reshape((-1)))#torch.mean([loss_fn(outputs[:, st, :], targets[:, st, :]) for st in range(outputs.shape)])
+                else:
+                    loss = loss + loss_fn(outputs, targets)
+                null_loss = "SORRY"#loss_fn(outputs*0, targets)
                 # if i % n_subiter == 0:
                 #     print(loss.item() / len(targets))
                 if glifr:
@@ -1029,7 +985,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
         # if glifr:
         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        if glifr and epoch % 10 == 0:
+        if glifr and epoch % 100 == 0:
             print(torch.mean(model.neuron_layer.ln_k_m.grad))
             # print(torch.mean(model.neuron_layer.v_reset.grad))
             print(torch.mean(model.neuron_layer.thresh.grad))
@@ -1046,42 +1002,59 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, verb
             training_info["asc_r_grads"].append([model.neuron_layer.asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m])  + 0.0 for m in range(model.hid_size)])
 
-    
-    if task == "pattern":
-        final_outputs = []
-        model.eval()
-        for batch_ndx, sample in enumerate(init_dataloader):
-            inputs, targets = sample
-            _, nsteps, _ = inputs.shape
-            model.reset_state()
-            final_outputs.append(model.forward(inputs)[:, -nsteps:, :])
-            plt.plot(model.forward(inputs)[0, -nsteps:, 0].detach().numpy())
-            plt.plot(targets[0, -nsteps:, 0].detach().numpy())
-            plt.close()
-        training_info["final_outputs"] = final_outputs
+    with torch.no_grad():
+        if task == "pattern":
+            final_outputs = []
+            model.eval()
+            for batch_ndx, sample in enumerate(init_dataloader):
+                inputs, targets = sample
+                _, nsteps, _ = inputs.shape
+                model.reset_state()
+                final_outputs.append(model.forward(inputs)[:, -nsteps:, :])
+                plt.plot(model.forward(inputs)[0, -nsteps:, 0].detach().numpy())
+                plt.plot(targets[0, -nsteps:, 0].detach().numpy())
+                plt.close()
+            training_info["final_outputs"] = final_outputs
 
-        final_outputs_driven = []
-        for batch_ndx, sample in enumerate(init_dataloader):
-            inputs, targets = sample
-            _, nsteps, _ = inputs.shape
-            model.reset_state(batch_size = 1)
+            final_outputs_driven = []
+            for batch_ndx, sample in enumerate(init_dataloader):
+                inputs, targets = sample
+                _, nsteps, _ = inputs.shape
+                model.reset_state(batch_size = 1)
 
-            # print(batch_ndx)
+                # print(batch_ndx)
 
-            # model(targets) # Predrive first dimension is batch so 1
-            # model(targets_pre) # Predrive
-            final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :]))
-        training_info["final_outputs_driven"] = final_outputs_driven
-    elif task == "pattern_multid":
-        final_outputs = []
-        for batch_ndx, sample in enumerate(init_dataloader):
-            inputs, targets = sample
-            _, nsteps, _ = inputs.shape
-            model.reset_state()
-            outputs = model.forward(inputs)
-            for dim in range(outputs.shape[-1]):
-                final_outputs.append(outputs[:,:,dim])
-        training_info["final_outputs"] = final_outputs
+                # model(targets) # Predrive first dimension is batch so 1
+                # model(targets_pre) # Predrive
+                final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :]))
+            training_info["final_outputs_driven"] = final_outputs_driven
+        elif task == "pattern_multid":
+            final_outputs = []
+            for batch_ndx, sample in enumerate(init_dataloader):
+                inputs, targets = sample
+                _, nsteps, _ = inputs.shape
+                model.reset_state()
+                outputs = model.forward(inputs)
+                for dim in range(outputs.shape[-1]):
+                    final_outputs.append(outputs[:,:,dim])
+            training_info["final_outputs"] = final_outputs
+        elif task == "copy":
+            if task == "copy":
+                new_dataset = data_gen()
+                init_dataloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
+            final_targets = []
+            final_outputs = []
+            for batch_ndx, sample in enumerate(init_dataloader):
+                inputs, targets = sample
+                _, nsteps, _ = inputs.shape
+                model.reset_state()
+                outputs = model.forward(inputs)
+                final_outputs.append(torch.argmax(outputs[0,:,:], dim=1).long().detach())
+                final_targets.append(targets[0,:,0].detach())
+            final_outputs = torch.stack(final_outputs)
+            final_targets = torch.stack(final_targets)
+            np.savetxt('outputs_062021.txt', torch.squeeze(final_outputs).detach().numpy(), fmt="%i")
+            np.savetxt('targets_062021.txt', torch.squeeze(final_targets).detach().numpy(), fmt="%i")
     return training_info
 
 def km_reg(rbnn, reg_lambda):
