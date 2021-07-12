@@ -72,7 +72,7 @@ def create_multid_pattern(sim_time, dt, amp, noise_mean, noise_std, freqs, input
         freq = 2 * np.pi * freqs[i]
         
         targets[:, i] = amp * np.sin(freq * time) + noise + offset
-        inputs[:, i] = offset
+        #inputs[:, i] = offset
 
     # Change shape so that inputs and targets have nfreq as output dimension rather than num_samples
     # nsteps, 1, n_out

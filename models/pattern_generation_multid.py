@@ -29,7 +29,7 @@ Loss array and model information saved in folder specified by traininfo/base_nam
 """
 
 def main():
-	main_name = "brnn_multidim_10ms_16units_10d"
+	main_name = "brnn_multidim_100ms-dtpt5_16units_10d"
 	base_name = "figures_wkof_070421/" + main_name
 	base_name_save = "traininfo_wkof_070421/" + main_name
 	base_name_model = "models_wkof_070421/" + main_name
@@ -38,13 +38,13 @@ def main():
 	use_rnn = False
 	use_lstm = False
 
-	hid_size = 16
+	hid_size = 16#36#16
 	input_size = 1#8
 	output_size = 10 # also number of output sinusoids
 
 	# Target specifications
-	sim_time = 10
-	dt = 0.05
+	sim_time = 100
+	dt = 0.5
 	amp = 1
 	noise_mean = 0
 	noise_std = 0
@@ -55,8 +55,8 @@ def main():
 	freq_max = 0.6
 
 	# Training specifications
-	num_epochs = 1500
-	lr = 0.005
+	num_epochs = 10000#5000
+	lr = 0.01#0.005#0.005
 	reg_lambda = 1500
 	decay = False
 

@@ -68,6 +68,8 @@ class BNNFC(nn.Module):
 
                 self.last_output = torch.zeros((self.batch_size, self.out_size))
                 self.voltages = []
+
+                full_reset = True
                 
                 if full_reset:
                     self.firing = torch.zeros((self.batch_size, self.hid_size))
@@ -97,7 +99,7 @@ class RNNFC(nn.Module):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = RNNC(input_size = in_size + out_size, hidden_size = hid_size, bias = True)
+                self.neuron_layer = RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -132,7 +134,7 @@ class RNNFC(nn.Module):
 
                 for step in range(nsteps):
                         x = input[:, step, :]
-                        x = torch.cat((x, outputs_[-delay]), dim=-1)
+                        #x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing = self.neuron_layer(x, self.firing)
                         x = self.output_linear(self.firing)
