@@ -245,7 +245,7 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
     return inputs, targets
 
 
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -452,7 +452,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
 
     original_stdout = sys.stdout # Save a reference to the original standard output
 
-    with open('results.txt', 'w') as f:
+    with open(output_text_filename, 'w') as f:
         sys.stdout = f # Change the standard output to the file we created.
         print(f"loss: {test_loss}")
         print(f"accuracy: {correct * 1.0 / len(testloader.dataset)}")

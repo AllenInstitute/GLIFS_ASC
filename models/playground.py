@@ -79,10 +79,10 @@ def plot_overall_response(model):
 
 # Neuronal Response Curves
 def plot_responses(model):
-    sim_time = 30
+    sim_time = 1000
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = 1 * torch.ones(1, nsteps, output_size + input_size)
+    input = 0.00001 * torch.ones(1, nsteps, output_size + input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -93,9 +93,9 @@ def plot_responses(model):
     for step in range(nsteps):
         x = input[:, step, :]
         firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
-        outputs[:, step, :] = firing
+        outputs[:, step, :] = voltage#firing
     
-    for neuron_idx in range(hid_size):
+    for neuron_idx in [4]:#range(hid_size):
         if random.random() < 1:
             print()
             print(torch.exp(model.neuron_layer.ln_k_m[0,neuron_idx]))
@@ -111,8 +111,8 @@ def plot_responses(model):
             plt.yticks(fontsize = fontsize)
     plt.show()
 
-input_size = 1
-hid_size = 16
+input_size = 28
+hid_size = 64
 output_size = 10
 
 # hid_size = 128#64
@@ -120,12 +120,14 @@ output_size = 10
 # output_size = 1
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_070421/brnn_multidim_10ms_16units_10d.pt"))
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_070421/smnist_linebyline.pt"))
 print(torch.mean(model_glif.neuron_layer.weight_iv))
 
 with torch.no_grad():
-    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.1)
+    # nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.0001)
+    # nn.init.constant_(model_glif.neuron_layer.asc_amp, 10e-5)
     plot_responses(model_glif)
+
 quit()
 # with torch.no_grad():
 #     plot_overall_response(model_glif)

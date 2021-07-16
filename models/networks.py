@@ -32,6 +32,8 @@ class BNNFC(nn.Module):
                 self.dt = dt
                 self.delay = int(1 / self.dt)
 
+                self.idx = []
+
                 self.reset_state()
 
         def forward(self, input, target=None):
@@ -55,6 +57,7 @@ class BNNFC(nn.Module):
                         x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent)
+                        self.firing[:, self.idx] = 0
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
                         self.last_output = x
@@ -81,6 +84,9 @@ class BNNFC(nn.Module):
                     self.voltage = self.voltage.detach()
                     self.syncurrent = self.syncurrent.detach()
                     self.ascurrents = self.ascurrents.detach()
+        
+        def silence(self, idx):
+                self.idx = idx
 
 class RNNFC(nn.Module):
         """
@@ -111,6 +117,7 @@ class RNNFC(nn.Module):
                 self.delay = int(1 / self.dt)
 
                 self.reset_state()
+                self.idx = []
 
         def forward(self, input):
                 """
@@ -137,6 +144,7 @@ class RNNFC(nn.Module):
                         #x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing = self.neuron_layer(x, self.firing)
+                        self.firing[:, self.idx] = 0
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
 
@@ -149,6 +157,9 @@ class RNNFC(nn.Module):
                 self.batch_size = batch_size
 
                 self.firing = torch.zeros((self.batch_size, self.hid_size))
+
+        def silence(self, idx):
+                self.idx = idx
 
 class LSTMFC(nn.Module):
         """

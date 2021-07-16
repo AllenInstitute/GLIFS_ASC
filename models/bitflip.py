@@ -7,10 +7,7 @@ import pickle
 import datetime
 import utils as ut
 from networks import RNNFC, BNNFC
-<<<<<<< HEAD
 #from neurons.glif_new import BNNC, RNNC, Placeholder
-=======
->>>>>>> bc8b015d7cbb20c97400682be44eef99bdbb2841
 
 import matplotlib.pyplot as plt
 import numpy as np
