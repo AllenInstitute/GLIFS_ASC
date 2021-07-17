@@ -101,7 +101,7 @@ class RNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)

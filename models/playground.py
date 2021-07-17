@@ -82,7 +82,7 @@ def plot_responses(model):
     sim_time = 1000
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = 0.00001 * torch.ones(1, nsteps, output_size + input_size)
+    input = -5.5 * 0.0001 * torch.ones(1, nsteps, output_size + input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -93,7 +93,7 @@ def plot_responses(model):
     for step in range(nsteps):
         x = input[:, step, :]
         firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
-        outputs[:, step, :] = voltage#firing
+        outputs[:, step, :] = firing
     
     for neuron_idx in [4]:#range(hid_size):
         if random.random() < 1:
@@ -111,20 +111,71 @@ def plot_responses(model):
             plt.yticks(fontsize = fontsize)
     plt.show()
 
+def plot_ficurve(model):
+    x_ins = np.arange(-100,100,1)
+
+    sim_time = 1000
+    dt = 0.05
+    nsteps = int(sim_time / dt)
+
+    i_syns = 28 * x_ins * 0.0001
+    # f_rates = np.zeros(len(x_ins), hid_size)
+
+    input = torch.ones(len(x_ins), nsteps, glif_input_size)
+    for i in range(len(x_ins)):
+        input[i,:,:] = x_ins[i] * 0.0001
+    
+    outputs = torch.zeros(input.shape[0], nsteps, hid_size)
+
+    firing = torch.zeros((input.shape[0], hid_size))
+    voltage = torch.zeros((input.shape[0], hid_size))
+    syncurrent = torch.zeros((input.shape[0], hid_size))
+    ascurrents = torch.zeros((2, input.shape[0], hid_size))
+
+    for step in range(nsteps):
+        x = input[:, step, :]
+        firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
+        outputs[:, step, :] = firing
+
+    f_rates = torch.mean(outputs, dim=1)
+    print(f"f_rates.shape = {f_rates.shape}")
+
+    slopes = np.zeros(hid_size)
+    for i in range(hid_size):
+        A = np.vstack([i_syns, np.ones_like(i_syns)]).T
+        m, c = np.linalg.lstsq(A, f_rates)[0]
+        slopes.append(m)
+    
+    plt.hist(slopes, color = 'k', bins = 50)
+    plt.xlabel('f-i curve slope', fontsize = fontsize)
+    plt.ylabel('counts', fontsize = fontsize)
+    plt.savefig("figures/figures_wkof_071121/f-i-curve-slopes_brnn.png")
+
 input_size = 28
-hid_size = 64
+hid_size = 256
 output_size = 10
+
+glif_input_size = output_size + input_size
 
 # hid_size = 128#64
 # input_size = 20#8
 # output_size = 1
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_070421/smnist_linebyline.pt"))
-print(torch.mean(model_glif.neuron_layer.weight_iv))
+# model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))
+
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/brnn-initwithburst_256units_smnist_linebyline.pt"))
+nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
+# print(torch.mean(model_glif.neuron_layer.weight_iv))
+plot_ficurve(model_glif)
+quit()
+# plt.hist(torch.cat((model_glif.neuron_layer.weight_ih.reshape(-1,1), model_glif.neuron_layer.weight_hh.reshape(-1,1), model_glif.output_linear.weight.reshape(-1, 1)), axis = 0).detach().numpy(), color = 'k', bins = 50)
+# plt.xlabel('weights', fontsize = fontsize)
+# plt.ylabel('counts', fontsize = fontsize)
+# plt.show()
 
 with torch.no_grad():
-    # nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.0001)
+    nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
     # nn.init.constant_(model_glif.neuron_layer.asc_amp, 10e-5)
     plot_responses(model_glif)
 
