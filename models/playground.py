@@ -137,14 +137,14 @@ def plot_ficurve(model):
         firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
         outputs[:, step, :] = firing
 
-    f_rates = torch.mean(outputs, dim=1)
+    f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")
 
     slopes = np.zeros(hid_size)
     for i in range(hid_size):
         A = np.vstack([i_syns, np.ones_like(i_syns)]).T
-        m, c = np.linalg.lstsq(A, f_rates)[0]
-        slopes.append(m)
+        m, c = np.linalg.lstsq(A, f_rates[:,i])[0]
+        slopes[i] = m * sim_time / dt
     
     plt.hist(slopes, color = 'k', bins = 50)
     plt.xlabel('f-i curve slope', fontsize = fontsize)

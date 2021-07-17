@@ -19,7 +19,7 @@ import torch.nn as nn
 import math
 # import torch.utils.data.DataLoader
 
-# torch.autograd.set_detect_anomaly(True)
+#torch.autograd.set_detect_anomaly(True)
 """
 This file trains a network of rate-based GLIF neurons with after-spike currents on a pattern generation task.
 1. Single pattern generation: generate a sinusoid of a given frequency when provided with constant input
@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "brnn-initwithoutburst_256units_smnist_linebyline"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "brnn-initwithoutburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
         base_name = "figures_wkof_071121/" + main_name
         base_name_save = "traininfo_wkof_071121/" + main_name
@@ -58,7 +58,7 @@ def main():
         if use_rnn:
                 model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
         else:
-                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
 
         # Train model
         num_epochs = 50

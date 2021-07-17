@@ -54,6 +54,7 @@ class BNNC(nn.Module):
                 self.dt = dt
 
                 self.R = 0.1
+                self.I0 = 0
 
                 # randomly initializes incoming weights
                 with torch.no_grad():
@@ -96,7 +97,7 @@ class BNNC(nn.Module):
                 # 1.5, -0.5 for lnasck
                 syncurrent = x @ self.weight_iv
                 ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
-                voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * torch.sum(ascurrent, dim=0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
+                voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
                 return firing, voltage, ascurrent, syncurrent
 

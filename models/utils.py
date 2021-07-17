@@ -354,7 +354,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                 else:
                     data = data.view(-1, 28 * 28, 1)
 
-                optimizer.zero_grad()
+                #optimizer.zero_grad()
 
                 _, nsteps, _ = data.shape
                 # with torch.no_grad():

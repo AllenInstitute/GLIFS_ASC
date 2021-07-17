@@ -57,7 +57,9 @@ class BNNFC(nn.Module):
                         x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent)
-                        self.firing[:, self.idx] = 0
+                        # TODO: this cutting down throws breaks the graph so need to fix that :)
+                        if len(self.idx) > 0:
+                            self.firing[:, self.idx] = 0
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
                         self.last_output = x
