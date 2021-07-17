@@ -439,16 +439,14 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                 output = output.reshape(len(target), 10, 28 * 28)[:,:,-1]
             test_loss += loss_fn(output, target).item()
             pred = output.data.max(1, keepdim=True)[1]
-            print(pred.shape)
-            print(target.shape)
-            print(data.shape)
-            print(correct)
             
             correct += (pred == ((target.data.view_as(pred)))).sum()
     test_loss = test_loss * 1.0 / len(testloader.dataset)
     
     print(f"loss: {test_loss}")
     print(f"accuracy: {correct * 1.0 / len(testloader.dataset)}")
+
+    training_info["test_accuracy"] = correct * 1.0 / len(testloader.dataset)
 
     original_stdout = sys.stdout # Save a reference to the original standard output
 
