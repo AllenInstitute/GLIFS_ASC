@@ -112,30 +112,31 @@ def plot_responses(model):
     plt.show()
 
 def plot_ficurve(model):
-    x_ins = np.arange(-100,100,1)
+    # x_ins = np.arange(-100,100,1)
 
     sim_time = 1000
     dt = 0.05
     nsteps = int(sim_time / dt)
 
-    i_syns = 28 * x_ins * 0.0001
-    # f_rates = np.zeros(len(x_ins), hid_size)
+    # i_syns = 28 * x_ins * 0.0001
+    i_syns = np.arange(-0.1, 0.1, step=0.001)
 
-    input = torch.ones(len(x_ins), nsteps, glif_input_size)
-    for i in range(len(x_ins)):
-        input[i,:,:] = x_ins[i] * 0.0001
-    
-    outputs = torch.zeros(input.shape[0], nsteps, hid_size)
+    input = torch.zeros(1, nsteps, glif_input_size)
+    outputs = torch.zeros(len(i_syns), nsteps, hid_size)
 
-    firing = torch.zeros((input.shape[0], hid_size))
-    voltage = torch.zeros((input.shape[0], hid_size))
-    syncurrent = torch.zeros((input.shape[0], hid_size))
-    ascurrents = torch.zeros((2, input.shape[0], hid_size))
+    for i in range(len(i_syns)):
+        firing = torch.zeros((input.shape[0], hid_size))
+        voltage = torch.zeros((input.shape[0], hid_size))
+        syncurrent = torch.zeros((input.shape[0], hid_size))
+        ascurrents = torch.zeros((2, input.shape[0], hid_size))
+        outputs_temp = torch.zeros(1, nsteps, hid_size)
 
-    for step in range(nsteps):
-        x = input[:, step, :]
-        firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
-        outputs[:, step, :] = firing
+        model.neuron_layer.I0 = i_syns[i]
+        for step in range(nsteps):
+            x = input[:, step, :]
+            firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
+            outputs_temp[:, step, :] = firing
+        outputs[i,:,:] = outputs_temp[0,:,:]
 
     f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")
