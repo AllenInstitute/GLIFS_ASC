@@ -36,18 +36,19 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "brnn-initwithoutburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
         base_name = "figures_wkof_071121/" + main_name
         base_name_save = "traininfo_wkof_071121/" + main_name
         base_name_model = "models_wkof_071121/" + main_name
 
-        use_rnn = False
+        use_rnn = True
         linebyline=True
+        initburst = True
 
         dt = 0.05
 
-        hid_size = 256#103#256#64#45#64
+        hid_size = 102#256#103#256#64#45#64
         input_size = 1#28
         output_size = 10
         if linebyline:
@@ -58,7 +59,7 @@ def main():
         if use_rnn:
                 model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
         else:
-                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
+                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst)
 
         # Train model
         num_epochs = 50

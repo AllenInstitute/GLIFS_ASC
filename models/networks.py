@@ -18,11 +18,11 @@ class BNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = out_size + in_size, hidden_size = hid_size, bias = True)
+                self.neuron_layer = BNNC(input_size = out_size + in_size, hidden_size = hid_size, bias = True, initburst=initburst)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -146,7 +146,8 @@ class RNNFC(nn.Module):
                         #x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing = self.neuron_layer(x, self.firing)
-                        self.firing[:, self.idx] = 0
+                        if len(self.idx) > 0: # TODO: please fix so no bad error 
+                            self.firing[:, self.idx] = 0
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
 
