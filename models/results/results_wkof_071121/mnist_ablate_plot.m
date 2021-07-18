@@ -1,5 +1,5 @@
-data_brnn = xlsread("results_mnist-ablate_brnn_smnist.csv");
-data_rnn = xlsread("results_mnist-ablate_rnn_smnist.csv");
+data_brnn = xlsread("results_mnist-ablate_brnn_smnist_repeat.csv");
+data_rnn = xlsread("results_mnist-ablate_rnn_smnist_repeat.csv");
 
 means_brnn = mean(data_brnn, 2);
 means_rnn = mean(data_rnn, 2);

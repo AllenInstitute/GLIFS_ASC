@@ -22,11 +22,6 @@ def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def main():
-    materials = ['Aluminum', 'Copper', 'Steel']
-    x_pos = np.arange(len(materials))
-    CTEs = [aluminum_mean, copper_mean, steel_mean]
-    error = [aluminum_std, copper_std, steel_std]
-    quit()
     brnn_name = "brnn-initwithburst_256units_smnist_linebyline"
     rnn_name = "rnn-wodel_103units_smnist_linebyline"
 
