@@ -36,7 +36,7 @@ def main():
     pct_remove = 0.2
 
     hid_size_brnn = 256
-    hid_size_rnn = 103
+    hid_size_rnn = 102
     
     input_size = 1
     output_size = 10
@@ -50,6 +50,12 @@ def main():
 
     results_rnn = np.zeros((len(pcts), ntrials))
     results_brnn = np.zeros((len(pcts), ntrials))
+
+    model_rnn = RNNFC(in_size = input_size, hid_size = hid_size_rnn, out_size = output_size, dt=dt)
+    model_brnn = BNNFC(in_size = input_size, hid_size = hid_size_brnn, out_size = output_size)
+
+    print(f"rnn: {count_parameters(model_rnn)}")
+    print(f"brnn: {count_parameters(model_brnn)}")
 
     for i in range(len(pcts)):
         pct_remove = pcts[i]
@@ -70,14 +76,14 @@ def main():
             lr = 0.001#1e-8#0.001#0.0025#0.0025#25#1#25
             reg_lambda = 1500
 
-            training_info_brnn = ut.train_rbnn_mnist(model_brnn, batch_size, num_epochs, lr, not False, verbose = True,linebyline=linebyline, output_text_filename="results_ablate_" + str(pct_remove) + "_" + brnn_name + ".txt")
-            training_info_rnn = ut.train_rbnn_mnist(model_rnn, batch_size, num_epochs, lr, not True, verbose = True,linebyline=linebyline, output_text_filename="results_ablate_" + str(pct_remove) + "_" + rnn_name + ".txt")
+            training_info_brnn = ut.train_rbnn_mnist(model_brnn, batch_size, num_epochs, lr, not False, verbose = True,linebyline=linebyline, output_text_filename="results_ablate_" + str(pct_remove) + "_" + brnn_name + "_repeat.txt")
+            training_info_rnn = ut.train_rbnn_mnist(model_rnn, batch_size, num_epochs, lr, not True, verbose = True,linebyline=linebyline, output_text_filename="results_ablate_" + str(pct_remove) + "_" + rnn_name + "_repeat.txt")
             
             results_rnn[i,j] = training_info_rnn["test_accuracy"]
             results_brnn[i,j] = training_info_brnn["test_accuracy"]
 
-    np.savetxt("results_rnn_smnist.csv", results_rnn, delimiter=",")
-    np.savetxt("results_brnn_smnist.csv", results_brnn, delimiter=",")
+    np.savetxt("results_rnn_smnist_repeat.csv", results_rnn, delimiter=",")
+    np.savetxt("results_brnn_smnist_repeat.csv", results_brnn, delimiter=",")
 
 if __name__ == '__main__':
         main()

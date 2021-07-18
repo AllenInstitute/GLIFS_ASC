@@ -143,8 +143,15 @@ def plot_ficurve(model):
 
     slopes = np.zeros(hid_size)
     for i in range(hid_size):
-        A = np.vstack([i_syns, np.ones_like(i_syns)]).T
-        m, c = np.linalg.lstsq(A, f_rates[:,i])[0]
+        i_syns_these = i_syns
+        f_rates_these = f_rates[:,i]
+        indices = np.logical_not(np.logical_or(np.isnan(i_syns_these), np.isnan(f_rates_these)))     
+        indices = np.array(indices)
+        i_syns_these = i_syns_these[indices]
+        f_rates_these = f_rates_these[indices]
+
+        A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
+        m, c = np.linalg.lstsq(A, f_rates_these)[0]
         slopes[i] = m * sim_time / dt
     
     plt.hist(slopes, color = 'k', bins = 50)

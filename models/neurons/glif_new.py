@@ -27,7 +27,7 @@ class BNNC(nn.Module):
         dt : float
                 duration of timestep
         """
-        def __init__(self, input_size, hidden_size, bias = True, dt=0.05):
+        def __init__(self, input_size, hidden_size, bias = True, dt=0.05, initburst=False):
                 super().__init__()
                 self.input_size = input_size
                 self.hidden_size = hidden_size
@@ -45,8 +45,9 @@ class BNNC(nn.Module):
                 self.asc_amp = Parameter(torch.tensor((-1,1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float)) #Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)
                 self.ln_asc_k = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
                 self.asc_r = Parameter(torch.tensor((1,-1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
-                nn.init.normal_(self.asc_r, 0, 0.01)
-                nn.init.normal_(self.asc_amp, 0, 0.01)
+                if not initburst:
+                    nn.init.normal_(self.asc_r, 0, 0.01)
+                    nn.init.normal_(self.asc_amp, 0, 0.01)
                 self.v_reset = 0
 
                 self.sigma_v = 1

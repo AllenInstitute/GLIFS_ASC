@@ -29,16 +29,16 @@ Loss array and model information saved in folder specified by traininfo/base_nam
 """
 
 def main():
-        main_name = "rnn-nodelay_cued_10ms_45units_10d"
-        base_name = "figures_wkof_070421/" + main_name
-        base_name_save = "traininfo_wkof_070421/" + main_name
+        main_name = "rnn-nodelay_cued_10ms_128units_10d"
+        base_name = "figures_wkof_071121/" + main_name
+        base_name_save = "traininfo_wkof_071121/" + main_name
         base_name_model = "models_wkof_070421/" + main_name
 
         # Model dimensions
         use_rnn = True
         use_lstm = False
 
-        hid_size = 45#64#45
+        hid_size = 128#64#45
         input_size = 20#8
         output_size = 1
 
@@ -55,8 +55,8 @@ def main():
         freq_max = 0.6
 
         # Training specifications
-        num_epochs = 3000
-        lr = 0.001#0.005
+        num_epochs = 10000
+        lr = 0.0005#0.005
         reg_lambda = 0#1500
         decay = False
 
