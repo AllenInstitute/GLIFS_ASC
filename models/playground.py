@@ -148,11 +148,11 @@ def plot_ficurve(model):
         indices = np.logical_not(np.logical_or(np.isnan(i_syns_these), np.isnan(f_rates_these)))     
         indices = np.array(indices)
         i_syns_these = i_syns_these[indices]
-        f_rates_these = f_rates_these[indices]
+        f_rates_these = f_rates_these[indices] * sim_time / dt
 
         A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
         m, c = np.linalg.lstsq(A, f_rates_these)[0]
-        slopes[i] = m * sim_time / dt
+        slopes[i] = m
     
     plt.hist(slopes, color = 'k', bins = 50)
     plt.xlabel('f-i curve slope', fontsize = fontsize)
