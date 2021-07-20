@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 
+from copy import copy
+
 from neurons.glif_new import RNNC, BNNC
 
 class BNNFC(nn.Module):
@@ -22,7 +24,7 @@ class BNNFC(nn.Module):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = out_size + in_size, hidden_size = hid_size, bias = True, initburst=initburst)
+                self.neuron_layer = BNNC(input_size = hid_size + in_size, hidden_size = hid_size, bias = True, initburst=initburst)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -63,7 +65,7 @@ class BNNFC(nn.Module):
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
                         self.last_output = x
-                        outputs_.append(x)
+                        outputs_.append(copy(self.firing))
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
                 return outputs
@@ -151,7 +153,7 @@ class RNNFC(nn.Module):
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
 
-                        outputs_.append(x)
+                        outputs_.append(copy(x))
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
                 return outputs
