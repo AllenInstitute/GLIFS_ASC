@@ -42,7 +42,7 @@ def main():
         base_name_save = "traininfo_wkof_071821/" + main_name
         base_name_model = "models_wkof_071821/" + main_name
 
-        use_rnn = True
+        use_rnn = False
         linebyline=True
         initburst = False
 
