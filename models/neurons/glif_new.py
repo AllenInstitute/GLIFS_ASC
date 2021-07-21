@@ -44,7 +44,7 @@ class BNNC(nn.Module):
                 # asc_r = (1,-1)
 
                 self.asc_amp = Parameter(torch.tensor((-1,1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float)) #Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)
-                self.ln_asc_k = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                self.ln_asc_k = Parameter(math.log(2) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
                 self.asc_r = Parameter(torch.tensor((1,-1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
                 if not initburst:
                     nn.init.normal_(self.asc_r, 0, 0.01)
