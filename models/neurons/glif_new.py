@@ -34,6 +34,7 @@ class BNNC(nn.Module):
                 self.num_ascs = 2
 
                 self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
+                self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
                 
                 # self.c_m_inv = 0.02
                 self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
@@ -96,7 +97,7 @@ class BNNC(nn.Module):
                         previous syncurrent
                 """
                 # 1.5, -0.5 for lnasck
-                syncurrent = x @ self.weight_iv
+                syncurrent = x @ self.weight_iv + firing @ self.weight_lat
                 ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
                 voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
