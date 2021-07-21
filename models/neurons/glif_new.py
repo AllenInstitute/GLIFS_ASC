@@ -97,6 +97,11 @@ class BNNC(nn.Module):
                         previous syncurrent
                 """
                 # 1.5, -0.5 for lnasck
+                """print(f"x: {x.shape}")
+                print(f"wt: {self.weight_iv.shape}")
+                print(f"fd: {firing_delayed.shape}")
+                print(f"wl: {self.weight_lat.shape}")
+                quit()"""
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
                 voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)

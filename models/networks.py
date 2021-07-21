@@ -24,7 +24,7 @@ class BNNFC(nn.Module):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = hid_size, hidden_size = hid_size, bias = True, initburst=initburst)
+                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, bias = True, initburst=initburst)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -66,6 +66,7 @@ class BNNFC(nn.Module):
                         outputs[:, step, :] = x
                         self.last_output = x
                         outputs_.append(copy(self.firing))
+                        
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
                 return outputs
