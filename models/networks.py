@@ -52,7 +52,7 @@ class BNNFC(nn.Module):
 
                 delay = self.delay
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
-                outputs_ = [torch.zeros((self.batch_size, self.out_size)) for i in range(delay)]
+                outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
                 
                 for step in range(nsteps):
                         x = input[:, step, :]

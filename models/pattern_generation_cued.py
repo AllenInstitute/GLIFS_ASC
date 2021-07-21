@@ -56,7 +56,7 @@ def main():
 
         # Training specifications
         num_epochs = 10000
-        lr = 0.0005#0.005
+        lr = 0.0001#0.005
         reg_lambda = 0#1500
         decay = False
 
