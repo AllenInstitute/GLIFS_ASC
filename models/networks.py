@@ -24,7 +24,7 @@ class BNNFC(nn.Module):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = hid_size + in_size, hidden_size = hid_size, bias = True, initburst=initburst)
+                self.neuron_layer = BNNC(input_size = hid_size, hidden_size = hid_size, bias = True, initburst=initburst)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -56,9 +56,9 @@ class BNNFC(nn.Module):
                 
                 for step in range(nsteps):
                         x = input[:, step, :]
-                        x = torch.cat((x, outputs_[-delay]), dim=-1)
+                        # x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
-                        self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent)
+                        self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent, outputs_[-delay])
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
                         if len(self.idx) > 0:
                             self.firing[:, self.idx] = 0
@@ -141,19 +141,19 @@ class RNNFC(nn.Module):
 
                 # outputs = []
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
-                outputs_ = [torch.zeros((self.batch_size, self.out_size)) for i in range(delay)]
+                outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
 
                 for step in range(nsteps):
                         x = input[:, step, :]
                         #x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
-                        self.firing = self.neuron_layer(x, self.firing)
+                        self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
                             self.firing[:, self.idx] = 0
                         x = self.output_linear(self.firing)
                         outputs[:, step, :] = x
 
-                        outputs_.append(copy(x))
+                        outputs_.append(copy(self.firing))
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
                 return outputs

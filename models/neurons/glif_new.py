@@ -79,7 +79,7 @@ class BNNC(nn.Module):
                 activation = self.gamma * (x - self.thresh) / self.sigma_v
                 return torch.sigmoid(activation)
         
-        def forward(self, x, firing, voltage, ascurrent, syncurrent):
+        def forward(self, x, firing, voltage, ascurrent, syncurrent, firing_delayed):
                 """
                 Propagates spike forward
                 
@@ -97,7 +97,7 @@ class BNNC(nn.Module):
                         previous syncurrent
                 """
                 # 1.5, -0.5 for lnasck
-                syncurrent = x @ self.weight_iv + firing @ self.weight_lat
+                syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
                 voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
@@ -130,7 +130,7 @@ class RNNC(nn.Module): # The true RNNC
                         nn.init.normal_(self.weight_ih, 0, 1 / math.sqrt(hidden_size))
                         nn.init.normal_(self.weight_hh, 0, 1 / math.sqrt(hidden_size))
 
-        def forward(self, x, hidden):
+        def forward(self, x, hidden, hidden_delayed):
                 """
                 Propagates single timestep
                 
@@ -144,6 +144,6 @@ class RNNC(nn.Module): # The true RNNC
                 Return
                 ------
                 """
-                hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden, self.weight_hh) + self.bias
+                hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_hh) + self.bias
                 hidden = torch.tanh(hidden)
                 return hidden
