@@ -135,7 +135,7 @@ class RNNFC(nn.Module):
                         input signal to be input over time
                 """
 
-                delay = 1#TODO:self.delay
+                delay = self.delay
 
                 _, nsteps, in_size = input.shape
                 assert(in_size == self.in_size), f"input has {in_size} size but network accepts {self.in_size} inputs"
