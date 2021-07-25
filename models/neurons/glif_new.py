@@ -27,11 +27,13 @@ class BNNC(nn.Module):
         dt : float
                 duration of timestep
         """
-        def __init__(self, input_size, hidden_size, bias = True, dt=0.05, initburst=False):
+        def __init__(self, input_size, hidden_size, bias = True, dt=0.05, initburst=False, ascs=True, learnparams=True):
                 super().__init__()
                 self.input_size = input_size
                 self.hidden_size = hidden_size
                 self.num_ascs = 2
+                self.ascs = ascs
+                self.learnparams = learnparams
 
                 self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
                 self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
@@ -50,6 +52,13 @@ class BNNC(nn.Module):
                     nn.init.normal_(self.asc_r, 0, 0.01)
                     nn.init.normal_(self.asc_amp, 0, 0.01)
                 self.v_reset = 0
+
+                if not learnparams:
+                    self.thresh.requires_grad = False
+                    self.ln_k_m.requires_grad = False
+                    self.asc_amp.requires_grad = False
+                    self.ln_asc_k.requires_grad = False
+                    self.asc_r.requires_grad = False
 
                 self.sigma_v = 1
                 self.gamma = 1
@@ -105,7 +114,10 @@ class BNNC(nn.Module):
                 print(f"wl: {self.weight_lat.shape}")
                 quit()"""
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
-                ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
+                
+                if self.ascs:
+                    ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
+                
                 voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
                 return firing, voltage, ascurrent, syncurrent

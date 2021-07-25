@@ -39,7 +39,7 @@ def main():
         use_lstm = False
         initburst = False
 
-        hid_size = 1024#32#36#16
+        hid_size = 4096#32#36#16
         input_size = 1#8
         output_size = 10 # also number of output sinusoids
 
@@ -57,7 +57,7 @@ def main():
 
         # Training specifications
         num_epochs = 1000#5000
-        lr = 0.0001#0.005
+        lr = 0.000005#0.005
         reg_lambda = 1500
         decay = False
 
