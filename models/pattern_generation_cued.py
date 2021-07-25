@@ -38,7 +38,7 @@ def main():
         use_rnn = False
         use_lstm = False
 
-        hid_size = 64#64#45
+        hid_size = 256#64#45
         input_size = 20#8
         output_size = 1
 

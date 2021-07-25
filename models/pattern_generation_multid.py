@@ -39,7 +39,7 @@ def main():
         use_lstm = False
         initburst = False
 
-        hid_size = 2048#32#36#16
+        hid_size = 4096#32#36#16
         input_size = 1#8
         output_size = 10 # also number of output sinusoids
 
