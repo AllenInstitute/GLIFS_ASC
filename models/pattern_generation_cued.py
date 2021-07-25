@@ -55,7 +55,7 @@ def main():
         freq_max = 0.6
 
         # Training specifications
-        num_epochs = 500
+        num_epochs = 1500
         lr = 0.00005#0.005
         reg_lambda = 0#1500
         decay = False

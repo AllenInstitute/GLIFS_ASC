@@ -119,7 +119,7 @@ class RNNFC(nn.Module):
                 self.num_ascs = 2
 
                 self.dt = dt
-                self.delay = int(1 / self.dt)
+                self.delay = 1#int(1 / self.dt)
 
                 self.reset_state()
                 self.idx = []

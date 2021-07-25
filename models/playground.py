@@ -114,12 +114,13 @@ def plot_responses(model):
 def plot_ficurve(model):
     # x_ins = np.arange(-100,100,1)
 
-    sim_time = 1000
+    sim_time = 100#1000
     dt = 0.05
     nsteps = int(sim_time / dt)
 
     # i_syns = 28 * x_ins * 0.0001
-    i_syns = np.arange(-0.1, 0.1, step=0.001)
+    i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
+    i_syns = np.arange(-10, 10, step=0.001)
 
     input = torch.zeros(1, nsteps, glif_input_size)
     outputs = torch.zeros(len(i_syns), nsteps, hid_size)
@@ -158,8 +159,8 @@ def plot_ficurve(model):
 
         if m < 0:
             print(f"found negative slope in neuron {i}")
-            plt.plot(i_syns_these, f_rates_these)
-    plt.savefig("negative_slope.png")
+        plt.plot(i_syns_these, f_rates_these)
+    plt.savefig("figures/figures_wkof_071821/f-i-curves.png")
     plt.close()
     
     plt.hist(slopes, color = 'k', bins = 50)

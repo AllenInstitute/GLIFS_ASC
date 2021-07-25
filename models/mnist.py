@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "rnn-initwithbursts-withdelay_264units_smnist_linebyline_lateralconns"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "final-rnn-initwithbursts-withoutdelay_264units_smnist_linebyline_lateralconns"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
         base_name = "figures_wkof_071821/" + main_name
         base_name_save = "traininfo_wkof_071821/" + main_name
