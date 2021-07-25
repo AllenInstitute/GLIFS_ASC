@@ -22,12 +22,12 @@ def count_parameters(model):
         return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 def main():
-    brnn_name = "brnn-initwithburst_256units_smnist_linebyline"
-    rnn_name = "rnn-wodel_103units_smnist_linebyline"
+    brnn_name = "brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns"#"brnn-initwithbursts_256units_smnist_linebyline_lateralconns"#"brnn-initwithburst_256units_smnist_linebyline"
+    rnn_name = "rnn_264units_smnist_linebyline_lateralconns"#"rnn-wodel_103units_smnist_linebyline"
 
-    base_name = "figures_wkof_071121/"
-    base_name_save = "traininfo_wkof_071121/"
-    base_name_model = "models_wkof_071121/"
+    base_name = "figures_wkof_071821/"
+    base_name_save = "traininfo_wkof_071821/"
+    base_name_model = "models_wkof_071821/"
 
     linebyline=True
 
@@ -36,7 +36,7 @@ def main():
     pct_remove = 0.2
 
     hid_size_brnn = 256
-    hid_size_rnn = 102
+    hid_size_rnn = 264
     
     input_size = 1
     output_size = 10
@@ -76,14 +76,14 @@ def main():
             lr = 0.001#1e-8#0.001#0.0025#0.0025#25#1#25
             reg_lambda = 1500
 
-            training_info_brnn = ut.train_rbnn_mnist(model_brnn, batch_size, num_epochs, lr, not False, verbose = True,linebyline=linebyline, output_text_filename="results_ablate_" + str(pct_remove) + "_" + brnn_name + "_repeat.txt")
-            training_info_rnn = ut.train_rbnn_mnist(model_rnn, batch_size, num_epochs, lr, not True, verbose = True,linebyline=linebyline, output_text_filename="results_ablate_" + str(pct_remove) + "_" + rnn_name + "_repeat.txt")
+            training_info_brnn = ut.train_rbnn_mnist(model_brnn, batch_size, num_epochs, lr, not False, verbose = True,linebyline=linebyline)
+            training_info_rnn = ut.train_rbnn_mnist(model_rnn, batch_size, num_epochs, lr, not True, verbose = True,linebyline=linebyline)#, output_text_filename="results_ablate_" + str(pct_remove) + "_" + rnn_name + "_repeat.txt")
             
             results_rnn[i,j] = training_info_rnn["test_accuracy"]
             results_brnn[i,j] = training_info_brnn["test_accuracy"]
 
-    np.savetxt("results_rnn_smnist_repeat.csv", results_rnn, delimiter=",")
-    np.savetxt("results_brnn_smnist_repeat.csv", results_brnn, delimiter=",")
+    np.savetxt("results_rnn_smnist_withoutburst_lateralconns_0722.csv", results_rnn, delimiter=",")
+    np.savetxt("results_brnn-withdelay_smnist_withburst_lateralconns_0722.csv", results_brnn, delimiter=",")
 
 if __name__ == '__main__':
         main()

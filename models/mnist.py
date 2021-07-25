@@ -36,19 +36,19 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "brnn-initwithoutburst_256units_smnist_linebyline_lateralconns"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "rnn-initwithbursts-withdelay_264units_smnist_linebyline_lateralconns"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
         base_name = "figures_wkof_071821/" + main_name
         base_name_save = "traininfo_wkof_071821/" + main_name
         base_name_model = "models_wkof_071821/" + main_name
 
-        use_rnn = False
+        use_rnn = True
         linebyline=True
-        initburst = False
+        initburst = True
 
         dt = 0.05
 
-        hid_size = 256#256#103#256#64#45#64
+        hid_size = 264#256#256#103#256#64#45#64
         input_size = 1#28
         output_size = 10
         if linebyline:

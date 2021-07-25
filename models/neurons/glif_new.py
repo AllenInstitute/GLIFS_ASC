@@ -79,7 +79,7 @@ class BNNC(nn.Module):
                 activation = self.gamma * (x - self.thresh) / self.sigma_v
                 return torch.sigmoid(activation)
         
-        def forward(self, x, firing, voltage, ascurrent, syncurrent, firing_delayed):
+        def forward(self, x, firing, voltage, ascurrent, syncurrent, firing_delayed=None):
                 """
                 Propagates spike forward
                 
@@ -96,6 +96,8 @@ class BNNC(nn.Module):
                 syncurrent : torch tensor (n, ndims)
                         previous syncurrent
                 """
+                if firing_delayed is None:
+                    firing_delayed = copy(firing)
                 # 1.5, -0.5 for lnasck
                 """print(f"x: {x.shape}")
                 print(f"wt: {self.weight_iv.shape}")
