@@ -125,6 +125,14 @@ def plot_ficurve(model):
     input = torch.zeros(1, nsteps, glif_input_size)
     outputs = torch.zeros(len(i_syns), nsteps, hid_size)
 
+    print(f"threshold: {model.neuron_layer.thresh[0,254]}")
+    print(f"k_m: {torch.exp(model.neuron_layer.ln_k_m[0,254])}")
+    print(f"asc_r: {model.neuron_layer.asc_r[:,0,254]}")
+    print(f"asc_amp: {model.neuron_layer.asc_amp[:,0,254]}")
+    print(f"asc_k: {torch.exp(model.neuron_layer.ln_asc_k[:,0,254])}")
+
+    quit()
+
     for i in range(len(i_syns)):
         firing = torch.zeros((input.shape[0], hid_size))
         voltage = torch.zeros((input.shape[0], hid_size))
@@ -145,7 +153,7 @@ def plot_ficurve(model):
     print(f"f_rates.shape = {f_rates.shape}")
 
     slopes = np.zeros(hid_size)
-    for i in range(hid_size):
+    for i in [254]:#range(hid_size):
         i_syns_these = i_syns
         f_rates_these = f_rates[:,i]
         indices = np.logical_not(np.logical_or(np.isnan(i_syns_these), np.isnan(f_rates_these)))     
@@ -160,13 +168,13 @@ def plot_ficurve(model):
         if m < 0:
             print(f"found negative slope in neuron {i}")
         plt.plot(i_syns_these, f_rates_these)
-    plt.savefig("figures/figures_wkof_071821/f-i-curves.png")
+    plt.savefig("figures/figures_wkof_071821/neg-f-i-curves.png")
     plt.close()
     
     plt.hist(slopes, color = 'k', bins = 50)
     plt.xlabel('f-i curve slope', fontsize = fontsize)
     plt.ylabel('counts', fontsize = fontsize)
-    plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
+    #plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
 
 input_size = 28
 hid_size = 256
@@ -181,7 +189,7 @@ glif_input_size = input_size#output_size + input_size
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 # model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))
 
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_071821/brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns.pt"))#"saved_models/models_wkof_071121/brnn-initwithburst_256units_smnist_linebyline.pt"))
+model_glif.load_state_dict(torch.load("saved_models/models_wkof_071821/final-brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns.pt"))#brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns.pt"))#"saved_models/models_wkof_071121/brnn-initwithburst_256units_smnist_linebyline.pt"))
 # with torch.no_grad():
 #     nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
 #     # nn.init.constant_(model_glif.neuron_layer.asc_amp, 10e-5)
@@ -215,7 +223,7 @@ plt.savefig("figures/figures_wkof_071821/asc_r_initwithburst_256units_smnist_lin
 plt.close()
 
 plt.hist(1 / torch.cat((torch.exp(model_glif.neuron_layer.ln_asc_k[0, 0,:]), torch.exp(model_glif.neuron_layer.ln_asc_k[1, 0,:])), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('k_j (ms)', fontsize = fontsize)
+plt.xlabel('asc_tau (ms)', fontsize = fontsize)
 plt.ylabel('counts', fontsize = fontsize)
 plt.savefig("figures/figures_wkof_071821/asc_tau_initwithburst_256units_smnist_linebyline_lateralconns.png")
 plt.close()
