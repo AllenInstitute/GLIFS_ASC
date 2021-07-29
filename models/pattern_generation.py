@@ -6,8 +6,8 @@ matplotlib.use('Agg')
 import pickle
 import datetime
 import utils as ut
-from networks import RBNN, RNNFC, BNNFC
-from neurons.glif_new import BNNC, RNNC, Placeholder
+import utils_task as utt
+from networks import RNNFC, BNNFC
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -36,58 +36,55 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-	on_server = False
-	main_name = "test_0710"#"smnist_brnn"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
-	if on_server:
-		base_name = main_name
-		base_name_save = main_name
-		base_name_model = main_name
-	else: 
-		base_name = "figures_wkof_060621/" + main_name
-		base_name_save = "traininfo_wkof_060621/" + main_name
-		base_name_model = "models_wkof_060621/" + main_name
+	main_name = "amplitude-10sines_brnn-256units"
+	base_name = "figures_wkof_072521/" + main_name
+	base_name_save = "traininfo_wkof_072521/" + main_name
+	base_name_model = "models_wkof_072521/" + main_name
 
+ # Model dimensions
 	use_rnn = False
-	hid_size = 28
+	use_lstm = False
+	initburst = False
+
+	hid_size = 256
 	input_size = 1
-	output_size = 1
-	
-	# Generate freqs
-	num_freqs = 10
-	freq_min = 0.01#01
-	freq_max = 0.6
+	output_size = 1 
 
-	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
-
-	# Generate data
+	# Target specifications
 	sim_time = 10
 	dt = 0.05
 	amp = 1
 	noise_mean = 0
-	noise_std = 0.005
+	noise_std = 0
 
-	batch_size = 5
+	batch_size = 1
+	num_freqs = 10
+	freq_min = 0.08#0.001
+	freq_max = 0.6
 
-	inputs, targets = ut.create_sines(sim_time, dt, amp, noise_mean, noise_std, freqs, input_size = input_size)
-	traindataset = ut.create_dataset(inputs, targets, input_size)
+	# Training specifications
+	num_epochs = 1000#5000
+	lr = 0.005#0.005
+	decay = False
 
-	# traindataset = ut.ThreeBitDataset(int(sim_time / dt), dataset_length=128)
+	# Generate freqs
+	freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
+
+	# Generate data
+	inputs, targets = utt.create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs)
+	traindataset = utt.create_dataset(inputs, targets)
 
 	# # Generate model
-	# delay = int(0.5 / dt)
 	if use_rnn:
-		model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+		if use_lstm:
+			model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
+		else:
+			model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
 	else:
-		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-	# model.load_state_dict(torch.load("saved_models/models_wkof_053021/brnn_patterngen.pt"))#"saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart.pt"))
-	# Train model
-	num_epochs = 1500
-	lr = 0.025#*(0.995**300)#0.0025#0.0025#25#1#25
-	reg_lambda = 0#0.01
+		model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst)
 
-	# num_epochss = [200,100,50,10,1,1]
-	#training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True)
-	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, data_gen=data_gen, glifr = not use_rnn, decay=False, task="pattern")
+	# Train model
+	training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, glifr = not use_rnn, task = "pattern", decay=decay)
 
 	torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 

@@ -245,7 +245,7 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
     return inputs, targets
 
 
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -409,7 +409,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         # if glifr:
         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        if glifr and epoch % 10 == 0:
+        if glifr and epoch % 10 == 0 and trainparams and ascs:
             training_info["k_m_grads"].append([model.neuron_layer.ln_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["asc_k_grads"].append([model.neuron_layer.ln_asc_k.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
@@ -702,7 +702,7 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     test(sl_last, nrepeat)
     return training_info
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters

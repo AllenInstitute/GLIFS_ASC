@@ -29,17 +29,17 @@ Loss array and model information saved in folder specified by traininfo/base_nam
 """
 
 def main():
-        main_name = "rnn-initwoburst-nodelay_multidim_10ms-dtpt05-1024units_10d_lateralconns"#"brnn_multidim_100ms-dtpt5_16units_10d"
+        main_name = "brnn-initwoburst-nodelay_multidim_10ms-dtpt05-32units-samelrasrnn_10d_lateralconns"#"brnn_multidim_100ms-dtpt5_16units_10d"
         base_name = "figures_wkof_071821/" + main_name
         base_name_save = "traininfo_wkof_071821/" + main_name
         base_name_model = "models_wkof_071821/" + main_name
 
         # Model dimensions
-        use_rnn = True
+        use_rnn = False
         use_lstm = False
         initburst = False
 
-        hid_size = 1024#32#36#16
+        hid_size = 32#4096#32#36#16
         input_size = 1#8
         output_size = 10 # also number of output sinusoids
 
@@ -57,7 +57,7 @@ def main():
 
         # Training specifications
         num_epochs = 1000#5000
-        lr = 0.0001#0.005
+        lr = 0.000005#0.005
         reg_lambda = 1500
         decay = False
 

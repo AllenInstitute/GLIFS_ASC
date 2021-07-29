@@ -20,11 +20,11 @@ class BNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False, output_weight=True):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False, ascs=True, learnparams=True, output_weight=True):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, bias = True, initburst=initburst)
+                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, bias = True, initburst=initburst, ascs=ascs, learnparams=learnparams)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
