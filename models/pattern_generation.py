@@ -57,14 +57,14 @@ def main():
 	noise_mean = 0
 	noise_std = 0
 
-	batch_size = 1
+	batch_size = 5
 	num_freqs = 10
 	freq_min = 0.08#0.001
 	freq_max = 0.6
 
 	# Training specifications
 	num_epochs = 1000#5000
-	lr = 0.005#0.005
+	lr = 0.001#0.005
 	decay = False
 
 	# Generate freqs
