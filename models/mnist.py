@@ -37,17 +37,18 @@ There are other specifications including amount of time, number of epochs, learn
 
 def main():
         # TODO: FIX DELAY
-        main_name = "final-brnn-initwithbursts-withoutdelay_256units_smnist_linebyline_lateralconns"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "mnist_brnn-256units"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
-        base_name = "figures_wkof_071821/" + main_name
-        base_name_save = "traininfo_wkof_071821/" + main_name
-        base_name_model = "models_wkof_071821/" + main_name
+        base_name = "figures_wkof_072521/" + main_name
+        base_name_save = "traininfo_wkof_072521/" + main_name
+        base_name_model = "models_wkof_072521/" + main_name
 
         use_rnn = False
         linebyline=True
-        initburst = True
+        initburst = False
         ascs = True
         learnparams = True
+        sparseness = 0
 
         dt = 0.05
 
@@ -60,9 +61,9 @@ def main():
         batch_size = 128
 
         if use_rnn:
-                model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt)
+                model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, sparseness=sparseness)
         else:
-                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams)
+                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
         # Train model
         num_epochs = 50

@@ -906,7 +906,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
         # if glifr:
         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        if glifr and epoch % 100 == 0:
+        if glifr and epoch % 10 == 0:
             print(torch.mean(model.neuron_layer.trans_k_m.grad))
             # print(torch.mean(model.neuron_layer.v_reset.grad))
             print(torch.mean(model.neuron_layer.thresh.grad))
@@ -914,6 +914,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
             print(torch.mean(model.neuron_layer.asc_amp.grad))
             print(torch.mean(model.neuron_layer.trans_asc_r.grad))
             print(torch.mean(model.neuron_layer.weight_iv.grad))
+            #print(f"weight:{torch.mean(model.neuron_layer.weight_lat)}")
             training_info["k_m_grads"].append([model.neuron_layer.trans_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             # training_info["k_syn_grads"].append([model.neuron_layer.ln_k_syn.grad[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])

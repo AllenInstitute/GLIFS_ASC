@@ -20,11 +20,11 @@ class BNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False, ascs=True, learnparams=True, output_weight=True):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, bias = True, initburst=initburst, ascs=ascs, learnparams=learnparams)
+                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, bias = True, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -85,7 +85,7 @@ class BNNFC(nn.Module):
                 
                 if full_reset:
                     self.firing = torch.zeros((self.batch_size, self.hid_size))
-                    self.voltage = torch.zeros((self.batch_size, self.hid_size))
+                    self.voltage = 0.1 * torch.randn((self.batch_size, self.hid_size))
                     self.syncurrent = torch.zeros((self.batch_size, self.hid_size))
                     self.ascurrents = torch.zeros((self.num_ascs, self.batch_size, self.hid_size))
                 else:
@@ -110,11 +110,11 @@ class RNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, sparseness=0):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
+                self.neuron_layer = RNNC(input_size = in_size, hidden_size = hid_size, bias = True, sparseness=sparseness)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -170,7 +170,7 @@ class RNNFC(nn.Module):
         def reset_state(self, batch_size = 1):
                 self.batch_size = batch_size
 
-                self.firing = torch.zeros((self.batch_size, self.hid_size))
+                self.firing = 0.1 * torch.randn((self.batch_size, self.hid_size))
 
         def silence(self, idx):
                 self.idx = idx

@@ -5,6 +5,7 @@ This file defines models for single layers of neurons.
 import matplotlib.pyplot as plt
 import math
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
@@ -27,7 +28,7 @@ class BNNC(nn.Module):
         dt : float
                 duration of timestep
         """
-        def __init__(self, input_size, hidden_size, bias = True, dt=0.05, initburst=False, ascs=True, learnparams=True):
+        def __init__(self, input_size, hidden_size, bias = True, dt=0.05, initburst=False, ascs=True, learnparams=True, sparseness=0):
                 super().__init__()
                 self.input_size = input_size
                 self.hidden_size = hidden_size
@@ -37,6 +38,9 @@ class BNNC(nn.Module):
 
                 self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
                 self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
+
+                num_keep = int((1 - sparseness) * (hidden_size**2))
+                self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
                 
                 # self.c_m_inv = 0.02
                 self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
@@ -106,6 +110,8 @@ class BNNC(nn.Module):
                 syncurrent : torch tensor (n, ndims)
                         previous syncurrent
                 """
+                with torch.no_grad():
+                    self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
                 if firing_delayed is None:
                     firing_delayed = copy(firing)
                 # 1.5, -0.5 for lnasck
@@ -142,10 +148,12 @@ class RNNC(nn.Module): # The true RNNC
         bias : boolean
                 whether bias should be used
         """
-        def __init__(self, input_size, hidden_size, bias = True):
+        def __init__(self, input_size, hidden_size, bias = True, sparseness=0):
                 super().__init__()
                 self.weight_ih = Parameter(torch.randn((input_size, hidden_size)))
                 self.weight_hh = Parameter(torch.randn((hidden_size, hidden_size)))
+                num_keep = int((1 - sparseness) * (hidden_size**2))
+                self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
 
                 if bias:
                         self.bias = Parameter(torch.zeros((1, hidden_size)))
@@ -155,6 +163,7 @@ class RNNC(nn.Module): # The true RNNC
                 with torch.no_grad():
                         nn.init.normal_(self.weight_ih, 0, 1 / math.sqrt(hidden_size))
                         nn.init.normal_(self.weight_hh, 0, 1 / math.sqrt(hidden_size))
+
 
         def forward(self, x, hidden, hidden_delayed):
                 """
@@ -170,6 +179,8 @@ class RNNC(nn.Module): # The true RNNC
                 Return
                 ------
                 """
+                with torch.no_grad():
+                    self.weight_lat.data = torch.mul(self.weight_hh.data, self.weight_lat_mask)
                 hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_hh) + self.bias
                 hidden = torch.tanh(hidden)
                 return hidden
