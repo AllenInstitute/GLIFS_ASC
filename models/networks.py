@@ -20,7 +20,7 @@ class BNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False, output_weight=True):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
@@ -33,6 +33,7 @@ class BNNFC(nn.Module):
                 self.num_ascs = self.neuron_layer.num_ascs
                 self.dt = dt
                 self.delay = int(1 / self.dt)
+                self.output_weight = output_weight
 
                 self.idx = []
 
@@ -62,7 +63,10 @@ class BNNFC(nn.Module):
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
                         if len(self.idx) > 0:
                             self.firing[:, self.idx] = 0
-                        x = self.output_linear(self.firing)
+                        if self.output_weight:
+                                x = self.output_linear(self.firing)
+                        else:
+                                x = (self.firing)
                         outputs[:, step, :] = x
                         self.last_output = x
                         outputs_.append(copy(self.firing))
@@ -106,7 +110,7 @@ class RNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
@@ -120,6 +124,7 @@ class RNNFC(nn.Module):
 
                 self.dt = dt
                 self.delay = 1#int(1 / self.dt)
+                self.output_weight = output_weight
 
                 self.reset_state()
                 self.idx = []
@@ -151,7 +156,10 @@ class RNNFC(nn.Module):
                         self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
                             self.firing[:, self.idx] = 0
-                        x = self.output_linear(self.firing)
+                        if self.output_weight:
+                                x = self.output_linear(self.firing)
+                        else:
+                                x = copy(self.firing)
                         outputs[:, step, :] = x
 
                         outputs_.append(copy(self.firing))

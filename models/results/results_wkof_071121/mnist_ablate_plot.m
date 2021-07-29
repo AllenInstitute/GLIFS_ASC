@@ -1,19 +1,26 @@
-data_brnn = xlsread("results_mnist-ablate_brnn_smnist_repeat.csv");
-data_rnn = xlsread("results_mnist-ablate_rnn_smnist_repeat.csv");
+data_brnn = xlsread("results_final-brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns.csv");
+data_brnn_noasc = xlsread("results_final-brnn-initwithbursts-withdelay-noasc_260units_smnist_linebyline_lateralconns.csv")
+data_brnn_wtonly = xlsread("results_final-brnn-initwithbursts-withdelay-notrainparams_264units_smnist_linebyline_lateralconns.csv")
+data_rnn = xlsread("results_final-rnn-initwithbursts-withoutdelay_264units_smnist_linebyline_lateralconns.csv");
 
 means_brnn = mean(data_brnn, 2);
+means_brnn_noasc = mean(data_brnn_noasc, 2);
+means_brnn_wtonly = mean(data_brnn_wtonly, 2);
 means_rnn = mean(data_rnn, 2);
+
 stds_brnn = std(data_brnn, [], 2);
+stds_brnn_noasc = std(data_brnn_noasc, [], 2);
+stds_brnn_wtonly = std(data_brnn_wtonly, [], 2);
 stds_rnn = std(data_rnn, [], 2);
 
-means = [means_brnn.'; means_rnn.'].';
-stds = [stds_brnn.'; stds_rnn.'].';
+means = [means_rnn.'; means_brnn.'; means_brnn_noasc.'; means_brnn_wtonly.'].';
+stds = [stds_rnn.'; stds_brnn.'; stds_brnn_noasc.'; stds_brnn_wtonly.'].';
 b = bar(means)
 
 hold on
 
 ngroups = 11;
-nbars = 2;
+nbars = 4;
 groupwidth = min(0.8, nbars/(nbars + 1.5));
 
 for i = 1:nbars
@@ -29,6 +36,6 @@ for i = 1:nbars
 end
 
 set(gca,'XTick', 1:ngroups, 'xticklabel',linspace(0,1,11), 'FontName', 'helvetica', 'FontSize', 12);
-legend("BRNN", "RNN");
+legend("RNN", "RGLIF", "RLIF", "RGLIF_WT");
 xlabel("% silenced");
 ylabel("accuracy");
