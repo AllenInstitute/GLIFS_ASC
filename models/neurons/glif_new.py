@@ -40,25 +40,26 @@ class BNNC(nn.Module):
                 
                 # self.c_m_inv = 0.02
                 self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                ln_k_m = math.log(.05)
-                self.ln_k_m = Parameter(ln_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+                trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))#math.log(.05)
+                self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 # asc_amp = (-1, 1)
                 # asc_r = (1,-1)
 
                 self.asc_amp = Parameter(torch.tensor((-1,1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float)) #Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)
-                self.ln_asc_k = Parameter(math.log(2) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                self.asc_r = Parameter(torch.tensor((1,-1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
+                self.trans_asc_k = Parameter(math.log(2) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                self.trans_asc_r = Parameter(torch.tensor((1,-1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
+                
                 if not initburst:
-                    nn.init.normal_(self.asc_r, 0, 0.01)
+                    nn.init.normal_(self.trans_asc_r, 0, 0.01)
                     nn.init.normal_(self.asc_amp, 0, 0.01)
                 self.v_reset = 0
 
                 if not learnparams:
                     self.thresh.requires_grad = False
-                    self.ln_k_m.requires_grad = False
+                    self.trans_k_m.requires_grad = False
                     self.asc_amp.requires_grad = False
-                    self.ln_asc_k.requires_grad = False
-                    self.asc_r.requires_grad = False
+                    self.trans_asc_k.requires_grad = False
+                    self.trans_asc_r.requires_grad = False
 
                 self.sigma_v = 1
                 self.gamma = 1
@@ -116,11 +117,17 @@ class BNNC(nn.Module):
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 
                 if self.ascs:
-                    ascurrent = (ascurrent * self.asc_r + self.asc_amp) * firing + (1 - self.dt * torch.exp(self.ln_asc_k)) * ascurrent
+                    ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_asc_r) + self.asc_amp) * firing + (1 - self.dt * self.transform_to_k(self.trans_asc_k)) * ascurrent
                 
-                voltage = syncurrent + self.dt * torch.exp(self.ln_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * torch.exp(self.ln_k_m)) * voltage - firing * (voltage - self.v_reset)
+                voltage = syncurrent + self.dt * self.transform_to_k(self.trans_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * self.transform_to_k(self.trans_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
                 return firing, voltage, ascurrent, syncurrent
+        
+        def transform_to_asc_r(self, param):
+                return 1 - (2 * torch.sigmoid(param)) # training on ln((1-r_j)/(1+r_j))
+        
+        def transform_to_k(self, param):
+                return torch.sigmoid(param) / self.dt
 
 class RNNC(nn.Module): # The true RNNC
         """
