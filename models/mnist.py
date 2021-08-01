@@ -37,7 +37,7 @@ There are other specifications including amount of time, number of epochs, learn
 
 def main():
         # TODO: FIX DELAY
-        main_name = "mnist_brnn-256units"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "mnist_brnn"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
         base_name = "figures_wkof_072521/" + main_name
         base_name_save = "traininfo_wkof_072521/" + main_name
@@ -52,29 +52,41 @@ def main():
 
         dt = 0.05
 
-        hid_size = 256#260 for no asc#264 for rnn or no learnparams#256#256#103#256#64#45#64
+        hid_size = 32#260 for no asc#264 for rnn or no learnparams#256#256#103#256#64#45#64
         input_size = 1#28
         output_size = 10
         if linebyline:
                 input_size = 28
 
         batch_size = 128
+        
+        hid_sizes = [8, 16, 32, 64, 128, 256, 512, 1024]
+        itrs = 10
+        results = np.zeros((len(hid_sizes), itrs))
 
-        if use_rnn:
-                model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, sparseness=sparseness)
-        else:
-                model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+        for h in range(len(hid_sizes)):
+            for itr in range(itrs):
+                hid_size = hid_sizes[h]
 
-        # Train model
-        num_epochs = 50
-        lr = 0.001#1e-8#0.001#0.0025#0.0025#25#1#25
-        reg_lambda = 1500
+                if use_rnn:
+                        model = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, sparseness=sparseness)
+                else:
+                        model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
-        # num_epochss = [200,100,50,10,1,1]
-        training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True,trainparams=learnparams,linebyline=linebyline, ascs=ascs, output_text_filename = "results_"+main_name+".txt")
-        # training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn)
+                # Train model
+                num_epochs = 50
+                lr = 0.001#1e-8#0.001#0.0025#0.0025#25#1#25
+                reg_lambda = 1500
 
-        torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
+                # num_epochss = [200,100,50,10,1,1]
+                training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True,trainparams=learnparams,linebyline=linebyline, ascs=ascs, output_text_filename = "results_"+main_name+".txt")
+                # training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn)
+
+                torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(itr) + "itr.pt")
+                results[h, itr] = training_info["test_accuracy"]
+                print(f"iteration {itr}, hidden size {hid_size}, test accuracy {training_info['test_accuracy']}")
+        print(results)
+        np.savetxt("mnist_brnn_hidsizes.csv", results, delimiter=",")
 
         colors = ["sienna", "peru", "peachpuff", "salmon", "red", "darkorange", "purple", "fuchsia", "plum", "darkorchid", "slateblue", "mediumblue", "cornflowerblue", "skyblue", "aqua", "aquamarine", "springgreen", "green", "lightgreen"]
 

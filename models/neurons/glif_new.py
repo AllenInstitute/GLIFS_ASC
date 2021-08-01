@@ -151,7 +151,7 @@ class RNNC(nn.Module): # The true RNNC
         def __init__(self, input_size, hidden_size, bias = True, sparseness=0):
                 super().__init__()
                 self.weight_ih = Parameter(torch.randn((input_size, hidden_size)))
-                self.weight_hh = Parameter(torch.randn((hidden_size, hidden_size)))
+                self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
                 num_keep = int((1 - sparseness) * (hidden_size**2))
                 self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
 
@@ -162,7 +162,7 @@ class RNNC(nn.Module): # The true RNNC
 
                 with torch.no_grad():
                         nn.init.normal_(self.weight_ih, 0, 1 / math.sqrt(hidden_size))
-                        nn.init.normal_(self.weight_hh, 0, 1 / math.sqrt(hidden_size))
+                        nn.init.normal_(self.weight_lat, 0, 1 / math.sqrt(hidden_size))
 
 
         def forward(self, x, hidden, hidden_delayed):
@@ -180,7 +180,7 @@ class RNNC(nn.Module): # The true RNNC
                 ------
                 """
                 with torch.no_grad():
-                    self.weight_lat.data = torch.mul(self.weight_hh.data, self.weight_lat_mask)
-                hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_hh) + self.bias
+                    self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
+                hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_lat) + self.bias
                 hidden = torch.tanh(hidden)
                 return hidden
