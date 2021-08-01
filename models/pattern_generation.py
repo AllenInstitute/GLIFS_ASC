@@ -36,13 +36,13 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "amplitude-20sines_brnn-512units"
+        main_name = "amplitude-20sines_rnn-512units"
         base_name = "figures_wkof_072521/" + main_name
         base_name_save = "traininfo_wkof_072521/" + main_name
         base_name_model = "models_wkof_072521/" + main_name
 
  # Model dimensions
-        use_rnn = False
+        use_rnn = True
         use_lstm = False
         initburst = False
 
@@ -52,7 +52,7 @@ def main():
         sparseness = 0
 
         # Target specifications
-        sim_time = 20
+        sim_time = 10
         dt = 0.05
         amp = 1
         noise_mean = 0
@@ -64,8 +64,8 @@ def main():
         freq_max = 0.6
 
         # Training specifications
-        num_epochs = 100000#5000
-        lr = 0.00001#0.005
+        num_epochs = 10000#5000
+        lr = 0.00001#0.0001#0.005
         decay = False
 
         # Generate freqs
@@ -175,7 +175,7 @@ def main():
                         i += 1
                         _, l = np.array(training_info[name]).shape
                         for j in range(l):
-                                plt.plot(np.array(training_info[name])[:, j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
+                            plt.plot(np.array(training_info[name])[:,j], color = colors[i], alpha = 0.5, label = name if j == 0 else "")
                 # plt.legend()
                 plt.xlabel('epoch')
                 plt.ylabel('parameter')
