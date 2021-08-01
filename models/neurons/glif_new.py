@@ -44,13 +44,13 @@ class BNNC(nn.Module):
                 
                 # self.c_m_inv = 0.02
                 self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                trans_k_m = math.log(0.02 * dt / (1 - (0.02 * dt)))#math.log(.05)
+                trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))#math.log(.05)
                 self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 # asc_amp = (-1, 1)
                 # asc_r = (1,-1)
 
                 self.asc_amp = Parameter(torch.tensor((-1,1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float)) #Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)
-                self.trans_asc_k = Parameter(math.log(2) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                self.trans_asc_k = Parameter(math.log(2 * dt / (1 - (2 * dt))) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
                 self.trans_asc_r = Parameter(torch.tensor((math.log((1-0.99) / (1+0.99)),math.log((1+0.99) / (1-0.99)))).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
                 
                 if not initburst:

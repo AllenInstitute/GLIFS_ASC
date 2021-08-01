@@ -39,6 +39,12 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
+    font = {'family' : 'arial',
+        # 'weight' : 'bold',
+        'size'   : 22}
+
+    mpl.rc('font', **font)
+
     fig = plt.figure(figsize=(5, 5))
     ax = fig.add_axes([0, 0, 1, 1])
     ax.spines['right'].set_visible(False)
@@ -57,11 +63,8 @@ def main():
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
 
-    font = {'family' : 'arial',
-        # 'weight' : 'bold',
-        'size'   : 22}
-
-    mpl.rc('font', **font)
+    # ax.set_xlim(370, 930)
+    ax.set_ylim(0, 1.3)
 
     colors = cm.get_cmap('Set2', 5)
 
@@ -140,7 +143,7 @@ def main():
 
     # Train model
     num_epochs = 2000
-    lr = 0.001
+    lr = 0.0005
 
     optimizer = torch.optim.Adam([learning_model.neuron_layer.thresh], lr=lr)
     loss_fn = nn.MSELoss()
@@ -191,10 +194,10 @@ def main():
     ax.yaxis.set_tick_params(which='major', size=10, width=2, direction='in', right='on')
     ax.yaxis.set_tick_params(which='minor', size=7, width=2, direction='in', right='on')
 
-    ax.xaxis.set_major_locator(mpl.ticker.MultipleLocator(0.5))
-    ax.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.25))
-    ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(0.1))
-    ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.05))
+    # ax.xaxis.set_major_locator(mpl.ticker.MultipleLocator(0.5))
+    # ax.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.25))
+    # ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(0.1))
+    # ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.05))
 
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
@@ -215,13 +218,14 @@ def main():
     ax.yaxis.set_tick_params(which='major', size=10, width=2, direction='in', right='on')
     ax.yaxis.set_tick_params(which='minor', size=7, width=2, direction='in', right='on')
 
-    ax.xaxis.set_major_locator(mpl.ticker.MultipleLocator(0.5))
-    ax.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.25))
-    ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(0.1))
-    ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.05))
+    # ax.xaxis.set_major_locator(mpl.ticker.MultipleLocator(0.5))
+    # ax.xaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.25))
+    # ax.yaxis.set_major_locator(mpl.ticker.MultipleLocator(0.1))
+    # ax.yaxis.set_minor_locator(mpl.ticker.MultipleLocator(0.05))
 
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
+    ax.set_ylim(min(-1,min(training_info["threshes"])),max(1,max(training_info["threshes"])))
     i = 0
     for name in ["threshes"]:#, "k_ms", "asc_amps", "asc_rs", "asc_ks"]:
         print(name)
