@@ -36,7 +36,7 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "amplitude-20sines_rnn-512units"
+        main_name = "amplitude-2sines_rnn-128units-newinit-sgd"
         base_name = "figures_wkof_072521/" + main_name
         base_name_save = "traininfo_wkof_072521/" + main_name
         base_name_model = "models_wkof_072521/" + main_name
@@ -46,27 +46,28 @@ def main():
         use_lstm = False
         initburst = False
 
-        hid_size = 512
+        hid_size = 128#512
         input_size = 1
         output_size = 1
         sparseness = 0
 
         # Target specifications
-        sim_time = 10
+        sim_time = 5
         dt = 0.05
         amp = 1
         noise_mean = 0
-        noise_std = 0.01
+        noise_std = 0
 
-        batch_size = 10
-        num_freqs = 20
+        batch_size = 2
+        num_freqs = 2
         freq_min = 0.08#0.001
         freq_max = 0.6
 
         # Training specifications
         num_epochs = 10000#5000
-        lr = 0.00001#0.0001#0.005
+        lr = 0.01#0.0001#0.005
         decay = False
+        sgd = True
 
         # Generate freqs
         freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
@@ -85,7 +86,7 @@ def main():
                 model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, initburst=initburst, sparseness=sparseness)
 
         # Train model
-        training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, glifr = not use_rnn, task = "pattern", decay=decay)
+        training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, glifr = not use_rnn, task = "pattern", decay=decay, sgd=sgd)
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + ".pt")
 

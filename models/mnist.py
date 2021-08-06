@@ -37,13 +37,13 @@ There are other specifications including amount of time, number of epochs, learn
 
 def main():
         # TODO: FIX DELAY
-        main_name = "mnist_brnn"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+        main_name = "mnist_rnn-64units-newinit-sgd"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
         base_name = "figures_wkof_072521/" + main_name
         base_name_save = "traininfo_wkof_072521/" + main_name
         base_name_model = "models_wkof_072521/" + main_name
 
-        use_rnn = False
+        use_rnn = True
         linebyline=True
         initburst = False
         ascs = True
@@ -52,7 +52,7 @@ def main():
 
         dt = 0.05
 
-        hid_size = 32#260 for no asc#264 for rnn or no learnparams#256#256#103#256#64#45#64
+        hid_size = 16#260 for no asc#264 for rnn or no learnparams#256#256#103#256#64#45#64
         input_size = 1#28
         output_size = 10
         if linebyline:
@@ -60,8 +60,8 @@ def main():
 
         batch_size = 128
         
-        hid_sizes = [8, 16, 32, 64, 128, 256, 512, 1024]
-        itrs = 10
+        hid_sizes = [64]#[8, 16, 32, 64, 128]#, 256, 512, 1024]
+        itrs = 1
         results = np.zeros((len(hid_sizes), itrs))
 
         for h in range(len(hid_sizes)):
@@ -79,7 +79,7 @@ def main():
                 reg_lambda = 1500
 
                 # num_epochss = [200,100,50,10,1,1]
-                training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True,trainparams=learnparams,linebyline=linebyline, ascs=ascs, output_text_filename = "results_"+main_name+".txt")
+                training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, not use_rnn, verbose = True,trainparams=learnparams,linebyline=linebyline, ascs=ascs, sgd=True, output_text_filename = "results_"+main_name+".txt")
                 # training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda, glifr = not use_rnn)
 
                 torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(itr) + "itr.pt")
