@@ -66,8 +66,10 @@ class BNNC(nn.Module):
                 self.trans_asc_r = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)#Parameter(torch.tensor((math.log((1-0.99) / (1+0.99)),math.log((1+0.99) / (1-0.99)))).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
                 
                 if not initburst:
-                    nn.init.normal_(self.trans_asc_r, self.transform_to_asc_r(0).data, self.transform_to_asc_r(0.01).data)
-                    nn.init.normal_(self.asc_amp, 0, 0.01)
+                    with torch.no_grad():
+                        new_asc_r = 0.01 * torch.randn(self.trans_asc_r.shape)#nn.init.normal_(self.trans_asc_r, 0, 0.01)
+                        self.trans_asc_r.copy_(torch.log((1 - new_asc_r) / (1 + new_asc_r)))#self.transform_to_asc_r(torch.tensor(0)).data, self.transform_to_asc_r(torch.tensor(0.01)).data)
+                        nn.init.normal_(self.asc_amp, 0, 0.01)
                 self.v_reset = 0
 
                 if not learnparams:

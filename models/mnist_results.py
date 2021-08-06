@@ -7,7 +7,8 @@ import argparse
 import pickle
 import datetime
 import utils as ut
-import utils_msc as utm
+import utils_train as utt
+import utils_misc as utm
 from networks import LSTMFC, RNNFC, BNNFC
 from neurons.glif_new import BNNC, RNNC
 
@@ -41,7 +42,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("name", help="Base Filename")
     parser.add_argument("condition", help="One of ['rnn', 'lstm', 'rglif', 'rglif_wtonly']")
-    parser.add_argument("numascs", help="Number of ASCs")
+    parser.add_argument("numascs", type=int, help="Number of ASCs")
  
     args = parser.parse_args()
  
@@ -59,12 +60,12 @@ def main():
     elif args.condition == "rnn":
         hid_size = utm.hid_size_rnn(num_params=num_params, in_size=in_size, out_size=out_size)
     elif args.condition == "rglif_wtonly":
-        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=False)
+        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=False, num_asc = args.numascs)
     elif args.condition == "rglif":
-        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=True)
+        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=True, num_asc = args.numascs)
 
     learnparams = (args.condition == "rglif")
-    ascs = (args.numasc > 0)
+    ascs = (args.numascs > 0)
     initburst = False
     dt = 0.05
     sparseness = 0
@@ -88,9 +89,9 @@ def main():
         else:
             model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
-        print(f"using {utm.count_parameters(model)} parameters")
+        print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
 
-        training_info = ut.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=True, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
+        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=True, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt(np.array(training_info["losses"]), "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv")
@@ -114,7 +115,7 @@ def main():
             for trial_idx in range(ntrials):
                 idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
                 model.silence(idx)
-                training_info_silence = ut.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=True)
+                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=True)
                 ablation_results[pct_idx, trial_idx] = training_info_silence["test_accuracy"]
         np.savetxt(np.array(training_info["losses"]), "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv")
 

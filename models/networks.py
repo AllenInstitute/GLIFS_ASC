@@ -198,8 +198,9 @@ class LSTMFC(nn.Module):
                 self.in_size = in_size
                 self.hid_size = hid_size
                 self.out_size = out_size
-                self.delay = int(1 / self.dt)
+                self.delay = 1#int(1 / self.dt)
                 self.idx = []
+                self.output_weight = output_weight
 
                 self.reset_state()
 
