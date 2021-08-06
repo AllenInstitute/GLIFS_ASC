@@ -79,6 +79,11 @@ class BNNC(nn.Module):
                     self.trans_asc_k.requires_grad = False
                     self.trans_asc_r.requires_grad = False
 
+                if not ascs:
+                    self.asc_amp.requires_grad = False
+                    self.trans_asc_k.requires_grad = False
+                    self.trans_asc_r.requires_grad = False
+
                 self.sigma_v = 1
                 self.gamma = 1
                 self.dt = dt
