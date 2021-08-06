@@ -245,7 +245,7 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
     return inputs, targets
 
 
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -324,6 +324,8 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
     model.eval()
     
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    if sgd:
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
     root = './data/mnist'
     trainloader, testloader = mnist_generator(root, batch_size)
@@ -702,7 +704,7 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     test(sl_last, nrepeat)
     return training_info
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False):
+def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False, sgd=False):
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -831,7 +833,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
         init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # optimizer = torch.optim.SGD(model.parameters(), lr=lr, momentum=0.9)
+    if sgd:
+        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     # optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
     loss_fn = nn.MSELoss()
