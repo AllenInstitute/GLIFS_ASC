@@ -57,12 +57,16 @@ def main():
     num_params = utm.count_params_glif(in_size=28, hid_size=256,out_size=10, num_asc=2, learnparams=True)
     if args.condition == "lstm":
         hid_size = utm.hid_size_lstm(num_params=num_params, in_size=in_size, out_size=out_size) 
+        print(utm.count_params_lstm(in_size=in_size, hid_size=hid_size, out_size=out_size))
     elif args.condition == "rnn":
         hid_size = utm.hid_size_rnn(num_params=num_params, in_size=in_size, out_size=out_size)
+        print(utm.count_params_rnn(in_size=in_size, hid_size=hid_size, out_size=out_size))
     elif args.condition == "rglif_wtonly":
         hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=False, num_asc = args.numascs)
+        print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=False))
     elif args.condition == "rglif":
         hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=True, num_asc = args.numascs)
+        print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=True))
 
     learnparams = (args.condition == "rglif")
     ascs = (args.numascs > 0)
