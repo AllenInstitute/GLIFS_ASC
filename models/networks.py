@@ -20,17 +20,17 @@ class BNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, initburst=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
+        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, initburst=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, bias = True, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
                 self.out_size = out_size
 
-                self.num_ascs = self.neuron_layer.num_ascs
+                self.num_ascs = num_ascs
                 self.dt = dt
                 self.delay = int(1 / self.dt)
                 self.output_weight = output_weight
@@ -62,7 +62,8 @@ class BNNFC(nn.Module):
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent, outputs_[-delay])
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
                         if len(self.idx) > 0:
-                            self.firing[:, self.idx] = 0
+                            with torch.no_grad():
+                                self.firing[:, self.idx] = 0
                         if self.output_weight:
                                 x = self.output_linear(self.firing)
                         else:
@@ -85,7 +86,7 @@ class BNNFC(nn.Module):
                 
                 if full_reset:
                     self.firing = torch.zeros((self.batch_size, self.hid_size))
-                    self.voltage = 0.1 * torch.randn((self.batch_size, self.hid_size))
+                    self.voltage = torch.zeros((self.batch_size, self.hid_size))
                     self.syncurrent = torch.zeros((self.batch_size, self.hid_size))
                     self.ascurrents = torch.zeros((self.num_ascs, self.batch_size, self.hid_size))
                 else:
@@ -155,7 +156,8 @@ class RNNFC(nn.Module):
                         
                         self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
-                            self.firing[:, self.idx] = 0
+                            with torch.no_grad():
+                                self.firing[:, self.idx] = 0
                         if self.output_weight:
                                 x = self.output_linear(self.firing)
                         else:
@@ -170,7 +172,7 @@ class RNNFC(nn.Module):
         def reset_state(self, batch_size = 1):
                 self.batch_size = batch_size
 
-                self.firing = 0.1 * torch.randn((self.batch_size, self.hid_size))
+                self.firing = torch.zeros((self.batch_size, self.hid_size))
 
         def silence(self, idx):
                 self.idx = idx
@@ -188,17 +190,21 @@ class LSTMFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, sparseness=0):
                 super().__init__()
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = nn.LSTMCell(input_size = in_size + out_size, hidden_size = hid_size, bias = True)#RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
+                self.neuron_layer = nn.LSTMCell(input_size = in_size, hidden_size = hid_size, bias = True)#RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
                 self.out_size = out_size
                 self.delay = int(1 / self.dt)
+                self.idx = []
 
                 self.reset_state()
+
+        def silence(self, idx):
+                self.idx = idx
 
         def forward(self, input):
                 """
@@ -215,14 +221,19 @@ class LSTMFC(nn.Module):
 
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
                 outputs_ = [torch.zeros((self.batch_size, self.out_size)) for i in range(delay)]
-                c = torch.zeros((self.batch_size, self.hid_size))
-                h = torch.zeros((self.batch_size, self.hid_size))
 
                 for step in range(nsteps):
                         x = input[:, step, :]
-                        x = torch.cat((x, outputs_[-delay]), dim=-1)
-                        h, c = self.neuron_layer(x, (h,c))
-                        x = self.output_linear(h)
+                        # x = torch.cat((x, outputs_[-delay]), dim=-1)
+                        self.h, self.c = self.neuron_layer(x, (self.h,self.c))
+
+                        if len(self.idx) > 0: # TODO: please fix so no bad error 
+                            with torch.no_grad():
+                                self.h[:, self.idx] = 0
+                        if self.output_weight:
+                                x = self.output_linear(self.h)
+                        else:
+                                x = copy(self.h)
                         outputs[:, step, :] = x
 
                         outputs_.append(x)
@@ -232,3 +243,6 @@ class LSTMFC(nn.Module):
 
         def reset_state(self, batch_size = 1):
                 self.batch_size = batch_size
+
+                self.c = torch.zeros((self.batch_size, self.hid_size))
+                self.h = torch.zeros((self.batch_size, self.hid_size))
