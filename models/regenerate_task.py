@@ -66,7 +66,7 @@ def main():
     # ax.set_xlim(370, 930)
     ax.set_ylim(0, 1.3)
 
-    colors = cm.get_cmap('Set2', 5)
+    colors = cm.get_cmap('Dark2', 9)
 
 
     main_name = "brnn_learnrealizable"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
@@ -92,9 +92,9 @@ def main():
     sim_time = 4
     nsteps = int(sim_time / dt)
 
-    hid_size = 1
+    hid_size = 2
     input_size = 1
-    output_size = 1
+    output_size = 2
 
     targets = torch.empty((1, nsteps, output_size))
     inputs = torch.ones((1, nsteps, input_size))
@@ -106,10 +106,13 @@ def main():
         learning_model.neuron_layer.thresh.data = target_model.neuron_layer.thresh.data
         learning_model.neuron_layer.thresh.data = torch.randn((1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.trans_k_m.data = target_model.neuron_layer.trans_k_m.data
-        # learning_model.neuron_layer.trans_k_m.data *= random.uniform(-1,1)
+        learning_model.neuron_layer.trans_k_m.data = 0.1 * torch.randn((1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.asc_amp.data = target_model.neuron_layer.asc_amp.data
+        learning_model.neuron_layer.asc_amp.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.trans_asc_r.data = target_model.neuron_layer.trans_asc_r.data
+        learning_model.neuron_layer.trans_asc_r.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.trans_asc_k.data = target_model.neuron_layer.trans_asc_k.data
+        learning_model.neuron_layer.trans_asc_k.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.weight_iv.data = target_model.neuron_layer.weight_iv.data
 
         # learning_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_learned.pt"))
@@ -142,10 +145,10 @@ def main():
         ax.plot(np.arange(nsteps) * dt, torch.mean(outputs[0,:,:],-1).detach().numpy(), linewidth=2, color=colors(2), label='initial')
 
     # Train model
-    num_epochs = 2000
-    lr = 0.0005
+    num_epochs = 10000
+    lr = 0.01
 
-    optimizer = torch.optim.Adam([learning_model.neuron_layer.thresh], lr=lr)
+    optimizer = torch.optim.SGD([learning_model.neuron_layer.thresh, learning_model.neuron_layer.trans_k_m, learning_model.neuron_layer.asc_amp, learning_model.neuron_layer.trans_asc_k, learning_model.neuron_layer.trans_asc_r], lr=lr)
     loss_fn = nn.MSELoss()
     learning_model.train()
     for epoch in range(num_epochs):
@@ -225,15 +228,20 @@ def main():
 
     ax.yaxis.set_ticks_position('left')
     ax.xaxis.set_ticks_position('bottom')
-    ax.set_ylim(min(-1,min(training_info["threshes"])),max(1,max(training_info["threshes"])))
+    min_ylim = -1
+    max_ylim = 1
     i = 0
-    for name in ["threshes"]:#, "k_ms", "asc_amps", "asc_rs", "asc_ks"]:
+    for name in ["threshes", "k_ms", "asc_amps", "asc_rs", "asc_ks"]:#, "k_ms", "asc_amps", "asc_rs", "asc_ks"]:
         print(name)
         i += 1
         _, l = np.array(training_info[name]).shape
         for j in range(l):
-                ax.plot(np.array(training_info[name])[:, j], alpha = 0.5, label = name if j == 0 else "", linewidth=2, color=colors(i))
+            ax.plot(np.array(training_info[name])[:, j], alpha = 0.5, label = name if j == 0 else "", linewidth=2, color=colors(i))
+            min_ylim = min(min_ylim, min(np.array(training_info[name])[:,j]))
+            max_ylim = max(max_ylim, max(np.array(training_info[name])[:,j]))
     ax.legend(bbox_to_anchor=(1, 1), loc=1, frameon=False, fontsize=16)
+    ax.axhline(color='k')
+    ax.set_ylim(min_ylim, max_ylim)
     ax.set_xlabel('epoch', labelpad=10)
     ax.set_ylabel('parameter difference', labelpad=10)
     plt.savefig("figures/" + base_name + "_parameter-diffs", dpi=300, transparent=False, bbox_inches='tight')
