@@ -2,7 +2,7 @@ import math
 
 def count_params_glif(in_size, hid_size, out_size, num_asc, learnparams=True):
     if not learnparams:
-        return count_params_rnn(in_size, hid_size, out_size)
+        return (hid_size ** 2) + (hid_size * (in_size + out_size)) + out_size#count_params_rnn(in_size, hid_size, out_size)
     return (hid_size ** 2) + (hid_size * (in_size + out_size + (3 * num_asc) + 2)) + out_size
 
 def count_params_rnn(in_size, hid_size, out_size):
@@ -13,10 +13,13 @@ def count_params_lstm(in_size, hid_size, out_size):
 
 def hid_size_glif(num_params, in_size, out_size, num_asc, learnparams):
     if not learnparams:
-        return hid_size_rnn(num_params, in_size, out_size)
-    a = 1
-    b = in_size + out_size + (3 * num_asc) + 2
-    c = -1 * num_params + out_size
+        a = 1
+        b = in_size + out_size
+        c = -1 * num_params + out_size
+    else:
+        a = 1
+        b = in_size + out_size + (3 * num_asc) + 2
+        c = -1 * num_params + out_size
 
     return int((-b + math.sqrt((b**2) - (4 * a * c))) / (2 * a))
 
