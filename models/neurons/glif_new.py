@@ -52,6 +52,7 @@ class BNNC(nn.Module):
                 self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
 
                 num_keep = int((1 - sparseness) * (hidden_size**2))
+                self.sparseness = sparseness
                 self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
                 
                 # self.c_m_inv = 0.02
@@ -129,8 +130,9 @@ class BNNC(nn.Module):
                 syncurrent : torch tensor (n, ndims)
                         previous syncurrent
                 """
-                with torch.no_grad():
-                    self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
+                if self.sparseness > 0:
+                    with torch.no_grad():
+                        self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
                 if firing_delayed is None:
                     firing_delayed = copy(firing)
                 # 1.5, -0.5 for lnasck
@@ -167,6 +169,7 @@ class RNNC(nn.Module): # The true RNNC
                 self.weight_ih = Parameter(torch.randn((input_size, hidden_size)))
                 self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
                 num_keep = int((1 - sparseness) * (hidden_size**2))
+                self.sparseness = sparseness
                 self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
 
                 if bias:
@@ -193,8 +196,9 @@ class RNNC(nn.Module): # The true RNNC
                 Return
                 ------
                 """
-                with torch.no_grad():
-                    self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
+                if self.sparseness > 0:
+                    with torch.no_grad():
+                        self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
                 hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_lat) + self.bias
                 hidden = torch.tanh(hidden)
                 return hidden

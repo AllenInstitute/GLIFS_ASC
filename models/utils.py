@@ -831,9 +831,9 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
     else:
         init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     if sgd:
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+        optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     # optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
     loss_fn = nn.MSELoss()

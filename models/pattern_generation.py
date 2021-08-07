@@ -36,13 +36,13 @@ There are other specifications including amount of time, number of epochs, learn
 """
 
 def main():
-        main_name = "amplitude-2sines_rnn-128units-newinit-sgd"
+        main_name = "amplitude-6sines_brnn-128units-newinit-sgd"
         base_name = "figures_wkof_072521/" + main_name
         base_name_save = "traininfo_wkof_072521/" + main_name
         base_name_model = "models_wkof_072521/" + main_name
 
  # Model dimensions
-        use_rnn = True
+        use_rnn = False
         use_lstm = False
         initburst = False
 
@@ -59,13 +59,13 @@ def main():
         noise_std = 0
 
         batch_size = 2
-        num_freqs = 2
+        num_freqs = 10
         freq_min = 0.08#0.001
         freq_max = 0.6
 
         # Training specifications
-        num_epochs = 10000#5000
-        lr = 0.01#0.0001#0.005
+        num_epochs = 50000#5000
+        lr = 0.005#0.0001#0.005
         decay = False
         sgd = True
 

@@ -56,6 +56,7 @@ def mnist_generator(root, batch_size):
     return train_loader, test_loader
     
 def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+    print(f"training with glifr {glifr}, linebyline {linebyline}, trainparams {trainparams}, ascs {ascs}, and sgd {sgd}")
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -133,9 +134,9 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                     "asc_k_grads": []}
     model.eval()
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     if sgd:
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+        optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
     root = './data/mnist'
     trainloader, testloader = mnist_generator(root, batch_size)
@@ -156,8 +157,8 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
             target = target.long()
 
             n_subiter = 1
-            # if batch_ndx % 100 == 0 and batch_ndx > 0:
-            #     print(f"loss of {loss_batch[-1]} on batch {batch_ndx}/{len(trainloader)}")
+            if batch_ndx % 100 == 0 and batch_ndx > 0:
+                print(f"loss of {loss_batch[-1]} on batch {batch_ndx}/{len(trainloader)}")
             for i in range(n_subiter):
                 loss = 0.0
                 # print(data.shape)
@@ -208,12 +209,12 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         # training_info["weights"][2].append([model.output_linear.weight[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
 
         if glifr:
-            training_info["k_ms"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m[0,j])  + 0.0 for j in range(model.hid_size)])
-            training_info["threshes"].append([model.neuron_layer.thresh[0,j]  + 0.0 for j in range(model.hid_size)])
-            training_info["asc_ks"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k[j,0,m])  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_rs"].append([model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            # training_info["weights"].append([torch.mean(model.neuron_layer.weight_iv[:,m])  + 0.0 for m in range(model.hid_size)])
+            training_info["k_ms"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m[0,j]).item()  + 0.0 for j in range(model.hid_size)])
+            training_info["threshes"].append([model.neuron_layer.thresh[0,j].item()  + 0.0 for j in range(model.hid_size)])
+            training_info["asc_ks"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k[j,0,m]).item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            training_info["asc_rs"].append([model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            # training_info["weights"].append([torch.mean(model.neuron_layer.weight_iv[:,m].item())  + 0.0 for m in range(model.hid_size)])
 
         # TODO: Replace with real weight
         # training_info["weight_grads"][0].append([model.input_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
@@ -221,12 +222,12 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
         if glifr and epoch % 10 == 0 and trainparams and ascs:
-            training_info["k_m_grads"].append([model.neuron_layer.trans_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
-            training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])
-            training_info["asc_k_grads"].append([model.neuron_layer.trans_asc_k.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_r_grads"].append([model.neuron_layer.trans_asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m])  + 0.0 for m in range(model.hid_size)])
+            training_info["k_m_grads"].append([model.neuron_layer.trans_k_m.grad[0,j].item()  + 0.0 for j in range(model.hid_size)])
+            training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j].item()  + 0.0 for j in range(model.hid_size)])
+            training_info["asc_k_grads"].append([model.neuron_layer.trans_asc_k.grad[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            training_info["asc_r_grads"].append([model.neuron_layer.trans_asc_r.grad[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+            # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m].item())  + 0.0 for m in range(model.hid_size)])
 
     final_outputs = []
     model.eval()
