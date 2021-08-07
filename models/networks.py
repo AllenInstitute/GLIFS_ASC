@@ -38,6 +38,7 @@ class BNNFC(nn.Module):
                 self.idx = []
 
                 self.reset_state()
+                self.sparseness = sparseness
 
         def forward(self, input, target=None):
                 """

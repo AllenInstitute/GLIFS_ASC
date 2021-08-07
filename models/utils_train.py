@@ -56,6 +56,7 @@ def mnist_generator(root, batch_size):
     return train_loader, test_loader
     
 def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+    print(f"training with glifr {glifr}, linebyline {linebyline}, trainparams {trainparams}, ascs {ascs}, and sgd {sgd}")
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
@@ -133,9 +134,9 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                     "asc_k_grads": []}
     model.eval()
     
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     if sgd:
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
+        optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
     root = './data/mnist'
     trainloader, testloader = mnist_generator(root, batch_size)
@@ -156,8 +157,8 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
             target = target.long()
 
             n_subiter = 1
-            # if batch_ndx % 100 == 0 and batch_ndx > 0:
-            #     print(f"loss of {loss_batch[-1]} on batch {batch_ndx}/{len(trainloader)}")
+            if batch_ndx % 100 == 0 and batch_ndx > 0:
+                print(f"loss of {loss_batch[-1]} on batch {batch_ndx}/{len(trainloader)}")
             for i in range(n_subiter):
                 loss = 0.0
                 # print(data.shape)

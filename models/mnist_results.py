@@ -79,6 +79,7 @@ def main():
     num_epochs = 50
     lr = 0.001
     itrs = 10
+    sgd = False
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
     ntrials = 10
@@ -87,15 +88,18 @@ def main():
 
     for i in range(itrs):
         if args.condition == "rnn":
+            print("using rnn")
             model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, sparseness=sparseness)
         elif args.condition == "lstm":
+            print("using lstm")
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
         else:
+            print("using glifr")
             model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
         print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
 
-        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=True, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
+        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt(np.array(training_info["losses"]), "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv")
