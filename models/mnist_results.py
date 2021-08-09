@@ -79,7 +79,7 @@ def main():
     num_epochs = 50
     lr = 0.001
     itrs = 10
-    sgd = False
+    sgd = False#True
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
     ntrials = 10
@@ -102,19 +102,19 @@ def main():
         training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
-        np.savetxt(np.array(training_info["losses"]), "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv")
+        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv", np.array(training_info["losses"]), delimiter=',')
         
         if args.condition[0:5] == "rglif":
-            membrane_parameters = np.array((hid_size, 2))
-            membrane_parameters[:, 0] = model.neuron_layer.thresh[0,:].detach().numpy()
-            membrane_parameters[:, 1] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m)[0,:].detach().numpy()
-            np.savetxt(membrane_parameters, "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-membraneparams.csv")
+            membrane_parameters = np.zeros((hid_size, 2))
+            membrane_parameters[:, 0] = model.neuron_layer.thresh.detach().numpy().reshape(-1)
+            membrane_parameters[:, 1] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m).detach().numpy().reshape(-1)
+            np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-membraneparams.csv", membrane_parameters, delimiter=',')
 
-            asc_parameters = np.array((hid_size * num_ascs, 3))
+            asc_parameters = np.zeros((hid_size * num_ascs, 3))
             asc_parameters[:, 0] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k)[:,0,:].detach().numpy().reshape(-1)
             asc_parameters[:, 1] = model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
-            asc_parameters[:, 2] = model.neuron_layer.trans_asc_amp[:,0,:].detach().numpy().reshape(-1)
-            np.savetxt(asc_parameters, "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ascparams.csv")
+            asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
+            np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ascparams.csv", asc_parameters, delimiter=',')
 
         # ablation studies
         ablation_results = np.zeros((len(pcts), ntrials))
@@ -123,9 +123,9 @@ def main():
             for trial_idx in range(ntrials):
                 idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
                 model.silence(idx)
-                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=True)
+                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd)
                 ablation_results[pct_idx, trial_idx] = training_info_silence["test_accuracy"]
-        np.savetxt(np.array(training_info["losses"]), "results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv")
+        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv", ablation_results, delimiter=',')
 
         accs.append(training_info["test_accuracy"])
 

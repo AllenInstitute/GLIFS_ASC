@@ -32,12 +32,13 @@ def mnist_generator(root, batch_size):
     # set_header_for('http://yann.lecun.com/exdb/mnist/t10k-labels-idx1-ubyte.gz', 't10k-labels-idx1-ubyte.gz')
     
     # Credit: github.com/locuslab/TCN
-    from torchvision import datasets
+    """from torchvision import datasets
     new_mirror = 'https://ossci-datasets.s3.amazonaws.com/mnist'
     datasets.MNIST.resources = [
     ('/'.join([new_mirror, url.split('/')[-1]]), md5)
     for url, md5 in datasets.MNIST.resources
     ]
+    """
     train_set = datasets.MNIST(root=root, train=True, download=False,
                                transform=transforms.Compose([
                                    transforms.ToTensor(),

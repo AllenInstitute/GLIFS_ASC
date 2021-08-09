@@ -56,7 +56,7 @@ class BNNC(nn.Module):
                 self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
                 
                 # self.c_m_inv = 0.02
-                self.thresh = Parameter(torch.zeros((1, hidden_size), dtype=torch.float), requires_grad=True)
+                self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))#math.log(.05)
                 self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                 # asc_amp = (-1, 1)
