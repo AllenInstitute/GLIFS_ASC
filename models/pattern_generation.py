@@ -59,15 +59,15 @@ def main():
         noise_std = 0
 
         batch_size = 2
-        num_freqs = 10
+        num_freqs = 6
         freq_min = 0.08#0.001
         freq_max = 0.6
 
         # Training specifications
-        num_epochs = 50000#5000
-        lr = 0.005#0.0001#0.005
+        num_epochs = 5000#5000
+        lr = 0.0001#0.0025#0.005#0.0001#0.005
         decay = False
-        sgd = True
+        sgd = False
 
         # Generate freqs
         freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)

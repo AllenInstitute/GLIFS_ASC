@@ -110,11 +110,12 @@ def main():
             membrane_parameters[:, 1] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m).detach().numpy().reshape(-1)
             np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-membraneparams.csv", membrane_parameters, delimiter=',')
 
-            asc_parameters = np.zeros((hid_size * num_ascs, 3))
-            asc_parameters[:, 0] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k)[:,0,:].detach().numpy().reshape(-1)
-            asc_parameters[:, 1] = model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
-            asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
-            np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ascparams.csv", asc_parameters, delimiter=',')
+            if ascs:
+                asc_parameters = np.zeros((hid_size * num_ascs, 3))
+                asc_parameters[:, 0] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k)[:,0,:].detach().numpy().reshape(-1)
+                asc_parameters[:, 1] = model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
+                asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
+                np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ascparams.csv", asc_parameters, delimiter=',')
 
         # ablation studies
         ablation_results = np.zeros((len(pcts), ntrials))

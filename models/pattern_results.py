@@ -8,6 +8,7 @@ import pickle
 import datetime
 import utils as ut
 import utils_train as utt
+import utils_task as utta
 import utils_misc as utm
 from networks import LSTMFC, RNNFC, BNNFC
 from neurons.glif_new import BNNC, RNNC
@@ -97,8 +98,8 @@ def main():
     accs = []
 
     for i in range(itrs):
-        inputs, targets = utt.create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs)
-        traindataset = utt.create_dataset(inputs, targets)
+        inputs, targets = utta.create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs)
+        traindataset = utta.create_dataset(inputs, targets)
 
         if args.condition == "rnn":
             print("using rnn")
@@ -112,7 +113,7 @@ def main():
 
         print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
 
-        training_info = ut.train_rbnn(model, traindataset, batch_size, num_epochs, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
+        training_info = utt.train_rbnn(model, traindataset, batch_size, num_epochs, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv", np.array(training_info["losses"]), delimiter=',')
@@ -136,7 +137,7 @@ def main():
             for trial_idx in range(ntrials):
                 idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
                 model.silence(idx)
-                training_info_silence = ut.train_rbnn(model, traindataset, batch_size, 0, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
+                training_info_silence = utt.train_rbnn(model, traindataset, batch_size, 0, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
                 ablation_results[pct_idx, trial_idx] = training_info_silence["test_loss"]
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv", ablation_results, delimiter=',')
 
