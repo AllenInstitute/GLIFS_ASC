@@ -69,11 +69,12 @@ def main():
     colors = cm.get_cmap('Dark2', 9)
 
 
-    main_name = "brnn_learnrealizable"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+    main_name = "brnn_learnrealizable-membrane"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
     base_name = "figures_wkof_072521/" + main_name
     base_name_save = "traininfo_wkof_072521/" + main_name
     base_name_model = "models_wkof_072521/" + main_name
+    base_name_results = "results_wkof_080121/" + main_name
 
     training_info = {"losses": [],
         "weights": [],
@@ -92,28 +93,36 @@ def main():
     sim_time = 4
     nsteps = int(sim_time / dt)
 
-    hid_size = 2
+    hid_size = 1
     input_size = 1
-    output_size = 2
+    output_size = 1
 
     targets = torch.empty((1, nsteps, output_size))
     inputs = torch.ones((1, nsteps, input_size))
+
+    train_params = ["thresh", "k_m"]
 
     target_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
     # target_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_target.pt"))
     learning_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
     with torch.no_grad():
         learning_model.neuron_layer.thresh.data = target_model.neuron_layer.thresh.data
-        learning_model.neuron_layer.thresh.data = torch.randn((1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.trans_k_m.data = target_model.neuron_layer.trans_k_m.data
-        learning_model.neuron_layer.trans_k_m.data = 0.1 * torch.randn((1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.asc_amp.data = target_model.neuron_layer.asc_amp.data
-        learning_model.neuron_layer.asc_amp.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.trans_asc_r.data = target_model.neuron_layer.trans_asc_r.data
-        learning_model.neuron_layer.trans_asc_r.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.trans_asc_k.data = target_model.neuron_layer.trans_asc_k.data
-        learning_model.neuron_layer.trans_asc_k.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         learning_model.neuron_layer.weight_iv.data = target_model.neuron_layer.weight_iv.data
+
+        if "asc_amp" in train_params:
+            learning_model.neuron_layer.asc_amp.data = torch.randn((2, 1, hid_size), dtype=torch.float)
+        if "asc_r" in train_params:
+            learning_model.neuron_layer.trans_asc_r.data = torch.randn((2, 1, hid_size), dtype=torch.float)
+        if "asc_k" in train_params:
+            learning_model.neuron_layer.trans_asc_k.data = torch.randn((2, 1, hid_size), dtype=torch.float)
+        if "k_m" in train_params:
+            learning_model.neuron_layer.trans_k_m.data = 0.1 * torch.randn((1, hid_size), dtype=torch.float)
+        if "thresh" in train_params:
+            learning_model.neuron_layer.thresh.data = torch.randn((1, hid_size), dtype=torch.float)
 
         # learning_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_learned.pt"))
 
@@ -148,7 +157,20 @@ def main():
     num_epochs = 10000
     lr = 0.01
 
-    optimizer = torch.optim.SGD([learning_model.neuron_layer.thresh, learning_model.neuron_layer.trans_k_m, learning_model.neuron_layer.asc_amp, learning_model.neuron_layer.trans_asc_k, learning_model.neuron_layer.trans_asc_r], lr=lr)
+    train_params_real = []
+    if "thresh" in train_params:
+        train_params_real.append(learning_model.neuron_layer.thresh)
+    if "k_m" in train_params:
+        train_params_real.append(learning_model.neuron_layer.trans_k_m)
+    if "asc_amp" in train_params:
+        train_params_real.append(learning_model.neuron_layer.asc_amp)
+    if "asc_k" in train_params:
+        train_params_real.append(learning_model.neuron_layer.trans_asc_k)
+    if "asc_r" in train_params:
+        train_params_real.append(learning_model.neuron_layer.trans_asc_r)
+
+    optimizer = torch.optim.SGD(train_params_real, lr=lr)
+    losses = []
     loss_fn = nn.MSELoss()
     learning_model.train()
     for epoch in range(num_epochs):
@@ -161,26 +183,44 @@ def main():
         loss.backward()
         optimizer.step()
         print(f"epoch {epoch}/{num_epochs}: loss of {loss.item()}")
+        losses.append(loss.item())
 
         with torch.no_grad():
             print(learning_model.neuron_layer.thresh.grad)
-            training_info["k_ms"].append([learning_model.neuron_layer.transform_to_k(learning_model.neuron_layer.trans_k_m[0,j]) - learning_model.neuron_layer.transform_to_k(target_model.neuron_layer.trans_k_m[0,j])  + 0.0 for j in range(learning_model.hid_size)])
-            training_info["threshes"].append([learning_model.neuron_layer.thresh[0,j] - target_model.neuron_layer.thresh[0,j]  + 0.0 for j in range(learning_model.hid_size)])
-            training_info["asc_ks"].append([learning_model.neuron_layer.transform_to_k(learning_model.neuron_layer.trans_asc_k[j,0,m]) - learning_model.neuron_layer.transform_to_k(target_model.neuron_layer.trans_asc_k[j,0,m])  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
-            training_info["asc_amps"].append([learning_model.neuron_layer.asc_amp[j,0,m] - target_model.neuron_layer.asc_amp[j,0,m]  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
-            training_info["asc_rs"].append([learning_model.neuron_layer.transform_to_asc_r(learning_model.neuron_layer.trans_asc_r)[j,0,m] - learning_model.neuron_layer.transform_to_asc_r(target_model.neuron_layer.trans_asc_r)[j,0,m]  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
+            training_info["k_ms"].append([learning_model.neuron_layer.transform_to_k(learning_model.neuron_layer.trans_k_m[0,j]).item() - learning_model.neuron_layer.transform_to_k(target_model.neuron_layer.trans_k_m[0,j]).item()  + 0.0 for j in range(learning_model.hid_size)])
+            training_info["threshes"].append([learning_model.neuron_layer.thresh[0,j].item() - target_model.neuron_layer.thresh[0,j].item()  + 0.0 for j in range(learning_model.hid_size)])
+            training_info["asc_ks"].append([learning_model.neuron_layer.transform_to_k(learning_model.neuron_layer.trans_asc_k[j,0,m]).item() - learning_model.neuron_layer.transform_to_k(target_model.neuron_layer.trans_asc_k[j,0,m]).item()  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
+            training_info["asc_amps"].append([learning_model.neuron_layer.asc_amp[j,0,m].item() - target_model.neuron_layer.asc_amp[j,0,m].item()  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
+            training_info["asc_rs"].append([learning_model.neuron_layer.transform_to_asc_r(learning_model.neuron_layer.trans_asc_r)[j,0,m].item() - learning_model.neuron_layer.transform_to_asc_r(target_model.neuron_layer.trans_asc_r)[j,0,m].item()  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
             training_info["losses"].append(loss.item())
 
     with torch.no_grad():
         learning_model.reset_state(1)
         outputs = learning_model(inputs)
+
         outputs[0,:,:] = outputs[0, -nsteps:, :]
         ax.plot(np.arange(nsteps) * dt, torch.mean(outputs[0,:,:],-1).detach().numpy(), linewidth=2, color=colors(3), label='learned')
+
+        np.savetxt("results/" + base_name_results + "-" + "finaloutputs.csv", np.stack(outputs).reshape((-1, 1)), delimiter=',')
+        np.savetxt("results/" + base_name_results + "-" + "targets.csv", targets.reshape((-1,1)), delimiter=',')
     ax.set_xlabel('time (ms)', labelpad=10)
     ax.set_ylabel('firing probability', labelpad=10)
     ax.legend(bbox_to_anchor=(1, 1), loc=1, frameon=False, fontsize=16)
     plt.savefig("figures/" + base_name + "_outputs", dpi=300, transparent=False, bbox_inches='tight')
     plt.close()
+
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "losses.csv", np.array(losses), delimiter=",")
+
+    membrane_parameters = np.zeros((hid_size, 2))
+    membrane_parameters[:, 0] = learning_model.neuron_layer.thresh.detach().numpy().reshape(-1) - target_model.neuron_layer.thresh.detach().numpy().reshape(-1)
+    membrane_parameters[:, 1] = learning_model.neuron_layer.transform_to_k(learning_model.neuron_layer.trans_k_m).detach().numpy().reshape(-1) - target_model.neuron_layer.transform_to_k(target_model.neuron_layer.trans_k_m).detach().numpy().reshape(-1)
+    np.savetxt("results/" + base_name_results + "-" + "membraneparams.csv", membrane_parameters, delimiter=',')
+
+    asc_parameters = np.zeros((hid_size * 2, 3))
+    asc_parameters[:, 0] = learning_model.neuron_layer.transform_to_k(learning_model.neuron_layer.trans_asc_k)[:,0,:].detach().numpy().reshape(-1) - target_model.neuron_layer.transform_to_k(target_model.neuron_layer.trans_asc_k)[:,0,:].detach().numpy().reshape(-1)
+    asc_parameters[:, 1] = learning_model.neuron_layer.transform_to_asc_r(learning_model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1) - target_model.neuron_layer.transform_to_asc_r(target_model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
+    asc_parameters[:, 2] = learning_model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1) - target_model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
+    np.savetxt("results/" + base_name_results + "-ascparams.csv", asc_parameters, delimiter=',')
 
     torch.save(learning_model.state_dict(), "saved_models/" + base_name_model + "_learned.pt")
     torch.save(target_model.state_dict(), "saved_models/" + base_name_model + "_target.pt")
@@ -249,6 +289,155 @@ def main():
 
     with open("traininfo/" + base_name_save + ".pickle", 'wb') as handle:
                 pickle.dump(training_info, handle)
+
+
+def main2():
+    main_name = "brnn_learnrealizable-membrane"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+
+    base_name = "figures_wkof_072521/" + main_name
+    base_name_save = "traininfo_wkof_072521/" + main_name
+    base_name_model = "models_wkof_072521/" + main_name
+    base_name_results = "results_wkof_080121/" + main_name
+    
+    dt = 0.05
+    sim_time = 4
+    nsteps = int(sim_time / dt)
+
+    hid_size = 1
+    input_size = 1
+    output_size = 1
+
+    targets = torch.empty((1, nsteps, output_size))
+    inputs = torch.ones((1, nsteps, input_size))
+
+    train_params = ["thresh", "k_m"]
+
+    target_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
+
+    target_model.eval()
+    target_model.reset_state(1)
+    targets = target_model(inputs)
+    loss_fn = nn.MSELoss()
+    
+    # Study thresh
+    learning_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
+    with torch.no_grad():
+        learning_model.neuron_layer.thresh.data = target_model.neuron_layer.thresh.data
+        learning_model.neuron_layer.trans_k_m.data = target_model.neuron_layer.trans_k_m.data
+        learning_model.neuron_layer.asc_amp.data = target_model.neuron_layer.asc_amp.data
+        learning_model.neuron_layer.trans_asc_r.data = target_model.neuron_layer.trans_asc_r.data
+        learning_model.neuron_layer.trans_asc_k.data = target_model.neuron_layer.trans_asc_k.data
+        learning_model.neuron_layer.weight_iv.data = target_model.neuron_layer.weight_iv.data
+    
+    threshes = np.arange(-20, 20, 2)
+    thresh_results = np.zeros(len(threshes), 2)
+    for i in range(len(threshes)):
+        t = threshes[i]
+        learning_model.reset_state(1)
+        with torch.no_grad():
+            learning_model.neuron_layer.thresh.data[0,0] = t
+        outputs = learning_model.forward(inputs)
+        thresh_results[i, 0] = t
+        thresh_results[i,1] = loss_fn(outputs, targets).item()
+    np.savetxt("results/" + base_name_results + "-" + "threshes.csv", thresh_results, delimiter=',')
+
+    k_ms = np.arange(1e-10, 20, 2)
+    k_m_results = np.zeros(len(k_ms), 2)
+    for i in range(len(k_ms)):
+        km = k_ms[i]
+        trans_k_m = math.log(km * dt / (1 - (km * dt)))
+        learning_model.reset_state(1)
+        with torch.no_grad():
+            learning_model.neuron_layer.trans_k_m.data[0,0] = trans_k_m
+        outputs = learning_model.forward(inputs)
+        k_m_results[i, 0] = km
+        k_m_results[i,1] = loss_fn(outputs, targets).item()
+    np.savetxt("results/" + base_name_results + "-" + "kms.csv", k_m_results, delimiter=',')
+
+    asc_k_1s = np.arange(1e-10, 20, 2)
+    asc_k_1_results = np.zeros(len(asc_k_1s), 2)
+    for i in range(len(asc_k_1s)):
+        asc_k1 = asc_k_1s[i]
+        trans_asc_k1 = math.log(asc_k1 * dt / (1 - (asc_k1 * dt)))
+        learning_model.reset_state(1)
+        with torch.no_grad():
+            learning_model.neuron_layer.trans_k_m.data[0,0,0] = trans_asc_k1
+        outputs = learning_model.forward(inputs)
+        asc_k_1_results[i, 0] = asc_k1
+        asc_k_1_results[i,1] = loss_fn(outputs, targets).item()
+    np.savetxt("results/" + base_name_results + "-" + "asck.csv", asc_k_1_results, delimiter=',')
+
+    asc_r_1s = np.arange(-1, 1, 0.1)
+    asc_r1_results = np.zeros(len(asc_r_1s), 2)
+    for i in range(len(asc_r_1s)):
+        asc_r1 = asc_r_1s[i]
+        trans_asc_r1 = math.log((1 - asc_r1) / (1 + asc_r1))
+        learning_model.reset_state(1)
+        with torch.no_grad():
+            learning_model.neuron_layer.trans_asc_r.data[0,0,0] = trans_asc_r1
+        outputs = learning_model.forward(inputs)
+        asc_r1_results[i, 0] = asc_r1
+        asc_r1_results[i,1] = loss_fn(outputs, targets).item()
+    np.savetxt("results/" + base_name_results + "-" + "ascr.csv", asc_r1_results, delimiter=',')
+
+    asc_amp_1s = np.arange(-100, 100, 10)
+    asc_amp_1_results = np.zeros(len(asc_amp_1s), 2)
+    for i in range(len(asc_amp_1s)):
+        asc_amp_1 = asc_amp_1s[i]
+        learning_model.reset_state(1)
+        with torch.no_grad():
+            learning_model.neuron_layer.asc_amp.data[0,0,0] = asc_amp_1
+        outputs = learning_model.forward(inputs)
+        asc_amp_1_results[i, 0] = asc_amp_1
+        asc_amp_1_results[i,1] = loss_fn(outputs, targets).item()
+    np.savetxt("results/" + base_name_results + "-" + "ascamp.csv", asc_amp_1_results, delimiter=',')
+
+
+    target_model.eval()
+    # with torch.no_grad():
+    #     target_model.reset_state(1)
+    #     outputs = target_model(inputs)
+    #     targets[0,:,:] = outputs[0, -nsteps:, :]
+    # ax.plot(np.arange(nsteps) * dt, targets[0,:,0].detach().numpy(), linewidth=2, color=colors(1), label='target')
+    
+    # with torch.no_grad():
+    #     learning_model.reset_state(1)
+    #     outputs = learning_model(inputs)
+    #     outputs[0,:,:] = outputs[0, -nsteps:, :]
+    #     ax.plot(np.arange(nsteps) * dt, outputs[0,:,0].detach().numpy(), linewidth=2, color=colors(1), label='target')
+    
+    # plt.legend()
+    # plt.show()
+    with torch.no_grad():
+        target_model.reset_state(1)
+        outputs = target_model(inputs)
+        targets[0,:,:] = outputs[0, -nsteps:, :]
+    ax.plot(np.arange(nsteps) * dt, torch.mean(targets[0,:,:],-1).detach().numpy(), linewidth=2, color=colors(1), label='target')
+    
+    with torch.no_grad():
+        learning_model.reset_state(1)
+        outputs = learning_model(inputs)
+        outputs[0,:,:] = outputs[0, -nsteps:, :]
+        ax.plot(np.arange(nsteps) * dt, torch.mean(outputs[0,:,:],-1).detach().numpy(), linewidth=2, color=colors(2), label='initial')
+
+    # Train model
+    num_epochs = 10000
+    lr = 0.01
+
+    train_params_real = []
+    if "thresh" in train_params:
+        train_params_real.append(learning_model.neuron_layer.thresh)
+    if "k_m" in train_params:
+        train_params_real.append(learning_model.neuron_layer.trans_k_m)
+    if "asc_amp" in train_params:
+        train_params_real.append(learning_model.neuron_layer.asc_amp)
+    if "asc_k" in train_params:
+        train_params_real.append(learning_model.neuron_layer.trans_asc_k)
+    if "asc_r" in train_params:
+        train_params_real.append(learning_model.neuron_layer.trans_asc_r)
+
+    optimizer = torch.optim.SGD(train_params_real, lr=lr)
+    losses = []
 
 if __name__ == '__main__':
         main()
