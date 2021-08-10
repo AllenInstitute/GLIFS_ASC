@@ -156,7 +156,7 @@ def main():
         plt.close()
 
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-finaloutputs.csv", np.stack(final_outputs_driven).reshape((-1, num_freqs)), delimiter=',')
-        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-targets.csv", targets, delimiter=',')
+        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-targets.csv", targets.reshape((-1, num_freqs)), delimiter=',')
 
         accs.append(training_info["test_loss"])
 
