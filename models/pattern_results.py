@@ -48,7 +48,7 @@ def main():
     args = parser.parse_args()
  
     main_name = args.name
-    # base_name = "figures_wkof_072521/" + main_name
+    base_name = "figures_wkof_080121/" + main_name
     base_name_traininfo = "traininfo_wkof_080121/" + main_name
     base_name_model = "models_wkof_080121/" + main_name
     base_name_results = "results_wkof_080121/" + main_name
@@ -80,7 +80,7 @@ def main():
     num_epochs = 5000
     lr = 0.0001
     itrs = 10
-    sgd = True
+    sgd = False
 
     sim_time = 5
     num_freqs = 6
@@ -132,15 +132,31 @@ def main():
                 np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ascparams.csv", asc_parameters, delimiter=',')
 
         # ablation studies
-        ablation_results = np.zeros((len(pcts), ntrials))
-        for pct_idx in range(len(pcts)):
-            pct_remove = pcts[pct_idx]
-            for trial_idx in range(ntrials):
-                idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
-                model.silence(idx)
-                training_info_silence = utt.train_rbnn(model, traindataset, batch_size, 0, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
-                ablation_results[pct_idx, trial_idx] = training_info_silence["test_loss"]
-        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv", ablation_results, delimiter=',')
+        with torch.no_grad():
+            ablation_results = np.zeros((len(pcts), ntrials))
+            for pct_idx in range(len(pcts)):
+                pct_remove = pcts[pct_idx]
+                for trial_idx in range(ntrials):
+                    idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
+                    model.silence(idx)
+                    training_info_silence = utt.train_rbnn(model, traindataset, batch_size, 0, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
+                    ablation_results[pct_idx, trial_idx] = training_info_silence["test_loss"]
+            np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv", ablation_results, delimiter=',')
+
+        colors = ["sienna", "gold", "chartreuse", "darkgreen", "lightseagreen", "deepskyblue", "blue", "darkorchid", "plum", "darkorange", "fuchsia", "tomato", "cyan", "greenyellow", "cornflowerblue", "limegreen", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen"]
+
+        final_outputs_driven = training_info["final_outputs_driven"]
+        for i in range(num_freqs):
+            plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, final_outputs_driven[i][0,:,0], c = colors[i % len(colors)], label=f"freq {freqs[i]}")
+            plt.plot(np.arange(len(final_outputs_driven[i][0])) * dt, targets[:, i], '--', c = colors[i % len(colors)])
+        # plt.legend()
+        plt.xlabel("time (ms)")
+        plt.ylabel("firing rate (1/ms)")
+        plt.savefig("figures/" + base_name + "_final_outputs")
+        plt.close()
+
+        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-finaloutputs.csv", np.stack(final_outputs_driven).reshape((-1, num_freqs)), delimiter=',')
+        np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-targets.csv", targets, delimiter=',')
 
         accs.append(training_info["test_loss"])
 

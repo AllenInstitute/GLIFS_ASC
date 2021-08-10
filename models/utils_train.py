@@ -516,7 +516,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
 
                 # model(targets) # Predrive first dimension is batch so 1
                 # model(targets_pre) # Predrive
-                final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :]))
+                final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :]).detach().numpy())
             training_info["final_outputs_driven"] = final_outputs_driven
         elif task == "pattern_multid":
             final_outputs = []
