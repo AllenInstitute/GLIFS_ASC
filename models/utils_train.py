@@ -472,9 +472,10 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
             print(torch.mean(model.neuron_layer.trans_k_m.grad))
             # print(torch.mean(model.neuron_layer.v_reset.grad))
             print(torch.mean(model.neuron_layer.thresh.grad))
-            print(torch.mean(model.neuron_layer.trans_asc_k.grad))
-            print(torch.mean(model.neuron_layer.asc_amp.grad))
-            print(torch.mean(model.neuron_layer.trans_asc_r.grad))
+            if ascs:
+                print(torch.mean(model.neuron_layer.trans_asc_k.grad))
+                print(torch.mean(model.neuron_layer.asc_amp.grad))
+                print(torch.mean(model.neuron_layer.trans_asc_r.grad))
             print(torch.mean(model.neuron_layer.weight_iv.grad))
             #print(f"weight:{torch.mean(model.neuron_layer.weight_lat)}")
             training_info["k_m_grads"].append([model.neuron_layer.trans_k_m.grad[0,j].item()  + 0.0 for j in range(model.hid_size)])
