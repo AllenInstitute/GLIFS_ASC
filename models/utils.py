@@ -703,283 +703,283 @@ def train_rbnn_copy(model, batch_size, num_epochs, lr, glifr, nrepeat, output_si
     test(sl_last, nrepeat)
     return training_info
 
-def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False, sgd=False):
-    """
-    Train RBNN model using trainloader and track metrics.
-    Parameters
-    ----------
-    model : RBNN
-        network to be trained
-    trainloader : Torch Dataset
-        training dataset with input, target pairs
-    batch_size : int
-        size of batches to be used during training
-    num_epochs : int
-        number of epochs to train the model for
-    lr : float
-        learning rate to use
-    reg_lambda : float
-        regularization constant to use for time constant
-    verbose : boolean, optional, default True
-        whether to print loss
-    predrive : boolean, optional, default True
-        whether to apply predrive in training
-    glifr : boolean, optional, default True
-        whether to expect fields existing in GLIFR class
+# def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, data_gen = None, verbose = True, predrive = True, glifr = True, task = "pattern", decay=False, sgd=False):
+#     """
+#     Train RBNN model using trainloader and track metrics.
+#     Parameters
+#     ----------
+#     model : RBNN
+#         network to be trained
+#     trainloader : Torch Dataset
+#         training dataset with input, target pairs
+#     batch_size : int
+#         size of batches to be used during training
+#     num_epochs : int
+#         number of epochs to train the model for
+#     lr : float
+#         learning rate to use
+#     reg_lambda : float
+#         regularization constant to use for time constant
+#     verbose : boolean, optional, default True
+#         whether to print loss
+#     predrive : boolean, optional, default True
+#         whether to apply predrive in training
+#     glifr : boolean, optional, default True
+#         whether to expect fields existing in GLIFR class
     
-    Returns
-    -------
-    training_info : Dict[Str: Any]
-        dictionary including following information
-        - losses : List[float]
-            training loss over epochs
-        - init_outputs : List[List[]]
-            list where ith element is a list that is the output of 
-            the network in response to the ith input before training
-        - final_outputs : List[List[]]
-            list where the ith element is a list that is the output of
-            the network in response to the ith input before training
-        - weights : List[List[List[float]]]
-            ith list corresponds to a single linear layer 
-                ordered input_linear, rec_linear, output_linear
-            jth list of ith list corresponds to jth epoch
-            kth element of the jth list corresponds to a weight
-        - threshes : List[List[float]]
-            ith element is a list of thresholds of neurons
-            at the ith epoch
-        - k_ms: List[List[float]]
-            ith element is a list of k_ms of neurons at the
-            ith epoch
-        - asc_amps : List[List[float]]
-            ith element is a list of asc_amps of neurons at
-            the ith epoch
-        - asc_rs : List[List[float]]
-            ith element is a list of asc_rs of neurons at
-            the ith epoch
-        - weight_grads : List[List[List[float]]]
-            ith element is a list corresponding to the ith epoch
-            jth element of ith list corresponds to a single linear layer 
-                ordered input_linear, rec_linear, output_linear
-            kth element of the jth list corresponds to a weight gradient
-        - thresh_grads : List[List[float]]
-            ith element is a list of threshold gradients of neurons
-            at the ith epoch
-        - k_m_grads: List[List[float]]
-            ith element is a list of k_m gradients of neurons at the
-            ith epoch
-        - asc_amp_grads : List[List[float]]
-            ith element is a list of asc_amp gradients of neurons at
-            the ith epoch
-        - asc_r_grads : List[List[float]]
-            ith element is a list of asc_r gradients of neurons at
-            the ith epoch
-    """
-    # if task == "copy":
-    #     with torch.no_grad():
-    #         data_gen = traindataset()
-    #         traindataset = next(data_gen)
+#     Returns
+#     -------
+#     training_info : Dict[Str: Any]
+#         dictionary including following information
+#         - losses : List[float]
+#             training loss over epochs
+#         - init_outputs : List[List[]]
+#             list where ith element is a list that is the output of 
+#             the network in response to the ith input before training
+#         - final_outputs : List[List[]]
+#             list where the ith element is a list that is the output of
+#             the network in response to the ith input before training
+#         - weights : List[List[List[float]]]
+#             ith list corresponds to a single linear layer 
+#                 ordered input_linear, rec_linear, output_linear
+#             jth list of ith list corresponds to jth epoch
+#             kth element of the jth list corresponds to a weight
+#         - threshes : List[List[float]]
+#             ith element is a list of thresholds of neurons
+#             at the ith epoch
+#         - k_ms: List[List[float]]
+#             ith element is a list of k_ms of neurons at the
+#             ith epoch
+#         - asc_amps : List[List[float]]
+#             ith element is a list of asc_amps of neurons at
+#             the ith epoch
+#         - asc_rs : List[List[float]]
+#             ith element is a list of asc_rs of neurons at
+#             the ith epoch
+#         - weight_grads : List[List[List[float]]]
+#             ith element is a list corresponding to the ith epoch
+#             jth element of ith list corresponds to a single linear layer 
+#                 ordered input_linear, rec_linear, output_linear
+#             kth element of the jth list corresponds to a weight gradient
+#         - thresh_grads : List[List[float]]
+#             ith element is a list of threshold gradients of neurons
+#             at the ith epoch
+#         - k_m_grads: List[List[float]]
+#             ith element is a list of k_m gradients of neurons at the
+#             ith epoch
+#         - asc_amp_grads : List[List[float]]
+#             ith element is a list of asc_amp gradients of neurons at
+#             the ith epoch
+#         - asc_r_grads : List[List[float]]
+#             ith element is a list of asc_r gradients of neurons at
+#             the ith epoch
+#     """
+#     # if task == "copy":
+#     #     with torch.no_grad():
+#     #         data_gen = traindataset()
+#     #         traindataset = next(data_gen)
 
-    training_info = {"losses": [],
-                    "weights": [],
-                    "threshes": [],
-                    "v_resets": [],
-                    "k_ms": [],
-                    "k_syns": [],
-                    "asc_amps": [],
-                    "asc_rs": [],
-                    "asc_ks": [],
-                    "weight_grads": [],
-                    "thresh_grads": [],
-                    "v_reset_grads": [],
-                    "k_m_grads": [],
-                    "k_syn_grads": [],
-                    "asc_amp_grads": [],
-                    "asc_r_grads": [],
-                    "asc_k_grads": []}
-    model.eval()
-    if task == "pattern":
-        init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
-        init_outputs = []
-        for batch_ndx, sample in enumerate(init_dataloader):
-            inputs, targets = sample
-            _, nsteps, _ = inputs.shape
-            model.reset_state()
-            init_outputs.append(model.forward(inputs)[:, -nsteps:, :])
-        training_info["init_outputs"] = init_outputs
+#     training_info = {"losses": [],
+#                     "weights": [],
+#                     "threshes": [],
+#                     "v_resets": [],
+#                     "k_ms": [],
+#                     "k_syns": [],
+#                     "asc_amps": [],
+#                     "asc_rs": [],
+#                     "asc_ks": [],
+#                     "weight_grads": [],
+#                     "thresh_grads": [],
+#                     "v_reset_grads": [],
+#                     "k_m_grads": [],
+#                     "k_syn_grads": [],
+#                     "asc_amp_grads": [],
+#                     "asc_r_grads": [],
+#                     "asc_k_grads": []}
+#     model.eval()
+#     if task == "pattern":
+#         init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
+#         init_outputs = []
+#         for batch_ndx, sample in enumerate(init_dataloader):
+#             inputs, targets = sample
+#             _, nsteps, _ = inputs.shape
+#             model.reset_state()
+#             init_outputs.append(model.forward(inputs)[:, -nsteps:, :])
+#         training_info["init_outputs"] = init_outputs
 
-        init_outputs_driven = []
-        for batch_ndx, sample in enumerate(init_dataloader):
-            inputs, targets = sample
-            _, nsteps, _ = inputs.shape
-            model.reset_state()
+#         init_outputs_driven = []
+#         for batch_ndx, sample in enumerate(init_dataloader):
+#             inputs, targets = sample
+#             _, nsteps, _ = inputs.shape
+#             model.reset_state()
 
-            # model(targets) # Predrive
-            # model(targets_pre) # Predrive
-            init_outputs_driven.append(model.forward(inputs)[:, -nsteps:, :])
-        training_info["init_outputs_driven"] = init_outputs_driven
-    elif task == "pattern_multid":
-        init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
-        init_outputs = []
-        for batch_ndx, sample in enumerate(init_dataloader):
-            inputs, targets = sample
-            _, nsteps, _ = inputs.shape
-            model.reset_state()
-            outputs = model.forward(inputs)
-            for dim in range(outputs.shape[-1]):
-                init_outputs.append(outputs[:,:,dim])
-        training_info["init_outputs"] = init_outputs
-    else:
-        init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
+#             # model(targets) # Predrive
+#             # model(targets_pre) # Predrive
+#             init_outputs_driven.append(model.forward(inputs)[:, -nsteps:, :])
+#         training_info["init_outputs_driven"] = init_outputs_driven
+#     elif task == "pattern_multid":
+#         init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
+#         init_outputs = []
+#         for batch_ndx, sample in enumerate(init_dataloader):
+#             inputs, targets = sample
+#             _, nsteps, _ = inputs.shape
+#             model.reset_state()
+#             outputs = model.forward(inputs)
+#             for dim in range(outputs.shape[-1]):
+#                 init_outputs.append(outputs[:,:,dim])
+#         training_info["init_outputs"] = init_outputs
+#     else:
+#         init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
 
-    optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
-    if sgd:
-        optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
-    # optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
-    loss_fn = nn.MSELoss()
-    if task == "copy":
-        loss_fn = nn.CrossEntropyLoss()
-    # loss_fn = nn.SmoothL1Loss()
-    trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
-    model.train()
-    # for batch_ndx, sample in enumerate(trainloader):
-    for epoch in range(num_epochs):
-        # if epoch % 1 == 0:
-        #     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
-        # if task == "copy":
-        #     with torch.no_grad():
-        #         traindataset = next(data_gen)
-        #         trainloader = tud.DataLoader(traindataset, batch_size, shuffle = True)
-        tot_loss = 0
-        tot_pairs = 0
-        loss_batch = []
-        reg_lambda = 0.01
+#     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
+#     if sgd:
+#         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
+#     # optimizer = torch.optim.ASGD(model.parameters(), lr=lr)
+#     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.999)
+#     loss_fn = nn.MSELoss()
+#     if task == "copy":
+#         loss_fn = nn.CrossEntropyLoss()
+#     # loss_fn = nn.SmoothL1Loss()
+#     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
+#     model.train()
+#     # for batch_ndx, sample in enumerate(trainloader):
+#     for epoch in range(num_epochs):
+#         # if epoch % 1 == 0:
+#         #     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
+#         # if task == "copy":
+#         #     with torch.no_grad():
+#         #         traindataset = next(data_gen)
+#         #         trainloader = tud.DataLoader(traindataset, batch_size, shuffle = True)
+#         tot_loss = 0
+#         tot_pairs = 0
+#         loss_batch = []
+#         reg_lambda = 0.01
 
-        if task == "copy":
-            new_dataset = data_gen()
-            trainloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
+#         if task == "copy":
+#             new_dataset = data_gen()
+#             trainloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
 
-        for batch_ndx, sample in enumerate(trainloader):
-            n_subiter = 1
-            for i in range(n_subiter):
-                loss = 0.0
-                inputs, targets = sample
+#         for batch_ndx, sample in enumerate(trainloader):
+#             n_subiter = 1
+#             for i in range(n_subiter):
+#                 loss = 0.0
+#                 inputs, targets = sample
 
-                if task == "copy":
-                    inputs = inputs.float()
-                    targets = targets.long()
-                _, nsteps, _ = inputs.shape
-                tot_pairs += len(targets)
+#                 if task == "copy":
+#                     inputs = inputs.float()
+#                     targets = targets.long()
+#                 _, nsteps, _ = inputs.shape
+#                 tot_pairs += len(targets)
 
-                model.reset_state(len(targets))
-                optimizer.zero_grad()
+#                 model.reset_state(len(targets))
+#                 optimizer.zero_grad()
 
-                outputs = model(inputs)
-                outputs = outputs[:, -nsteps:, :]
+#                 outputs = model(inputs)
+#                 outputs = outputs[:, -nsteps:, :]
                     
-                loss = loss + loss_fn(outputs, targets)
-                null_loss = "SORRY"
-                loss.backward()
+#                 loss = loss + loss_fn(outputs, targets)
+#                 null_loss = "SORRY"
+#                 loss.backward()
 
-                optimizer.step()
+#                 optimizer.step()
 
-                if decay:
-                    scheduler.step()
+#                 if decay:
+#                     scheduler.step()
                 
-                tot_loss += loss.item()
-                loss_batch.append(loss.item() / len(targets))
-        if verbose:
-            print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)} and null loss {null_loss}")
+#                 tot_loss += loss.item()
+#                 loss_batch.append(loss.item() / len(targets))
+#         if verbose:
+#             print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)} and null loss {null_loss}")
 
-        training_info["losses"].append(tot_loss)
+#         training_info["losses"].append(tot_loss)
    
-        if glifr:
-            training_info["k_ms"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m[0,j])  + 0.0 for j in range(model.hid_size)])
-            # training_info["k_syns"].append([torch.exp(model.neuron_layer.ln_k_syn[0,j])  + 0.0 for j in range(model.hid_size)])
-            training_info["threshes"].append([model.neuron_layer.thresh[0,j]  + 0.0 for j in range(model.hid_size)])
-            # training_info["v_resets"].append([model.neuron_layer.v_reset[0,j]  + 0.0 for j in range(model.hid_size)])
-            training_info["asc_ks"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k[j,0,m])  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_rs"].append([model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["weights"].append([torch.mean(model.neuron_layer.weight_iv[:,m])  + 0.0 for m in range(model.hid_size)])
+#         if glifr:
+#             training_info["k_ms"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m[0,j])  + 0.0 for j in range(model.hid_size)])
+#             # training_info["k_syns"].append([torch.exp(model.neuron_layer.ln_k_syn[0,j])  + 0.0 for j in range(model.hid_size)])
+#             training_info["threshes"].append([model.neuron_layer.thresh[0,j]  + 0.0 for j in range(model.hid_size)])
+#             # training_info["v_resets"].append([model.neuron_layer.v_reset[0,j]  + 0.0 for j in range(model.hid_size)])
+#             training_info["asc_ks"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k[j,0,m])  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+#             training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+#             training_info["asc_rs"].append([model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+#             training_info["weights"].append([torch.mean(model.neuron_layer.weight_iv[:,m])  + 0.0 for m in range(model.hid_size)])
 
-        # TODO: Replace with real weight
-        # training_info["weight_grads"][0].append([model.input_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
-        # if glifr:
-        #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
-        # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
-        if glifr and epoch % 10 == 0:
-            print(torch.mean(model.neuron_layer.trans_k_m.grad))
-            # print(torch.mean(model.neuron_layer.v_reset.grad))
-            print(torch.mean(model.neuron_layer.thresh.grad))
-            print(torch.mean(model.neuron_layer.trans_asc_k.grad))
-            print(torch.mean(model.neuron_layer.asc_amp.grad))
-            print(torch.mean(model.neuron_layer.trans_asc_r.grad))
-            print(torch.mean(model.neuron_layer.weight_iv.grad))
-            #print(f"weight:{torch.mean(model.neuron_layer.weight_lat)}")
-            training_info["k_m_grads"].append([model.neuron_layer.trans_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
-            # training_info["k_syn_grads"].append([model.neuron_layer.ln_k_syn.grad[0,j]  + 0.0 for j in range(model.hid_size)])
-            training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])
-            # training_info["v_reset_grads"].append([model.neuron_layer.v_reset.grad[0,j]  + 0.0 for j in range(model.hid_size)])
-            training_info["asc_k_grads"].append([model.neuron_layer.trans_asc_k.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            training_info["asc_r_grads"].append([model.neuron_layer.trans_asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
-            # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m])  + 0.0 for m in range(model.hid_size)])
+#         # TODO: Replace with real weight
+#         # training_info["weight_grads"][0].append([model.input_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
+#         # if glifr:
+#         #     training_info["weight_grads"][1].append([model.rec_linear.weight.grad[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
+#         # training_info["weight_grads"][2].append([model.output_linear.weight.grad[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
+#         if glifr and epoch % 10 == 0:
+#             print(torch.mean(model.neuron_layer.trans_k_m.grad))
+#             # print(torch.mean(model.neuron_layer.v_reset.grad))
+#             print(torch.mean(model.neuron_layer.thresh.grad))
+#             print(torch.mean(model.neuron_layer.trans_asc_k.grad))
+#             print(torch.mean(model.neuron_layer.asc_amp.grad))
+#             print(torch.mean(model.neuron_layer.trans_asc_r.grad))
+#             print(torch.mean(model.neuron_layer.weight_iv.grad))
+#             #print(f"weight:{torch.mean(model.neuron_layer.weight_lat)}")
+#             training_info["k_m_grads"].append([model.neuron_layer.trans_k_m.grad[0,j]  + 0.0 for j in range(model.hid_size)])
+#             # training_info["k_syn_grads"].append([model.neuron_layer.ln_k_syn.grad[0,j]  + 0.0 for j in range(model.hid_size)])
+#             training_info["thresh_grads"].append([model.neuron_layer.thresh.grad[0,j]  + 0.0 for j in range(model.hid_size)])
+#             # training_info["v_reset_grads"].append([model.neuron_layer.v_reset.grad[0,j]  + 0.0 for j in range(model.hid_size)])
+#             training_info["asc_k_grads"].append([model.neuron_layer.trans_asc_k.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+#             training_info["asc_amp_grads"].append([model.neuron_layer.asc_amp.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+#             training_info["asc_r_grads"].append([model.neuron_layer.trans_asc_r.grad[j,0,m]  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
+#             # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m])  + 0.0 for m in range(model.hid_size)])
 
-    with torch.no_grad():
-        if task == "pattern":
-            final_outputs = []
-            model.eval()
-            for batch_ndx, sample in enumerate(init_dataloader):
-                inputs, targets = sample
-                _, nsteps, _ = inputs.shape
-                model.reset_state()
-                final_outputs.append(model.forward(inputs)[:, -nsteps:, :])
-                plt.plot(model.forward(inputs)[0, -nsteps:, 0].detach().numpy())
-                plt.plot(targets[0, -nsteps:, 0].detach().numpy())
-                plt.close()
-            training_info["final_outputs"] = final_outputs
+#     with torch.no_grad():
+#         if task == "pattern":
+#             final_outputs = []
+#             model.eval()
+#             for batch_ndx, sample in enumerate(init_dataloader):
+#                 inputs, targets = sample
+#                 _, nsteps, _ = inputs.shape
+#                 model.reset_state()
+#                 final_outputs.append(model.forward(inputs)[:, -nsteps:, :])
+#                 plt.plot(model.forward(inputs)[0, -nsteps:, 0].detach().numpy())
+#                 plt.plot(targets[0, -nsteps:, 0].detach().numpy())
+#                 plt.close()
+#             training_info["final_outputs"] = final_outputs
 
-            final_outputs_driven = []
-            for batch_ndx, sample in enumerate(init_dataloader):
-                inputs, targets = sample
-                _, nsteps, _ = inputs.shape
-                model.reset_state(batch_size = 1)
+#             final_outputs_driven = []
+#             for batch_ndx, sample in enumerate(init_dataloader):
+#                 inputs, targets = sample
+#                 _, nsteps, _ = inputs.shape
+#                 model.reset_state(batch_size = 1)
 
-                # print(batch_ndx)
+#                 # print(batch_ndx)
 
-                # model(targets) # Predrive first dimension is batch so 1
-                # model(targets_pre) # Predrive
-                final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :]))
-            training_info["final_outputs_driven"] = final_outputs_driven
-        elif task == "pattern_multid":
-            final_outputs = []
-            for batch_ndx, sample in enumerate(init_dataloader):
-                inputs, targets = sample
-                _, nsteps, _ = inputs.shape
-                model.reset_state()
-                outputs = model.forward(inputs)
-                for dim in range(outputs.shape[-1]):
-                    final_outputs.append(outputs[:,:,dim])
-            training_info["final_outputs"] = final_outputs
-        elif task == "copy":
-            if task == "copy":
-                new_dataset = data_gen()
-                init_dataloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
-            final_targets = []
-            final_outputs = []
-            for batch_ndx, sample in enumerate(init_dataloader):
-                inputs, targets = sample
-                _, nsteps, _ = inputs.shape
-                model.reset_state()
-                outputs = model.forward(inputs)
-                final_outputs.append(torch.argmax(outputs[0,:,:], dim=1).long().detach())
-                final_targets.append(targets[0,:,0].detach())
-            final_outputs = torch.stack(final_outputs)
-            final_targets = torch.stack(final_targets)
-            np.savetxt('outputs_062021.txt', torch.squeeze(final_outputs).detach().numpy(), fmt="%i")
-            np.savetxt('targets_062021.txt', torch.squeeze(final_targets).detach().numpy(), fmt="%i")
-    return training_info
+#                 # model(targets) # Predrive first dimension is batch so 1
+#                 # model(targets_pre) # Predrive
+#                 final_outputs_driven.append(model.forward(inputs[:, -nsteps:, :]))
+#             training_info["final_outputs_driven"] = final_outputs_driven
+#         elif task == "pattern_multid":
+#             final_outputs = []
+#             for batch_ndx, sample in enumerate(init_dataloader):
+#                 inputs, targets = sample
+#                 _, nsteps, _ = inputs.shape
+#                 model.reset_state()
+#                 outputs = model.forward(inputs)
+#                 for dim in range(outputs.shape[-1]):
+#                     final_outputs.append(outputs[:,:,dim])
+#             training_info["final_outputs"] = final_outputs
+#         elif task == "copy":
+#             if task == "copy":
+#                 new_dataset = data_gen()
+#                 init_dataloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
+#             final_targets = []
+#             final_outputs = []
+#             for batch_ndx, sample in enumerate(init_dataloader):
+#                 inputs, targets = sample
+#                 _, nsteps, _ = inputs.shape
+#                 model.reset_state()
+#                 outputs = model.forward(inputs)
+#                 final_outputs.append(torch.argmax(outputs[0,:,:], dim=1).long().detach())
+#                 final_targets.append(targets[0,:,0].detach())
+#             final_outputs = torch.stack(final_outputs)
+#             final_targets = torch.stack(final_targets)
+#             np.savetxt('outputs_062021.txt', torch.squeeze(final_outputs).detach().numpy(), fmt="%i")
+#             np.savetxt('targets_062021.txt', torch.squeeze(final_targets).detach().numpy(), fmt="%i")
+#     return training_info
 
 def km_reg(rbnn, reg_lambda):
 	return reg_lambda * torch.mean((torch.exp(rbnn.neuron_layer.ln_k_m)) ** 2)
