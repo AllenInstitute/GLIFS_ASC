@@ -1,0 +1,16 @@
+losses = xlsread("results_wkof_080121/brnn_learnrealizable-membrane-1units-losses.csv");
+final_outputs = xlsread("results_wkof_080121/brnn_learnrealizable-membrane-finaloutputs.csv");
+targets = xlsread("results_wkof_080121/brnn_learnrealizable-membrane-targets.csv");
+
+figure;
+plot(losses, 'Color', "#332288", 'LineWidth', 1);
+xlabel('epoch #', 'FontName', 'helvetica', 'FontSize', 12);
+ylabel('MSE', 'FontName', 'helvetica', 'FontSize', 12);
+
+figure;
+plot([0:0.05:4], final_outputs, 'Color', "#332288", 'LineWidth', 1, 'Dis="learned");
+xlabel('time (ms)', 'FontName', 'helvetica', 'FontSize', 12);
+ylabel('firing probability', 'FontName', 'helvetica', 'FontSize', 12);
+plot([0:0.05:4], targets, 'Color', "#117733", 'LineWidth', 1, 'DisplayName', "target");
+xlabel('time (ms)', 'FontName', 'helvetica', 'FontSize', 12);
+ylabel('firing probability', 'FontName', 'helvetica', 'FontSize', 12);

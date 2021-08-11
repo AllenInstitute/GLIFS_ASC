@@ -9,8 +9,8 @@ if strcmp(task, "smnist")
     data_rnn = xlsread("results_wkof_080121/smnist-rnn-259units-0itr-ablation.csv");
     data_lstm = xlsread("results_wkof_080121/smnist-lstm-123units-0itr-ablation.csv");
     data_rglif = xlsread("results_wkof_080121/smnist-rglif-2asc-256units-0itr-ablation.csv");
-    data_rglif_noasc = xlsread("results_wkof_080121/smnist-rglif-2asc-256units-0itr-ablation.csv");
-    data_rglif_wtonly = xlsread("results_wkof_080121/smnist-rglif-2asc-256units-0itr-ablation.csv");
+    data_rglif_noasc = xlsread("results_wkof_080121/smnist-rglif-noasc-258units-0itr-ablation.csv");
+    data_rglif_wtonly = xlsread("results_wkof_080121/smnist-rglif-wtonly-259units-0itr-ablation.csv");
     
     ylabel_text = "accuracy";
 else
@@ -69,7 +69,7 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 
 for i = 1:nbars
     x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
-    errorbar(x, means(:,i), stds(:,i), 'k', 'linestyle', 'none', 'HandleVisibility','off');
+    errorbar(x, means(:,i), stds(:,i), 'k', 'LineWidth', 0.5, 'linestyle', 'none', 'HandleVisibility','off');
     hold on
 end
 
@@ -80,6 +80,6 @@ for i = 1:nbars
 end
 
 set(gca,'XTick', 1:ngroups, 'xticklabel',silence_props, 'FontName', 'helvetica', 'FontSize', 12);
-legend("RNN", "LSTM", "RGLIF", "RLIF", "RGLIF_WT", 'FontSize', 12);
+legend("RNN", "LSTM", "RGLIF", "RLIF", "RGLIF-WT", 'FontSize', 12);
 xlabel("% silenced", 'FontSize', 12);
 ylabel(ylabel_text);

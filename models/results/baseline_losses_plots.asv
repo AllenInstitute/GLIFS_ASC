@@ -10,7 +10,7 @@ if strcmp(task, "smnist")
     data_lstm = xlsread("results_wkof_080121/smnist-lstm-123units-accs.csv");
     data_rglif = xlsread("results_wkof_080121/smnist-rglif-2asc-256units-accs.csv");
     data_rglif_noasc = xlsread("results_wkof_080121/smnist-rglif-noasc-258units-accs.csv");
-    data_rglif_wtonly = xlsread("results_wkof_080121/smnist-rglif-wtonly-259units-accs.csv");
+    data_rglif_wtonly = xlsread("results_wkof_080121/smnist-rglif-2asc-259units-accs.csv");
     
     ylabel_text = "accuracy";
 else
@@ -66,7 +66,7 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 
 for i = 1:nbars
     x = (1:ngroups) - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
-    errorbar(x, means.', stds.', 'k', 'linestyle', 'none', 'LineWidth', 1, 'HandleVisibility','off', 'CapSize', 10);
+    errorbar(x, means.', stds.', 'k', 'linestyle', 'none', 'HandleVisibility','off', 'CapSize', 10);
     hold on
 end
 
@@ -85,7 +85,5 @@ for i = 1:ngroups
     b.CData(i, :) = colors_rbg(i, :);
 end
 
-yticks(0.7:.1:1)
-ylim([0.7,1]);
-set(gca,'XTick', 1:5, 'xticklabel',{'RNN', 'LSTM', 'RGLIF', 'RLIF', 'RGLIF-WT'}, 'FontName', 'helvetica', 'FontSize', 12);
+set(gca,'XTick', 1:5, 'xticklabel',{'RNN', 'LSTM', 'RGLIF', 'RLIF', 'RGLIF_WT'}, 'FontName', 'helvetica', 'FontSize', 12);
 ylabel(ylabel_text, 'FontName', 'helvetica', 'FontSize', 12);
