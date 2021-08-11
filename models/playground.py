@@ -13,9 +13,9 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-ficurve"
+main_name = "pattern-2asc-rglif-ficurve"
 base_name_results = "results_wkof_080121/" + main_name
-base_name_model = "models_wkof_080121/" + "smnist-rglif"
+base_name_model = "models_wkof_080121/" + "pattern-rglif-2asc"
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -134,7 +134,9 @@ def plot_ficurve(model):
     # print(f"asc_amp: {model.neuron_layer.asc_amp[:,0,254]}")
     # print(f"asc_k: {torch.exp(model.neuron_layer.ln_asc_k[:,0,254])}")
 
+    f_rates = np.zeros(len(i_syns))
     for i in range(len(i_syns)):
+        print(f"working on #{i}")
         firing = torch.zeros((input.shape[0], hid_size))
         voltage = torch.zeros((input.shape[0], hid_size))
         syncurrent = torch.zeros((input.shape[0], hid_size))
@@ -147,8 +149,9 @@ def plot_ficurve(model):
         for step in range(nsteps):
             x = input[:, step, :]
             firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
-            outputs_temp[:, step, :] = firing
-        outputs[i,:,:] = outputs_temp[0,:,:]
+            outputs_temp[0, step, :] = firing
+        f_rates[i] = torch.mean(outputs_temp).detach().numpy()
+        #outputs[i,:,:] = outputs_temp[0,:,:]
 
     f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")
@@ -169,6 +172,7 @@ def plot_ficurve(model):
         if m < 0:
             print(f"found negative slope in neuron {i}")
         plt.plot(i_syns_these, f_rates_these)
+    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
     plt.savefig("figures/figures_wkof_071821/neg-f-i-curves.png")
     plt.close()
     
