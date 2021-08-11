@@ -3,9 +3,11 @@ fig.Renderer='Painters';
 
 task = "smnist"; % smnist or pattern
 
-results_file = fopen("stats_smnist.txt", 'w');
+results_file = fopen("stats_pattern.txt", 'w');
+fontsize = 24;
 
 if strcmp(task, "smnist")
+    results_file = fopen("stats_smnist.txt", 'w');
     data_rnn = xlsread("results_wkof_080121/smnist-rnn-259units-0itr-ablation.csv");
     data_lstm = xlsread("results_wkof_080121/smnist-lstm-123units-0itr-ablation.csv");
     data_rglif = xlsread("results_wkof_080121/smnist-rglif-2asc-256units-0itr-ablation.csv");
@@ -14,6 +16,12 @@ if strcmp(task, "smnist")
     
     ylabel_text = "accuracy";
 else
+    results_file = fopen("stats_pattern.txt", 'w');
+    data_rnn = xlsread("results_wkof_080121/pattern-rnn-131units-0itr-ablation.csv");
+    data_lstm = xlsread("results_wkof_080121/pattern-lstm-64units-0itr-ablation.csv");
+    data_rglif = xlsread("results_wkof_080121/pattern-rglif-2asc-128units-0itr-ablation.csv");
+    data_rglif_noasc = xlsread("results_wkof_080121/pattern-rglif-noasc-130units-0itr-ablation.csv");
+    data_rglif_wtonly = xlsread("results_wkof_080121/pattern-rglif-wtonly-131units-0itr-ablation.csv");
     ylabel_text = "MSE";
 end
 
@@ -79,7 +87,7 @@ for i = 1:nbars
     b(i).FaceColor = colors(i);
 end
 
-set(gca,'XTick', 1:ngroups, 'xticklabel',silence_props, 'FontName', 'helvetica', 'FontSize', 12);
-legend("RNN", "LSTM", "RGLIF", "RLIF", "RGLIF-WT", 'FontSize', 12);
-xlabel("% silenced", 'FontSize', 12);
+set(gca,'XTick', 1:ngroups, 'xticklabel',silence_props, 'FontName', 'helvetica', 'FontSize', fontsize);
+legend("RNN", "LSTM", "RGLIF", "RLIF", "RGLIF-WT", 'FontSize', fontsize);
+xlabel("% silenced", 'FontSize', fontsize);
 ylabel(ylabel_text);

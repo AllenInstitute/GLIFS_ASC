@@ -70,7 +70,7 @@ def main():
     colors = cm.get_cmap('Dark2', 9)
 
 
-    main_name = "brnn_learnrealizable-membrane"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+    main_name = "brnn_learnrealizable-allparams"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
     base_name = "figures_wkof_072521/" + main_name
     base_name_save = "traininfo_wkof_072521/" + main_name
@@ -101,12 +101,17 @@ def main():
     targets = torch.empty((1, nsteps, output_size))
     inputs = torch.ones((1, nsteps, input_size))
 
-    train_params = ["thresh", "k_m"]
+    train_params = ["thresh", "k_m", "asc_amp", "asc_r", "asc_k"]#, "k_m"]
 
     target_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
+    target_model.neuron_layer.weight_iv.data = (1 / hid_size) * torch.ones((target_model.neuron_layer.input_size, target_model.neuron_layer.hidden_size))
     # target_model.neuron_layer.thresh.data -= 1
     # target_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_target.pt"))
     learning_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
+    target_model.neuron_layer.asc_amp.data *= 10
+    target_model.neuron_layer.trans_asc_r.data *= 2
+    target_model.neuron_layer.thresh.data *= 0
+
     with torch.no_grad():
         learning_model.neuron_layer.thresh.data = target_model.neuron_layer.thresh.data
         learning_model.neuron_layer.trans_k_m.data = target_model.neuron_layer.trans_k_m.data
@@ -116,15 +121,16 @@ def main():
         learning_model.neuron_layer.weight_iv.data = target_model.neuron_layer.weight_iv.data
 
         if "asc_amp" in train_params:
-            learning_model.neuron_layer.asc_amp.data = torch.randn((2, 1, hid_size), dtype=torch.float)
+            learning_model.neuron_layer.asc_amp.data = 0 * torch.randn((2, 1, hid_size), dtype=torch.float)
         if "asc_r" in train_params:
             learning_model.neuron_layer.trans_asc_r.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         if "asc_k" in train_params:
             learning_model.neuron_layer.trans_asc_k.data = torch.randn((2, 1, hid_size), dtype=torch.float)
         if "k_m" in train_params:
-            learning_model.neuron_layer.trans_k_m.data = 0.01 * torch.randn((1, hid_size), dtype=torch.float)
+            new_km = 1
+            learning_model.neuron_layer.trans_k_m.data = math.log(new_km * dt / (1 - (new_km * dt))) * torch.ones((1, hid_size), dtype=torch.float)
         if "thresh" in train_params:
-            learning_model.neuron_layer.thresh.data = 2 * torch.randn((1, hid_size), dtype=torch.float)
+            learning_model.neuron_layer.thresh.data = torch.randn((1, hid_size), dtype=torch.float)
 
         # learning_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_learned.pt"))
 
@@ -154,10 +160,11 @@ def main():
         outputs = learning_model(inputs)
         outputs[0,:,:] = outputs[0, -nsteps:, :]
         ax.plot(np.arange(nsteps) * dt, torch.mean(outputs[0,:,:],-1).detach().numpy(), linewidth=2, color=colors(2), label='initial')
+        np.savetxt("results/" + base_name_results + "-" + "initialoutputs.csv", np.stack(outputs).reshape((-1, 1)), delimiter=',')
 
     # Train model
-    num_epochs = 1000
-    lr = 0.07
+    num_epochs = 3000
+    lr = 0.01# 0.01 for thresh, 0.1 for asck
 
     train_params_real = []
     if "thresh" in train_params:
@@ -171,7 +178,7 @@ def main():
     if "asc_r" in train_params:
         train_params_real.append(learning_model.neuron_layer.trans_asc_r)
 
-    optimizer = torch.optim.SGD(train_params_real, lr=lr, momentum=0.0)
+    optimizer = torch.optim.Adam(train_params_real, lr=lr)
     losses = []
     loss_fn = nn.MSELoss()
     learning_model.train()

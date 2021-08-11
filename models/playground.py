@@ -13,6 +13,9 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
+main_name = "smnist-ficurve"
+base_name_results = "results_wkof_080121/" + main_name
+base_name_model = "models_wkof_080121/" + "smnist-rglif"
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -125,13 +128,11 @@ def plot_ficurve(model):
     input = torch.zeros(1, nsteps, glif_input_size)
     outputs = torch.zeros(len(i_syns), nsteps, hid_size)
 
-    print(f"threshold: {model.neuron_layer.thresh[0,254]}")
-    print(f"k_m: {torch.exp(model.neuron_layer.ln_k_m[0,254])}")
-    print(f"asc_r: {model.neuron_layer.asc_r[:,0,254]}")
-    print(f"asc_amp: {model.neuron_layer.asc_amp[:,0,254]}")
-    print(f"asc_k: {torch.exp(model.neuron_layer.ln_asc_k[:,0,254])}")
-
-    quit()
+    # print(f"threshold: {model.neuron_layer.thresh[0,254]}")
+    # print(f"k_m: {torch.exp(model.neuron_layer.ln_k_m[0,254])}")
+    # print(f"asc_r: {model.neuron_layer.asc_r[:,0,254]}")
+    # print(f"asc_amp: {model.neuron_layer.asc_amp[:,0,254]}")
+    # print(f"asc_k: {torch.exp(model.neuron_layer.ln_asc_k[:,0,254])}")
 
     for i in range(len(i_syns)):
         firing = torch.zeros((input.shape[0], hid_size))
@@ -174,6 +175,8 @@ def plot_ficurve(model):
     plt.hist(slopes, color = 'k', bins = 50)
     plt.xlabel('f-i curve slope', fontsize = fontsize)
     plt.ylabel('counts', fontsize = fontsize)
+
+    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
     #plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
 
 input_size = 28
@@ -189,7 +192,13 @@ glif_input_size = input_size#output_size + input_size
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 # model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))
 
-model_glif.load_state_dict(torch.load("saved_models/models_wkof_071821/final-brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns.pt"))#brnn-initwithbursts-withdelay_256units_smnist_linebyline_lateralconns.pt"))#"saved_models/models_wkof_071121/brnn-initwithburst_256units_smnist_linebyline.pt"))
+model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
+
+
+nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
+
+plot_ficurve(model_glif)
+quit()
 # with torch.no_grad():
 #     nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
 #     # nn.init.constant_(model_glif.neuron_layer.asc_amp, 10e-5)
