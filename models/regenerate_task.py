@@ -91,7 +91,7 @@ def main():
     initburst = False
 
     dt = 0.05
-    sim_time = 4
+    sim_time = 10
     nsteps = int(sim_time / dt)
 
     hid_size = 1
@@ -99,18 +99,18 @@ def main():
     output_size = 1
 
     targets = torch.empty((1, nsteps, output_size))
-    inputs = torch.ones((1, nsteps, input_size))
+    inputs = 0.01 * torch.ones((1, nsteps, input_size))
 
     train_params = ["thresh", "k_m", "asc_amp", "asc_r", "asc_k"]#, "k_m"]
 
     target_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
     target_model.neuron_layer.weight_iv.data = (1 / hid_size) * torch.ones((target_model.neuron_layer.input_size, target_model.neuron_layer.hidden_size))
-    # target_model.neuron_layer.thresh.data -= 1
+    # target_model.neuron_layer.thresh.data -= 2
     # target_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_target.pt"))
     learning_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
-    target_model.neuron_layer.asc_amp.data *= 10
-    target_model.neuron_layer.trans_asc_r.data *= 2
-    target_model.neuron_layer.thresh.data *= 0
+    target_model.neuron_layer.asc_amp.data *= 5
+    target_model.neuron_layer.trans_asc_r.data *= 5
+    # target_model.neuron_layer.thresh.data *= -10
 
     with torch.no_grad():
         learning_model.neuron_layer.thresh.data = target_model.neuron_layer.thresh.data
@@ -139,13 +139,13 @@ def main():
     #     target_model.reset_state(1)
     #     outputs = target_model(inputs)
     #     targets[0,:,:] = outputs[0, -nsteps:, :]
-    # ax.plot(np.arange(nsteps) * dt, targets[0,:,0].detach().numpy(), linewidth=2, color=colors(1), label='target')
+    # plt.plot(np.arange(nsteps) * dt, targets[0,:,0].detach().numpy(), linewidth=2, color=colors(1), label='target')
     
     # with torch.no_grad():
     #     learning_model.reset_state(1)
     #     outputs = learning_model(inputs)
     #     outputs[0,:,:] = outputs[0, -nsteps:, :]
-    #     ax.plot(np.arange(nsteps) * dt, outputs[0,:,0].detach().numpy(), linewidth=2, color=colors(1), label='target')
+    #     plt.plot(np.arange(nsteps) * dt, outputs[0,:,0].detach().numpy(), linewidth=2, color=colors(2), label='initial')
     
     # plt.legend()
     # plt.show()
@@ -202,6 +202,12 @@ def main():
             training_info["asc_amps"].append([learning_model.neuron_layer.asc_amp[j,0,m].item() - target_model.neuron_layer.asc_amp[j,0,m].item()  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
             training_info["asc_rs"].append([learning_model.neuron_layer.transform_to_asc_r(learning_model.neuron_layer.trans_asc_r)[j,0,m].item() - learning_model.neuron_layer.transform_to_asc_r(target_model.neuron_layer.trans_asc_r)[j,0,m].item()  + 0.0 for j in range(learning_model.neuron_layer.num_ascs) for m in range(learning_model.hid_size)])
             training_info["losses"].append(loss.item())
+
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "kmoverlearning.csv", np.array(training_info["k_ms"]), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "threshoverlearning.csv", np.array(training_info["threshes"]), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "asckoverlearning.csv", np.array(training_info["asc_ks"]), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "ascroverlearning.csv", np.array(training_info["asc_rs"]), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "ascampoverlearning.csv", np.array(training_info["asc_amps"]), delimiter=",")
 
     with torch.no_grad():
         learning_model.reset_state(1)

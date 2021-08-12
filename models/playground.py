@@ -187,6 +187,16 @@ def plot_ficurve(model):
     np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
     #plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
 
+i_syns_these = np.arange(-10, 10, step=0.01)
+f_rates_these = torch.sigmoid(torch.from_numpy(i_syns_these)).detach().numpy()
+A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
+m, c = np.linalg.lstsq(A, f_rates_these)[0]
+
+plt.plot(i_syns_these, f_rates_these)
+plt.plot(i_syns_these, m * i_syns_these)
+plt.show()
+print(m)
+quit()
 input_size = ii
 hid_size = hh
 output_size = oo
