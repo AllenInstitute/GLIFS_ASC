@@ -17,6 +17,10 @@ main_name = "pattern-2asc-rglif-ficurve"
 base_name_results = "results_wkof_080121/" + main_name
 base_name_model = "models_wkof_080121/" + "pattern-rglif-2asc"
 
+ii = 1#28
+hh = 128#256
+oo = 1#10
+
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
 # losses_glif = torch.load("traininfo/" + folder_loss + "5dsine_brnn_short060621_10ms_spontaneous_losses.pt")
@@ -134,7 +138,7 @@ def plot_ficurve(model):
     # print(f"asc_amp: {model.neuron_layer.asc_amp[:,0,254]}")
     # print(f"asc_k: {torch.exp(model.neuron_layer.ln_asc_k[:,0,254])}")
 
-    f_rates = np.zeros(len(i_syns))
+    f_rates = np.zeros((len(i_syns), hid_size))
     for i in range(len(i_syns)):
         print(f"working on #{i}")
         firing = torch.zeros((input.shape[0], hid_size))
@@ -150,14 +154,14 @@ def plot_ficurve(model):
             x = input[:, step, :]
             firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
             outputs_temp[0, step, :] = firing
-        f_rates[i] = torch.mean(outputs_temp).detach().numpy()
+        f_rates[i, :] = torch.mean(outputs_temp, 1).detach().numpy().reshape((1, -1))
         #outputs[i,:,:] = outputs_temp[0,:,:]
 
-    f_rates = torch.mean(outputs, dim=1).detach().numpy()
+    #f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")
 
     slopes = np.zeros(hid_size)
-    for i in [254]:#range(hid_size):
+    for i in range(hid_size):
         i_syns_these = i_syns
         f_rates_these = f_rates[:,i]
         indices = np.logical_not(np.logical_or(np.isnan(i_syns_these), np.isnan(f_rates_these)))     
@@ -183,9 +187,9 @@ def plot_ficurve(model):
     np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
     #plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
 
-input_size = 28
-hid_size = 256
-output_size = 10
+input_size = ii
+hid_size = hh
+output_size = oo
 
 glif_input_size = input_size#output_size + input_size
 
