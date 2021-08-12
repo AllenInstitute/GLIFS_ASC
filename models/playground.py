@@ -13,13 +13,13 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-2asc-rglif-ficurve-wtonly"
+main_name = "pattern-wtonly-rglif-ficurve"
 base_name_results = "results_wkof_080121/" + main_name
-base_name_model = "models_wkof_080121/" + "smnist-rglif-wtonly"#2asc"
+base_name_model = "models_wkof_080121/" + "pattern-rglif-wtonly"#2asc"
 
-ii = 28#1#28
-hh = 259#256#128#256
-oo = 10#1#10
+ii = 1#28
+hh = 131#128#256
+oo = 1#10
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -185,9 +185,9 @@ def plot_ficurve(model):
             print(f_rates_these)
             print(m)
         plt.plot(i_syns_these, f_rates_these)
-    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", np.array(slopes))
-    np.savetxt("results/" + base_name_results + "-" + "isyns.csv", np.array(i_syns))
-    np.savetxt("results/" + base_name_results + "-" + "frates.csv", np.array(f_rates))
+    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", np.array(slopes), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + "isyns.csv", np.array(i_syns), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + "frates.csv", np.array(f_rates), delimiter=",")
     quit()
     plt.savefig("figures/sample-f-i-curves-pattern.png")
     plt.close()
