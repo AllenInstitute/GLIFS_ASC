@@ -163,8 +163,8 @@ def main():
         np.savetxt("results/" + base_name_results + "-" + "initialoutputs.csv", np.stack(outputs).reshape((-1, 1)), delimiter=',')
 
     # Train model
-    num_epochs = 3000
-    lr = 0.01# 0.01 for thresh, 0.1 for asck
+    num_epochs = 5000
+    lr = 0.007# 0.01 for thresh, 0.1 for asck
 
     train_params_real = []
     if "thresh" in train_params:
