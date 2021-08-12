@@ -13,13 +13,13 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-2asc-rglif-ficurve"
+main_name = "pattern-2asc-rglif-ficurve"
 base_name_results = "results_wkof_080121/" + main_name
-base_name_model = "models_wkof_080121/" + "smnist-rglif-2asc"
+base_name_model = "models_wkof_080121/" + "pattern-rglif-2asc"
 
-ii = 28#1#28
-hh = 256#128#256
-oo = 10#1#10
+ii = 1#28
+hh = 128#256
+oo = 1#10
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -186,7 +186,7 @@ def plot_ficurve(model):
             print(m)
         plt.plot(i_syns_these, f_rates_these)
     np.savetxt("results/" + base_name_results + "-" + "slopes.csv", np.array(slopes))
-    plt.savefig("figures/sample-f-i-curves.png")
+    plt.savefig("figures/sample-f-i-curves-pattern.png")
     plt.close()
     
     plt.hist(slopes, color = 'k', bins = 50)
@@ -195,7 +195,7 @@ def plot_ficurve(model):
 
     np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
     #plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
-
+"""
 i_syns_these = np.arange(-10, 10, step=0.01)
 f_rates_these = torch.sigmoid(torch.from_numpy(i_syns_these)).detach().numpy()
 A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
@@ -206,6 +206,7 @@ plt.plot(i_syns_these, m * i_syns_these)
 plt.show()
 print(m)
 quit()
+"""
 input_size = ii
 hid_size = hh
 output_size = oo
