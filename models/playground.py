@@ -127,7 +127,7 @@ def plot_ficurve(model):
 
     # i_syns = 28 * x_ins * 0.0001
     i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
-    i_syns = np.arange(-5000, 5000, step=100)
+    i_syns = np.arange(-5000, 6000, step=100)
 
     input = torch.zeros(1, nsteps, glif_input_size)
     outputs = torch.zeros(len(i_syns), nsteps, hid_size)
@@ -160,7 +160,7 @@ def plot_ficurve(model):
     #f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")
 
-    slopes = np.zeros(hid_size)
+    slopes = []#np.zeros(hid_size)
     for i in range(hid_size):
         i_syns_these = i_syns
         f_rates_these = f_rates[:,i]
@@ -172,16 +172,20 @@ def plot_ficurve(model):
         i_syns_these = i_syns_these[f_rates_these > 0.01]
         f_rates_these = f_rates_these[f_rates_these > 0.01] * sim_time / dt
 
-        print(f_rates_these)
+        #print(f_rates_these)
 
         A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
         m, c = np.linalg.lstsq(A, f_rates_these)[0]
-        slopes[i] = m
+        if len(f_rates_these) > 0:
+            slopes.append(m)
+            #slopes[i] = m
 
         if m < 0:
             print(f"found negative slope in neuron {i}")
+            print(f_rates_these)
+            print(m)
         plt.plot(i_syns_these, f_rates_these)
-    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
+    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", np.array(slopes))
     plt.savefig("figures/sample-f-i-curves.png")
     plt.close()
     
