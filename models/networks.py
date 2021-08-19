@@ -55,6 +55,8 @@ class BNNFC(nn.Module):
                 delay = self.delay
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
                 outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
+
+                self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
                 
                 for step in range(nsteps):
                         x = input[:, step, :]
@@ -69,6 +71,7 @@ class BNNFC(nn.Module):
                                 x = self.output_linear(self.firing)
                         else:
                                 x = (self.firing)
+                        self.firing_over_time[:, step, :] = self.firing.clone()
                         outputs[:, step, :] = x
                         self.last_output = x
                         outputs_.append(copy(self.firing))
