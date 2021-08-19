@@ -187,7 +187,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                     outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
                 # outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]#torch.mean(outputs.reshape(len(target), 10, 28), -1)
                 loss = loss + loss_fn(outputs, target) 
-                loss = loss + 0.01 * torch.linalg.norm(model.firing_over_time)
+                loss = loss + 0.001 * torch.linalg.norm(model.firing_over_time)
                 # if i % n_subiter == 0:
                 #     print(loss.item() / len(targets))
                 # if glifr:
@@ -439,7 +439,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
                 outputs = outputs[:, -nsteps:, :]
                     
                 loss = loss + loss_fn(outputs, targets)
-                loss = loss + 0.01 * torch.linalg.norm(model.firing_over_time)
+                loss = loss + 0.001 * torch.linalg.norm(model.firing_over_time)
                 null_loss = "SORRY"
                 loss.backward()
 
