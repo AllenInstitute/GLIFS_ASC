@@ -13,12 +13,12 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-wtonly-rglif-ficurve"
+main_name = "pattern-rglif-wreg-ficurve"
 base_name_results = "results_wkof_080121/" + main_name
-base_name_model = "models_wkof_080121/" + "pattern-rglif-wtonly"#2asc"
+base_name_model = "models_wkof_080121/" + "pattern-rglif-2asc-wreg"#2asc"
 
 ii = 1#28
-hh = 131#128#256
+hh = 128#131#128#256
 oo = 1#10
 
 # folder_loss = "traininfo_wkof_053021/"
