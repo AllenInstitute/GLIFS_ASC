@@ -46,6 +46,17 @@ oo = 1#10
 # plt.ylabel("mse loss", fontsize = fontsize)
 # plt.show()
 
+def plot_examples():
+    sim_time = 40
+    dt = 0.05
+    nsteps = int(sim_time / dt)
+
+    input_size = 1
+    output_size = 1
+    hid_size = 1
+
+    model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, output_weight=False)
+
 def plot_overall_response(model):
     sim_time = 40
     dt = 0.05
