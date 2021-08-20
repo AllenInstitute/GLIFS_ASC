@@ -182,12 +182,12 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
 
                 outputs = model(data)
                 if linebyline:
-                    outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]
+                    outputs = torch.swapaxes(outputs, 1, 2)[:,:,-1]#cutputs.reshape(len(target), 10, 28)[:,:,-1]
                 else:
                     outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
                 # outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]#torch.mean(outputs.reshape(len(target), 10, 28), -1)
                 loss = loss + loss_fn(outputs, target) 
-                loss = loss + 0.001 * (torch.linalg.norm(model.firing_over_time) / (len(target) * 10 * 28))
+                loss = loss + (torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1]))
                 # if i % n_subiter == 0:
                 #     print(loss.item() / len(targets))
                 # if glifr:
@@ -439,7 +439,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
                 outputs = outputs[:, -nsteps:, :]
                     
                 loss = loss + loss_fn(outputs, targets)
-                loss = loss + 0.1 * torch.mean(torch.linalg.norm(model.firing_over_time))
+                loss = loss + torch.mean(torch.linalg.norm(model.firing_over_time)) / (outputs.shape[0] * outputs.shape[1] * outputs.shape[2])
                 null_loss = "SORRY"
                 loss.backward()
 
