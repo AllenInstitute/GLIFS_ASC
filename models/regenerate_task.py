@@ -70,7 +70,7 @@ def main():
     colors = cm.get_cmap('Dark2', 9)
 
 
-    main_name = "brnn_learnrealizable-allparams"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
+    main_name = "brnn_learnrealizable-allparams-longer"#"rnn-wodel_102units_smnist_linebyline_repeat"#brnn-initwithburst_256units_smnist_linebyline_repeat"#"rnn-wodelay_45units_smnist_linebyline"#"brnn200_noncued_moreascs_diffinit"#"brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart"#lng_lngersim_uniformoffset_furthertrain"
 
     base_name = "figures_wkof_072521/" + main_name
     base_name_save = "traininfo_wkof_072521/" + main_name
@@ -109,7 +109,7 @@ def main():
     # target_model.load_state_dict(torch.load("saved_models/" + base_name_model + "_target.pt"))
     learning_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
     target_model.neuron_layer.asc_amp.data *= 5
-    target_model.neuron_layer.trans_asc_r.data *= 5
+    target_model.neuron_layer.trans_asc_r.data *= 2
     # target_model.neuron_layer.thresh.data *= -10
 
     with torch.no_grad():
@@ -163,8 +163,8 @@ def main():
         np.savetxt("results/" + base_name_results + "-" + "initialoutputs.csv", np.stack(outputs).reshape((-1, 1)), delimiter=',')
 
     # Train model
-    num_epochs = 5000
-    lr = 0.007# 0.01 for thresh, 0.1 for asck
+    num_epochs = 10000
+    lr = 0.005# 0.01 for thresh, 0.1 for asck
 
     train_params_real = []
     if "thresh" in train_params:
@@ -315,7 +315,7 @@ def main2():
     base_name_results = "results_wkof_080121/" + main_name
     
     dt = 0.05
-    sim_time = 4
+    sim_time = 10
     nsteps = int(sim_time / dt)
 
     hid_size = 1
@@ -328,6 +328,8 @@ def main2():
     train_params = ["thresh", "k_m"]
 
     target_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
+    target_model.neuron_layer.asc_amp.data *= 2
+    target_model.neuron_layer.trans_asc_r.data *= 2
 
     target_model.eval()
     target_model.reset_state(1)
