@@ -55,18 +55,18 @@ class BNNC(nn.Module):
                 
                 # self.c_m_inv = 0.02
                 if hetinit:
-                    self.thresh = Parameter(2 * torch.rand((1, hidden_size), dtype=torch.float), requires_grad=True)
+                    self.thresh = Parameter(-1 + 2 * torch.rand((1, hidden_size), dtype=torch.float), requires_grad=True)
                     
                     k_m = 0.04 + 0.02 * torch.rand((1, hidden_size), dtype=torch.float)
                     self.trans_k_m = Parameter(torch.log((k_m * dt) / (1 - (k_m * dt))), requires_grad=True)
 
-                    k_asc = 1 + 2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
+                    k_asc = 1.5 + torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
                     self.trans_asc_k = Parameter(torch.log((k_asc * dt) / (1 - (k_asc * dt))), requires_grad=True)
 
-                    asc_r = -0.9 + 1.8 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
+                    asc_r = -0.1 + 0.2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
                     self.trans_asc_r = Parameter(torch.log((1 - asc_r) / (1 + asc_r)), requires_grad=True)
 
-                    self.asc_amp = Parameter(-1 + 2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                    self.asc_amp = Parameter(-0.1 + 0.2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
                 else:
                     self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                     
@@ -75,9 +75,10 @@ class BNNC(nn.Module):
 
                     self.trans_asc_k = Parameter(math.log(2 * dt / (1 - (2 * dt))) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
 
-                    self.trans_asc_r = Parameter(math.log((1 - 0) / (1 + 0)) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                    asc_r = -0.01 + 0.02 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
+                    self.trans_asc_r = Parameter(torch.log((1 - asc_r) / (1 + asc_r)), requires_grad=True)
 
-                    self.asc_amp = Parameter(torch.zeros((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                    self.asc_amp = Parameter(-0.01 + 0.02 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
                 # asc_amp = (-1, 1)
                 # asc_r = (1,-1)
 

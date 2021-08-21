@@ -182,6 +182,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
 
                 outputs = model(data)
                 if linebyline:
+                    ###
                     outputs = torch.swapaxes(outputs, 1, 2)[:,:,-1]#cutputs.reshape(len(target), 10, 28)[:,:,-1]
                 else:
                     outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
@@ -248,7 +249,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                 data = data.view(-1, 28 * 28, 1)
             output = model(data)
             if linebyline:
-                output = output.reshape(len(target), 10, 28)[:,:,-1]
+                output = torch.swapaxes(output, 1, 2)[:,:,-1]#output.reshape(len(target), 10, 28)[:,:,-1]
             else:
                 output = output.reshape(len(target), 10, 28 * 28)[:,:,-1]
             test_loss += loss_fn(output, target).item()
