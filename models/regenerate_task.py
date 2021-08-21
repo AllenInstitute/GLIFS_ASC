@@ -110,6 +110,15 @@ def main():
     learning_model = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, dt=dt, output_weight=False)
     target_model.neuron_layer.asc_amp.data *= 5
     target_model.neuron_layer.trans_asc_r.data *= 2
+
+    with torch.no_grad():
+        asc_r1, asc_r2 = 1 - 1e-10, -(1 - 1e-10)
+        asc_amp1, asc_amp2 = -1, 1
+        target_model.neuron_layer.trans_asc_r[0,:,:] = math.log((1 - asc_r1) / (1 + asc_r1))
+        target_model.neuron_layer.trans_asc_r[1,:,:] = math.log((1 - asc_r2) / (1 + asc_r2))
+
+        target_model.neuron_layer.asc_amp[0,:,:] = asc_amp1
+        target_model.neuron_layer.asc_amp[1,:,:] = asc_amp2
     # target_model.neuron_layer.thresh.data *= -10
 
     with torch.no_grad():
@@ -163,8 +172,8 @@ def main():
         np.savetxt("results/" + base_name_results + "-" + "initialoutputs.csv", np.stack(outputs).reshape((-1, 1)), delimiter=',')
 
     # Train model
-    num_epochs = 10000
-    lr = 0.005# 0.01 for thresh, 0.1 for asck
+    num_epochs = 5000
+    lr = 0.003# 0.01 for thresh, 0.1 for asck
 
     train_params_real = []
     if "thresh" in train_params:
