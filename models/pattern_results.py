@@ -42,16 +42,20 @@ There are other specifications including amount of time, number of epochs, learn
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("name", help="Base Filename")
-    parser.add_argument("condition", help="One of ['rnn', 'lstm', 'rglif', 'rglif_wtonly']")
+    parser.add_argument("condition", help="One of ['rnn', 'lstm', 'rglif-hetinit', 'rglif-hominit']")
+    parser.add_argument("learnparams", type=int, help="Learn parameters?")
     parser.add_argument("numascs", type=int, help="Number of ASCs")
  
     args = parser.parse_args()
  
     main_name = args.name
-    base_name = "figures_wkof_080121/" + main_name
-    base_name_traininfo = "traininfo_wkof_080121/" + main_name
-    base_name_model = "models_wkof_080121/" + main_name
-    base_name_results = "results_wkof_080121/" + main_name
+    base_name = "figures_wkof_080821/" + main_name
+    base_name_traininfo = "traininfo_wkof_080821/" + main_name
+    base_name_model = "models_wkof_080821/" + main_name
+    base_name_results = "results_wkof_080821/" + main_name
+
+    learnparams = (args.learnparams == 1)
+    print(learnparams)
 
     in_size = 1
     out_size = 1
@@ -62,16 +66,16 @@ def main():
     elif args.condition == "rnn":
         hid_size = utm.hid_size_rnn(num_params=num_params, in_size=in_size, out_size=out_size)
         print(utm.count_params_rnn(in_size=in_size, hid_size=hid_size, out_size=out_size))
-    elif args.condition == "rglif_wtonly":
-        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=False, num_asc = args.numascs)
-        print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=False))
-    elif args.condition == "rglif":
-        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=True, num_asc = args.numascs)
-        print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=True))
+    elif args.condition == "rglif-hetinit":
+        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=learnparams, num_asc = args.numascs)
+        print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=learnparams))
+    elif args.condition == "rglif-hominit":
+        hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=learnparams, num_asc = args.numascs)
+        print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=learnparams))
 
-    learnparams = (args.condition == "rglif")
+    #learnparams = (args.condition == "rglif")
     ascs = (args.numascs > 0)
-    initburst = False
+    #initburst = False
     dt = 0.05
     sparseness = 0
     num_ascs = args.numascs
@@ -93,7 +97,7 @@ def main():
     freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
-    ntrials = 10
+    ntrials = 30
 
     accs = []
 
@@ -109,7 +113,9 @@ def main():
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
         else:
             print("using glifr")
-            model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+            hetinit = (args.condition == "rglif-hetinit")
+            print(f"hetinit: {hetinit}; learnparams: {learnparams}")
+            model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, hetinit=hetinit, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
         print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
 

@@ -20,11 +20,11 @@ class BNNFC(nn.Module):
         out_size : int
                 number of outputs
         """
-        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, initburst=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
+        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, initburst=initburst, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, hetinit=hetinit, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -154,6 +154,8 @@ class RNNFC(nn.Module):
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
                 outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
 
+                self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
+
                 for step in range(nsteps):
                         x = input[:, step, :]
                         #x = torch.cat((x, outputs_[-delay]), dim=-1)
@@ -167,6 +169,7 @@ class RNNFC(nn.Module):
                         else:
                                 x = copy(self.firing)
                         outputs[:, step, :] = x
+                        self.firing_over_time[:, step, :] = self.firing.clone()
 
                         outputs_.append(copy(self.firing))
                         if len(outputs_) > delay:
@@ -227,6 +230,8 @@ class LSTMFC(nn.Module):
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
                 outputs_ = [torch.zeros((self.batch_size, self.out_size)) for i in range(delay)]
 
+                self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
+
                 for step in range(nsteps):
                         x = input[:, step, :]
                         # x = torch.cat((x, outputs_[-delay]), dim=-1)
@@ -240,6 +245,8 @@ class LSTMFC(nn.Module):
                         else:
                                 x = copy(self.h)
                         outputs[:, step, :] = x
+
+                        self.firing_over_time[:, step, :] = self.h.clone()
 
                         outputs_.append(x)
                         if len(outputs_) > delay:
