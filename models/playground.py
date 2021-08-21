@@ -47,6 +47,10 @@ oo = 1#10
 # plt.show()
 
 def plot_examples():
+    import math
+    filename = "sample-outputs"
+    filename_dir = "results_wkof_080121/" + filename
+
     sim_time = 40
     dt = 0.05
     nsteps = int(sim_time / dt)
@@ -55,7 +59,40 @@ def plot_examples():
     output_size = 1
     hid_size = 1
 
+    inputs = torch.ones(1, nsteps, input_size)
+
     model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, output_weight=False)
+    asc_rs = [(0,0), (-(1 - 1e-10), -(1 - 1e-10)), (-(1 - 1e-10), (1 - 1e-10))]
+    asc_amps = [(0, 0), (-5000, -5000), (5000, -5000)]
+    asc_ks = [(0.5, 0.5), (0.5, 0.5), (0.5, 0.5)]
+    names = ["zero", "neg", "opp"]
+    
+    for i in range(len(asc_rs)):
+        model_glif.reset_state(1)
+        model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
+        model_glif.neuron_layer.weight_lat.data = torch.ones((hid_size, hid_size))
+        model_glif.neuron_layer.thresh.data *= 0
+        name = names[i]
+
+        asc_r1, asc_r2 = asc_rs[i]
+        asc_amp1, asc_amp2 = asc_amps[i]
+        asc_k1, asc_k2 = asc_ks[i]
+
+        model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
+        model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
+
+        model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
+        model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
+
+        model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
+        model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
+
+        outputs = model_glif.forward(inputs).detach().numpy()
+        np.savetxt("results/" + filename_dir + "-" + name + ".csv", outputs[0,:,0], delimiter=",")
+
+        plt.plot(outputs[0,:,0], label=name)
+    plt.legend()
+    plt.show()
 
 def plot_overall_response(model):
     sim_time = 40
@@ -221,6 +258,8 @@ plt.show()
 print(m)
 quit()
 """
+plot_examples()
+quit()
 input_size = ii
 hid_size = hh
 output_size = oo

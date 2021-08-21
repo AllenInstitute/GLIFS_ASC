@@ -139,7 +139,7 @@ class BNNC(nn.Module):
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 
                 if self.ascs:
-                    ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_asc_r) + self.asc_amp) * firing + (1 - self.dt * self.transform_to_k(self.trans_asc_k)) * ascurrent
+                        ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_asc_r) + self.asc_amp) * firing + (1 - self.dt * self.transform_to_k(self.trans_asc_k)) * ascurrent
                 
                 voltage = syncurrent + self.dt * self.transform_to_k(self.trans_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * self.transform_to_k(self.trans_k_m)) * voltage - firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)

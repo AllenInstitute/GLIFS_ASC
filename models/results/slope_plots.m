@@ -10,13 +10,13 @@ linewidth = 2;
 % ASC: k, r, amp
 
 if strcmp(task, "smnist")
-    slopes = xlsread("results_wkof_080121/smnist-2asc-rglif-ficurve-slopes.csv");
-    i_syns = xlsread("results_wkof_080121/smnist-2asc-rglif-ficurve-isyns.csv");
-    f_rates = xlsread("results_wkof_080121/smnist-2asc-rglif-ficurve-frates.csv");
+    slopes = xlsread("results_wkof_080121/smnist-rglif-2asc-wreg-ficurve-slopes.csv");
+    i_syns = xlsread("results_wkof_080121/smnist-rglif-2asc-wreg-ficurve-isyns.csv");
+    f_rates = xlsread("results_wkof_080121/smnist-rglif-2asc-wreg-ficurve-frates.csv");
 elseif strcmp(task, "pattern")
-    slopes = xlsread("results_wkof_080121/pattern-2asc-rglif-ficurve-slopes.csv");
-    i_syns = xlsread("results_wkof_080121/pattern-2asc-rglif-ficurve-isyns.csv");
-    f_rates = xlsread("results_wkof_080121/pattern-2asc-rglif-ficurve-frates.csv");
+    slopes = xlsread("results_wkof_080121/pattern-rglif-wreg-ficurve-slopes.csv");
+    i_syns = xlsread("results_wkof_080121/pattern-rglif-wreg-ficurve-isyns.csv");
+    f_rates = xlsread("results_wkof_080121/pattern-rglif-wreg-ficurve-frates.csv");
 elseif strcmp(task, "smnist-wtonly")
     slopes = xlsread("results_wkof_080121/smnist-wtonly-rglif-ficurve-slopes.csv");
     i_syns = xlsread("results_wkof_080121/smnist-wtonly-rglif-ficurve-isyns.csv");
