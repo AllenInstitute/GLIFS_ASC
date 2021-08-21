@@ -97,7 +97,7 @@ def main():
     freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
-    ntrials = 10
+    ntrials = 30
 
     accs = []
 

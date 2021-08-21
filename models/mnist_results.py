@@ -80,11 +80,11 @@ def main():
     batch_size = 128
     num_epochs = 50
     lr = 0.001
-    itrs = 10
+    itrs = 30
     sgd = False#True
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
-    ntrials = 10
+    ntrials = 30
 
     accs = []
 
