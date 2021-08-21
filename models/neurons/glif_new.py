@@ -27,8 +27,8 @@ class BNNC(nn.Module):
                 number of after-spike currents to model
         dt : float
                 duration of timestep
-        initburst : boolean
-                whether after-spike currents should be thoughtfully set
+        hetinit : boolean
+                whether parameters should be heterogeneously initialized
         ascs : boolean
                 whether after-spike currents should be maintained
         learnparams : boolean
@@ -36,10 +36,8 @@ class BNNC(nn.Module):
         sparseness : float
                 proportions of weights to silence
         """
-        def __init__(self, input_size, hidden_size, num_ascs=2, dt=0.05, initburst=False, ascs=True, learnparams=True, sparseness=0):
+        def __init__(self, input_size, hidden_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, sparseness=0):
                 super().__init__()
-                if initburst:
-                        print("WARNING: initburst not supported currently")
                 self.input_size = input_size
                 self.hidden_size = hidden_size
 
@@ -56,21 +54,33 @@ class BNNC(nn.Module):
                 self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
                 
                 # self.c_m_inv = 0.02
-                self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))#math.log(.05)
-                self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+                if hetinit:
+                    self.thresh = Parameter(2 * torch.rand((1, hidden_size), dtype=torch.float), requires_grad=True)
+                    
+                    k_m = 0.04 + 0.02 * torch.rand((1, hidden_size), dtype=torch.float)
+                    self.trans_k_m = Parameter(torch.log((k_m * dt) / (1 - (k_m * dt))), requires_grad=True)
+
+                    k_asc = 1 + 2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
+                    self.trans_asc_k = Parameter(torch.log((k_asc * dt) / (1 - (k_asc * dt))), requires_grad=True)
+
+                    asc_r = -0.9 + 1.8 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
+                    self.trans_asc_r = Parameter(torch.log((1 - asc_r) / (1 + asc_r)), requires_grad=True)
+
+                    self.asc_amp = Parameter(-1 + 2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+                else:
+                    self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+                    
+                    trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))#math.log(.05)
+                    self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
+
+                    self.trans_asc_k = Parameter(math.log(2 * dt / (1 - (2 * dt))) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+
+                    self.trans_asc_r = Parameter(math.log((1 - 0) / (1 + 0)) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
+
+                    self.asc_amp = Parameter(torch.zeros((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
                 # asc_amp = (-1, 1)
                 # asc_r = (1,-1)
 
-                self.asc_amp = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)#Parameter(torch.tensor((-1,1)).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float)) #Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)
-                self.trans_asc_k = Parameter(math.log(2 * dt / (1 - (2 * dt))) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                self.trans_asc_r = Parameter(torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)#Parameter(torch.tensor((math.log((1-0.99) / (1+0.99)),math.log((1+0.99) / (1-0.99)))).reshape((2, 1, 1)) * torch.ones((2,1,hidden_size), dtype=torch.float) + torch.randn((2, 1, hidden_size), dtype=torch.float))#Parameter(torch.ones((self.num_ascs,1,hidden_size), dtype=torch.float), requires_grad=True)                
-                
-                if not initburst:
-                    with torch.no_grad():
-                        new_asc_r = 0.01 * torch.randn(self.trans_asc_r.shape)#nn.init.normal_(self.trans_asc_r, 0, 0.01)
-                        self.trans_asc_r.copy_(torch.log((1 - new_asc_r) / (1 + new_asc_r)))#self.transform_to_asc_r(torch.tensor(0)).data, self.transform_to_asc_r(torch.tensor(0.01)).data)
-                        nn.init.normal_(self.asc_amp, 0, 0.01)
                 self.v_reset = 0
 
                 if not learnparams:
@@ -95,6 +105,7 @@ class BNNC(nn.Module):
                 # randomly initializes incoming weights
                 with torch.no_grad():
                         nn.init.uniform_(self.weight_iv, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+                        nn.init.uniform_(self.weight_lat, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
 
         def spike_fn(self, x):
                 """
