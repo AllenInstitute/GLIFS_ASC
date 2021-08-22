@@ -49,7 +49,7 @@ oo = 10#1#10
 def plot_examples():
     import math
     filename = "sample-outputs"
-    filename_dir = "results_wkof_080121/" + filename
+    filename_dir = "results_wkof_080821/" + filename
 
     sim_time = 40
     dt = 0.05
@@ -70,7 +70,7 @@ def plot_examples():
     for i in range(len(asc_rs)):
         model_glif.reset_state(1)
         model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
-        model_glif.neuron_layer.weight_lat.data = torch.ones((hid_size, hid_size))
+        model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
         model_glif.neuron_layer.thresh.data *= 0
         name = names[i]
 
@@ -87,8 +87,17 @@ def plot_examples():
         model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
         model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
 
-        outputs = model_glif.forward(inputs).detach().numpy()
+        outputs, voltages, ascs, syns = model_glif.forward(inputs, track=True)
+        outputs = outputs.detach().numpy()
+        voltages = voltages.detach().numpy()
+        ascs = ascs.detach().numpy()
+        syns = syns.detach().numpy()
+
         np.savetxt("results/" + filename_dir + "-" + name + ".csv", outputs[0,:,0], delimiter=",")
+        np.savetxt("results/" + filename_dir + "-" + name + "syn.csv", syns[0,:,0], delimiter=",")
+        np.savetxt("results/" + filename_dir + "-" + name + "voltage.csv", voltages[0,:,0], delimiter=",")
+        np.savetxt("results/" + filename_dir + "-" + name + "asc.csv", ascs[:,0,:,0], delimiter=",")
+        np.savetxt("results/" + filename_dir + "-" + name + "in.csv", inputs[0,:,0], delimiter=",")
 
         plt.plot(outputs[0,:,0], label=name)
     plt.legend()

@@ -40,7 +40,7 @@ class BNNFC(nn.Module):
                 self.reset_state()
                 self.sparseness = sparseness
 
-        def forward(self, input, target=None):
+        def forward(self, input, target=None, track=False):
                 """
                 Propagates input through network.
 
@@ -54,6 +54,9 @@ class BNNFC(nn.Module):
 
                 delay = self.delay
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
+                voltages = torch.empty((self.batch_size, nsteps, self.hid_size))
+                ascs = torch.empty((self.num_ascs, self.batch_size, nsteps, self.hid_size))
+                syns = torch.empty((self.batch_size, nsteps, self.in_size))
                 outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
 
                 self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
@@ -73,12 +76,18 @@ class BNNFC(nn.Module):
                                 x = (self.firing)
                         self.firing_over_time[:, step, :] = self.firing.clone()
                         outputs[:, step, :] = x
+                        voltages[:, step, :] = self.voltage.clone()
+                        ascs[:, :, step, :] = self.ascurrents.clone()
+                        syns[:, step, :] = self.syncurrent.clone()
                         self.last_output = x
                         outputs_.append(copy(self.firing))
                         
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
-                return outputs
+                if track:
+                        return outputs, voltages, ascs, syns 
+                else:
+                        return outputs
 
         def reset_state(self, batch_size = 1, full_reset = True):
                 self.batch_size = batch_size

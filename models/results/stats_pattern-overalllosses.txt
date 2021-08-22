@@ -1,5 +1,19 @@
-LSTM:5.487182e-09
-RGLIF: 1.539456e-06
-RGLIF_NoASC: 8.966089e-07
-RGLIF_WtOnly: 3.146886e-06
+RNN vs het-nofurther:6.495567e-06
+RNN vs het-further:6.342214e-06
+RNN vs hom-further:1.202219e-06
+RNN vs hom-further:7.918893e-07
+RNN vs het-nofurther-noasc:5.327420e-06
+RNN vs het-further-noasc:4.638029e-06
+RNN vs hom-nofurther-noasc:1.252800e-06
+RNN vs hom-further-noasc:7.585341e-07
+RNN vs LSTM:3.993362e-07
+het-nofurther vs het-further:7.996164e-01
+hom-nofurther vs hom-further:1.283842e-05
+hom-nofurther vs hom-nofurther-noasc:6.547142e-01
+hom-further vs hom-further-noasc:5.321629e-01
+het-nofurther vs hom-nofurther:6.935030e-06
+het-further vs hom-further:2.954684e-05
+het-nofurther-noasc vs hom-nofurther-noasc:7.935605e-06
+het-further-noasc vs hom-further-noasc:5.952316e-05
+het-nofurther vs hom-further:2.983147e-07
 

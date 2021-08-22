@@ -14,15 +14,14 @@ else
     mem_params = xlsread("results_wkof_080121/pattern-2-128units-0itr-membraneparams.csv");
     asc_params = xlsread("results_wkof_080121/pattern-2-128units-0itr-ascparams.csv");
     
-    mem_params_init = xlsread("results_wkof_080121/pattern-2-128units-0itr-init-membraneparams.csv");
-    asc_params_init = xlsread("results_wkof_080121/pattern-2-128units-0itr-init-ascparams.csv");
+    mem_params = xlsread("results_wkof_080121/pattern-2-128units-0itr-membraneparams.csv");
+    asc_params = xlsread("results_wkof_080121/pattern-2-128units-0itr-ascparams.csv");
 end
 
 nbins = 20;
 
 h(1) = subplot(3,2,1);
 histogram(mem_params(:,1), nbins);
-histogram(mem_params_init(:,1), nbins);
 xlabel("threshold (mV)", 'FontSize', fontsize);
 
 h(2) = subplot(3,2,2);
