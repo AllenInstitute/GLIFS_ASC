@@ -13,13 +13,14 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-2-ficurve"
+main_name = "smnist-4-init-ficurve"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "pattern-2-woreg"#2asc"
+base_name_model = "models_wkof_080821/" + "smnist-4"#2asc"
 
-ii = 1#28#1#28
-hh = 128#256#128#131#128#256
-oo = 1#10#1#10
+init = True
+ii = 28#1#28
+hh = 256#128#131#128#256
+oo = 10#1#10
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -283,7 +284,10 @@ glif_input_size = input_size#output_size + input_size
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 # model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))
 
-model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
+if init:
+    model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr-init.pt"))
+else:
+    model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
 
 
 nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
