@@ -119,6 +119,20 @@ def main():
 
         print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
 
+        if args.condition[0:5] == "rglif":
+            membrane_parameters = np.zeros((hid_size, 2))
+            membrane_parameters[:, 0] = model.neuron_layer.thresh.detach().numpy().reshape(-1)
+            membrane_parameters[:, 1] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m).detach().numpy().reshape(-1)
+            np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-init-membraneparams.csv", membrane_parameters, delimiter=',')
+            
+            if ascs:
+                asc_parameters = np.zeros((hid_size * num_ascs, 3))
+                asc_parameters[:, 0] = model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k)[:,0,:].detach().numpy().reshape(-1)
+                asc_parameters[:, 1] = model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
+                asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
+                np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-init-ascparams.csv", asc_parameters, delimiter=',')
+        torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr-init.pt")
+        
         training_info = utt.train_rbnn(model, traindataset, batch_size, num_epochs, lr, glifr = args.condition[0:5] == "rglif", task = "pattern", decay=False, sgd=sgd, trainparams=learnparams, ascs=ascs)
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
