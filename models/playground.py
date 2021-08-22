@@ -13,13 +13,13 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-rglif-wreg-ficurve"
-base_name_results = "results_wkof_080121/" + main_name
-base_name_model = "models_wkof_080121/" + "smnist-rglif-2asc-wreg"#2asc"
+main_name = "pattern-2-ficurve"
+base_name_results = "results_wkof_080821/" + main_name
+base_name_model = "models_wkof_080821/" + "pattern-2-woreg"#2asc"
 
-ii = 28#1#28
-hh = 256#128#131#128#256
-oo = 10#1#10
+ii = 1#28#1#28
+hh = 128#256#128#131#128#256
+oo = 1#10#1#10
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -258,8 +258,9 @@ plt.show()
 print(m)
 quit()
 """
-plot_examples()
-quit()
+#plot_examples()
+#quit()
+
 input_size = ii
 hid_size = hh
 output_size = oo
