@@ -13,14 +13,14 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-wreg-ficurve"
+main_name = "pattern-4-wreg-ficurve"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-4"#2asc"
+base_name_model = "models_wkof_080821/" + "pattern-4-wreg"#2asc"
 
 init = False
-ii = 28#1#28
-hh = 256#128#131#128#256
-oo = 10#1#10
+ii = 1#28
+hh = 128#131#128#256
+oo = 1#10
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
