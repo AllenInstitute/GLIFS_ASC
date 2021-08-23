@@ -13,9 +13,9 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-init-ficurve"
+main_name = "smnist-4-wreg-ficurve"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-4"#2asc"
+base_name_model = "models_wkof_080821/" + "smnist-4-wreg"#2asc"
 
 init = True
 ii = 28#1#28
