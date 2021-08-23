@@ -15,9 +15,9 @@ from networks import RNNFC, BNNFC
 fontsize = 18
 main_name = "smnist-4-wreg-ficurve"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-4-wreg"#2asc"
+base_name_model = "models_wkof_080821/" + "smnist-4"#2asc"
 
-init = True
+init = False
 ii = 28#1#28
 hh = 256#128#131#128#256
 oo = 10#1#10
