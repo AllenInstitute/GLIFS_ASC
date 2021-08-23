@@ -14,9 +14,9 @@ if strcmp(task, "smnist")
     i_syns = xlsread("results_wkof_080821/smnist-4-wreg-ficurve-isyns.csv");
     f_rates = xlsread("results_wkof_080821/smnist-4-wreg-ficurve-frates.csv");
 elseif strcmp(task, "pattern")
-    slopes = xlsread("results_wkof_080821/pattern-4-wreg-ficurve-slopes.csv");
-    i_syns = xlsread("results_wkof_080821/pattern-4-wreg-ficurve-isyns.csv");
-    f_rates = xlsread("results_wkof_080821/pattern-4-wreg-ficurve-frates.csv");
+    slopes = xlsread("results_wkof_080821/pattern--wreg-ficurve-slopes.csv");
+    i_syns = xlsread("results_wkof_080121/pattern-rglif-wreg-ficurve-isyns.csv");
+    f_rates = xlsread("results_wkof_080121/pattern-rglif-wreg-ficurve-frates.csv");
 elseif strcmp(task, "smnist-wtonly")
     slopes = xlsread("results_wkof_080121/smnist-wtonly-rglif-ficurve-slopes.csv");
     i_syns = xlsread("results_wkof_080121/smnist-wtonly-rglif-ficurve-isyns.csv");

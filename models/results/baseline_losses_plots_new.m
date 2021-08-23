@@ -19,16 +19,23 @@ if strcmp(task, "smnist")
 else
     results_file = fopen("stats_pattern-overalllosses.txt", 'w');
     
-    data_1 = xlsread("results_wkof_080821/pattern-1-woreg-131units-accs.csv");
-    data_2 = xlsread("results_wkof_080821/pattern-2-woreg-128units-accs.csv");
-    data_3 = xlsread("results_wkof_080821/pattern-3-woreg-131units-accs.csv");
-    data_4 = xlsread("results_wkof_080821/pattern-4-woreg-128units-accs.csv");
+    data_1 = xlsread("results_wkof_080821/pattern-1-wreg-131units-accs.csv");
+    data_2 = xlsread("results_wkof_080821/pattern-2-wreg-128units-accs.csv");
+    data_3 = xlsread("results_wkof_080821/pattern-3-wreg-131units-accs.csv");
+    data_4 = xlsread("results_wkof_080821/pattern-4-wreg-128units-accs.csv");
     data_5 = xlsread("results_wkof_080821/pattern-5-131units-accs.csv");
     data_6 = xlsread("results_wkof_080821/pattern-6-130units-accs.csv");
     data_7 = xlsread("results_wkof_080821/pattern-7-131units-accs.csv");
     data_8 = xlsread("results_wkof_080821/pattern-8-130units-accs.csv");
     data_9 = xlsread("results_wkof_080821/pattern-9-131units-accs.csv");
     data_10 = xlsread("results_wkof_080821/pattern-10-64units-accs.csv");
+    
+    data_5 = data_5(1:5, :);
+    data_6 = data_6(1:5, :);
+    data_7 = data_7(1:5, :);
+    data_8 = data_8(1:5, :);
+    data_9 = data_9(1:5, :);
+    data_10 = data_10(1:5, :);
     
     ylabel_text = "MSE";
 end

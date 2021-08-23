@@ -56,7 +56,7 @@ def mnist_generator(root, batch_size):
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
     return train_loader, test_loader
     
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt"):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt", trainloader = None, testloader = None, reg_lambda=0.1):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     print(f"training with glifr {glifr}, linebyline {linebyline}, trainparams {trainparams}, ascs {ascs}, and sgd {sgd}")
     """
     Train RBNN model using trainloader and track metrics.
@@ -139,8 +139,10 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
     if sgd:
         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
-    root = './data/mnist'
-    trainloader, testloader = mnist_generator(root, batch_size)
+    
+    if trainloader is None:
+        root = './data/mnist'
+        trainloader, testloader = mnist_generator(root, batch_size)
     model.train()
 
     if linebyline:
@@ -188,7 +190,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                     outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
                 # outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]#torch.mean(outputs.reshape(len(target), 10, 28), -1)
                 loss = loss + loss_fn(outputs, target) 
-                loss = loss + (torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * 28))
+                loss = loss + reg_lambda * (torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * 28))
                 #print( 0.1 * (torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * 28)))# if i % n_subiter == 0:
                 #     print(loss.item() / len(targets))
                 # if glifr:
