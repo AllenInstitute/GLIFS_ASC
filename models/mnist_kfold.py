@@ -81,7 +81,7 @@ def main():
     k_folds = 5
     num_epochs = 10
     regs = [1e-4, 1e-3, 1e-2, 1e-1, 1, 1e1]
-    results = np.zeros(len(regs), k_folds)
+    results = np.zeros((len(regs), k_folds))
 
     torch.manual_seed(42)
     kfold = KFold(n_splits = k_folds, shuffle = True)

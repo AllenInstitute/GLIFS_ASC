@@ -56,7 +56,7 @@ class BNNFC(nn.Module):
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
                 voltages = torch.empty((self.batch_size, nsteps, self.hid_size))
                 ascs = torch.empty((self.num_ascs, self.batch_size, nsteps, self.hid_size))
-                syns = torch.empty((self.batch_size, nsteps, self.in_size))
+                syns = torch.empty((self.batch_size, nsteps, self.hid_size))
                 outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
 
                 self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
@@ -76,9 +76,10 @@ class BNNFC(nn.Module):
                                 x = (self.firing)
                         self.firing_over_time[:, step, :] = self.firing.clone()
                         outputs[:, step, :] = x
-                        voltages[:, step, :] = self.voltage.clone()
-                        ascs[:, :, step, :] = self.ascurrents.clone()
-                        syns[:, step, :] = self.syncurrent.clone()
+                        if track:
+                            voltages[:, step, :] = self.voltage.clone()
+                            ascs[:, :, step, :] = self.ascurrents.clone()
+                            syns[:, step, :] = self.syncurrent.clone()
                         self.last_output = x
                         outputs_.append(copy(self.firing))
                         
