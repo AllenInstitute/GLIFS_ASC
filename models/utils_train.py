@@ -442,7 +442,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
                 outputs = outputs[:, -nsteps:, :]
                     
                 loss = loss + loss_fn(outputs, targets)
-                loss = loss + torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * outputs.shape[2])
+                #loss = loss + torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * outputs.shape[2])
                 null_loss = "SORRY"
                 loss.backward()
 

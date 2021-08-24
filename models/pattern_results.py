@@ -83,7 +83,7 @@ def main():
     batch_size = 2
     num_epochs = 5000
     lr = 0.0001
-    itrs = 5#30
+    itrs =15#30
     sgd = False
 
     sim_time = 5
