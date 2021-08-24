@@ -78,8 +78,8 @@ def main():
     sparseness = 0
     num_ascs = args.numascs
 
-    k_folds = 5
-    num_epochs = 20
+    k_folds = 10
+    num_epochs = 10#0
     regs = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     results = np.zeros((len(regs), k_folds))
 
