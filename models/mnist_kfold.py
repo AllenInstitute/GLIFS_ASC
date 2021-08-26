@@ -80,7 +80,7 @@ def main():
 
     k_folds = 5
     num_epochs = 15#0
-    regs = [1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
+    regs = [1e-12, 1e-9, 1e-6, 1e-3, 1e0]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     results = np.zeros((len(regs), k_folds))
 
     torch.manual_seed(42)
