@@ -78,9 +78,11 @@ def main():
     sparseness = 0
     num_ascs = args.numascs
 
-    k_folds = 10
+    k_folds = 5
     num_epochs = 15#0
-    regs = [1e-12, 1e-9, 1e-6, 1e-3, 1e0, 1e3]#[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
+    # doppio/americano [1e-12, 1e-10, 1e-8, 1e-6, 1e-4]
+    # others [1e-2, 1e0, 1e2, 1e4]
+    regs = [1e-12, 1e-10, 1e-8, 1e-6, 1e-4]#[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     results = np.zeros((len(regs), k_folds))
 
     torch.manual_seed(42)
@@ -102,6 +104,7 @@ def main():
         for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
             print(f"FOLD {fold}")
             print("----------")
+            
             if args.condition == "rnn":
                 print("using rnn")
                 model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, sparseness=sparseness)
