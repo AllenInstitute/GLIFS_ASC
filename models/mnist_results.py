@@ -82,6 +82,7 @@ def main():
     lr = 0.001
     itrs = 5#30
     sgd = False#True
+    reg_lambda = 0
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
     ntrials = 30
@@ -116,7 +117,7 @@ def main():
                 asc_parameters[:, 1] = model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
                 asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
                 np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-init-ascparams.csv", asc_parameters, delimiter=',')
-        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
+        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, reg_lambda = reg_lambda, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv", np.array(training_info["losses"]), delimiter=',')
