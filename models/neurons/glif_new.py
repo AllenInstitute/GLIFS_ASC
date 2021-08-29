@@ -190,8 +190,11 @@ class RNNC(nn.Module): # The true RNNC
                         self.bias = torch.zeros((1, hidden_size))
 
                 with torch.no_grad():
+                    #nn.init.normal_(self.weight_ih, 0, 1 / math.sqrt(hidden_size))
+                    #nn.init.normal_(self.weight_lat, 0, 1 / math.sqrt(hidden_size))
                     nn.init.uniform_(self.weight_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
                     nn.init.uniform_(self.weight_lat, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+                    nn.init.uniform_(self.bias, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
 
         def forward(self, x, hidden, hidden_delayed):
                 """
