@@ -15,7 +15,7 @@ from networks import RNNFC, BNNFC
 fontsize = 18
 main_name = "smnist-4-agn-256units"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-4-agn-256units"#2asc"
+base_name_model = "models_wkof_080821/" + "smnist-4-agn"#2asc"
 
 init = False
 input_size = 28
@@ -33,11 +33,11 @@ else:
 parameters = np.zeros((hid_size, 8))
 parameters[:, 0] = model_glif.neuron_layer.thresh.detach().numpy().reshape(-1)
 parameters[:, 1] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_layer.trans_k_m).detach().numpy().reshape(-1)
-parameters[:, 2] = model_glif.neuron_layer.transform_to_asc_r(model_glif.neuron_layer.trans_asc_r).detach().numpy()[:,0,0]
-parameters[:, 3] = model_glif.neuron_layer.transform_to_asc_r(model_glif.neuron_layer.trans_asc_r).detach().numpy()[:,0,1]
-parameters[:, 4] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_layer.trans_asc_k).detach().numpy()[:,0,0]
-parameters[:, 5] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_layer.trans_asc_k).detach().numpy()[:,0,1]
-parameters[:, 6] = model_glif.neuron_layer.asc_amp.detach().numpy()[:,0,0]
-parameters[:, 7] = model_glif.neuron_layer.asc_amp.detach().numpy()[:,0,1]
+parameters[:, 2] = model_glif.neuron_layer.transform_to_asc_r(model_glif.neuron_layer.trans_asc_r).detach().numpy()[0,0,:]
+parameters[:, 3] = model_glif.neuron_layer.transform_to_asc_r(model_glif.neuron_layer.trans_asc_r).detach().numpy()[1,0,:]
+parameters[:, 4] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_layer.trans_asc_k).detach().numpy()[0,0,:]
+parameters[:, 5] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_layer.trans_asc_k).detach().numpy()[1,0,:]
+parameters[:, 6] = model_glif.neuron_layer.asc_amp.detach().numpy()[0,0,:]
+parameters[:, 7] = model_glif.neuron_layer.asc_amp.detach().numpy()[1,0,:]
 
 np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(0) + "itr-allparams.csv", parameters, delimiter=',')
