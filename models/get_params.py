@@ -13,9 +13,9 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-2-ficurve"
+main_name = "smnist-4-agn-256units"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "4-agn-256units"#2asc"
+base_name_model = "models_wkof_080821/" + "smnist-4-agn-256units"#2asc"
 
 init = False
 input_size = 28
@@ -40,4 +40,4 @@ parameters[:, 5] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_laye
 parameters[:, 6] = model_glif.neuron_layer.asc_amp.detach().numpy()[:,0,0]
 parameters[:, 7] = model_glif.neuron_layer.asc_amp.detach().numpy()[:,0,1]
 
-np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-allparams.csv", parameters, delimiter=',')
+np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(0) + "itr-allparams.csv", parameters, delimiter=',')
