@@ -164,7 +164,7 @@ class RNNFC(nn.Module):
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
                 outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
 
-                #self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
+                self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
 
                 for step in range(nsteps):
                         x = input[:, step, :]
@@ -179,7 +179,7 @@ class RNNFC(nn.Module):
                         else:
                                 x = copy(self.firing)
                         outputs[:, step, :] = x
-                        #self.firing_over_time[:, step, :] = self.firing.clone()
+                        self.firing_over_time[:, step, :] = self.firing.clone()
 
                         outputs_.append(self.firing.clone())#copy(self.firing))
                         if len(outputs_) > delay:
