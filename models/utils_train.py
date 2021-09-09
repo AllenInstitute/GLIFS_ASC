@@ -155,7 +155,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         tot_loss = 0
         tot_pairs = 0
         loss_batch = []
-        reg_lambda = 0.01
+        #reg_lambda = 0.01
         for batch_ndx, (data,target) in enumerate(trainloader):
             target = target.long()
 
