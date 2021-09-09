@@ -78,11 +78,11 @@ def main():
     sparseness = 0
     num_ascs = args.numascs
 
-    k_folds = 5
-    num_epochs = 40#0
+    k_folds = 10
+    num_epochs = 10#0
     # doppio/americano [1e-12, 1e-10, 1e-8, 1e-6, 1e-4]
     # others [1e-2, 1e0, 1e2, 1e4]
-    regs = [0, 1e-300, 1e-200, 1e-100, 1e0]#[1e-12, 1e-9, 1e-6, 1e-3, 1e0, 1e3]#[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
+    regs = [1e-12, 1e-9, 1e-6, 1e-3]#[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     #if args.condition == "rnn":
         #regs = [0, 1e-30, 1e-27, 1e-24]
     results = np.zeros((len(regs), k_folds))
