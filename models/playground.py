@@ -13,11 +13,11 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-agn-ficurve"
+main_name = "smnist-4-agn-init-ficurve"
 base_name_results = "results_wkof_080821/" + main_name
 base_name_model = "models_wkof_080821/" + "smnist-4-agn"
 
-init = False
+init = True
 ii = 28
 hh = 256
 oo = 10
