@@ -22,6 +22,8 @@ ii = 28
 hh = 256
 oo = 10
 
+ficurve_simtime = 5
+
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
 # losses_glif = torch.load("traininfo/" + folder_loss + "5dsine_brnn_short060621_10ms_spontaneous_losses.pt")
@@ -179,13 +181,13 @@ def plot_responses(model):
 def plot_ficurve(model):
     # x_ins = np.arange(-100,100,1)
 
-    sim_time = 1.4#1000
+    sim_time = ficurve_simtime#1000
     dt = 0.05
     nsteps = int(sim_time / dt)
 
     # i_syns = 28 * x_ins * 0.0001
     i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
-    i_syns = np.arange(-5000, 6000, step=100)
+    i_syns = np.arange(-10000, 10000, step=100)
 
     input = torch.zeros(1, nsteps, glif_input_size)
     outputs = torch.zeros(len(i_syns), nsteps, hid_size)
