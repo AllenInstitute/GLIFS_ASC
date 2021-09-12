@@ -13,14 +13,14 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-agn-256units-init"
+main_name = "pattern-4"#"smnist-4-agn-256units-init"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-4-agn"#2asc"
+base_name_model = "models_wkof_080821/" + "pattern-4"#"smnist-4-agn"#2asc"
 
-init = True
-input_size = 28
-hid_size = 256
-output_size = 10
+init = False
+input_size = 1
+hid_size = 128
+output_size = 1
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 # model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))

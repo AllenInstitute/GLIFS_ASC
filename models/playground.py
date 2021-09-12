@@ -13,9 +13,9 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-4-agn"
+main_name = "pattern-4"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "pattern-4-agn"
+base_name_model = "models_wkof_080821/" + "pattern-4"
 
 init = False
 ii = 1#28
