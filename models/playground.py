@@ -13,11 +13,11 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-agn-init-ficurve"
+main_name = "smnist-4-agn"
 base_name_results = "results_wkof_080821/" + main_name
 base_name_model = "models_wkof_080821/" + "smnist-4-agn"
 
-init = True
+init = False
 ii = 28
 hh = 256
 oo = 10
@@ -294,6 +294,25 @@ else:
 
 nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
 
+sim_time = ficurve_simtime#1000
+dt = 0.05
+nsteps = int(sim_time / dt)
+
+input = torch.ones((1, nsteps, glif_input_size))
+firing = torch.zeros((input.shape[0], hid_size))
+voltage = torch.zeros((input.shape[0], hid_size))
+syncurrent = torch.zeros((input.shape[0], hid_size))
+ascurrents = torch.zeros((2, input.shape[0], hid_size))
+outputs_temp = torch.zeros(1, nsteps, hid_size)
+
+firing_delayed = torch.zeros((input.shape[0], nsteps, hid_size))
+
+for step in range(nsteps):
+        x = input[:, step, :]
+        firing, voltage, ascurrents, syncurrent = model_glif.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
+        outputs_temp[0, step, :] = firing
+np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:])
+quit()
 plot_ficurve(model_glif)
 quit()
 # with torch.no_grad():

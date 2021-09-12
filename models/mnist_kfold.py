@@ -82,7 +82,7 @@ def main():
     num_epochs = 40#0
     # doppio/americano [1e-12, 1e-10, 1e-8, 1e-6, 1e-4]
     # others [1e-2, 1e0, 1e2, 1e4]
-    regs = [1e-3, 1e-1, 1e1]#[0, 1e-50, 1e-35, 1e-20, 1e-5]
+    regs = [5e-3, 1e-2, 5e-2]#morevals: [1e-3, 1e-1, 1e1]#diffvals: [0, 1e-50, 1e-35, 1e-20, 1e-5]
     #[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     #if args.condition == "rnn":
         #regs = [0, 1e-30, 1e-27, 1e-24]
