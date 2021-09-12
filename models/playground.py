@@ -13,14 +13,16 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-2-ficurve"
+main_name = "pattern-4-agn"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "pattern-2"#2asc"
+base_name_model = "models_wkof_080821/" + "pattern-4-agn"
 
 init = False
-ii = 1
-hh = 128#131#128#256
-oo = 1
+ii = 1#28
+hh = 128#256
+oo = 1#10
+
+ficurve_simtime = 5
 
 # folder_loss = "traininfo_wkof_053021/"
 # losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
@@ -179,13 +181,13 @@ def plot_responses(model):
 def plot_ficurve(model):
     # x_ins = np.arange(-100,100,1)
 
-    sim_time = 100#1000
+    sim_time = ficurve_simtime#1000
     dt = 0.05
     nsteps = int(sim_time / dt)
 
     # i_syns = 28 * x_ins * 0.0001
     i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
-    i_syns = np.arange(-5000, 6000, step=100)
+    i_syns = np.arange(-10000, 10000, step=100)
 
     input = torch.zeros(1, nsteps, glif_input_size)
     outputs = torch.zeros(len(i_syns), nsteps, hid_size)
@@ -291,6 +293,25 @@ else:
 
 
 nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
+
+sim_time = ficurve_simtime#1000
+dt = 0.05
+nsteps = int(sim_time / dt)
+
+input = torch.ones((1, nsteps, glif_input_size))
+firing = torch.zeros((input.shape[0], hid_size))
+voltage = torch.zeros((input.shape[0], hid_size))
+syncurrent = torch.zeros((input.shape[0], hid_size))
+ascurrents = torch.zeros((2, input.shape[0], hid_size))
+outputs_temp = torch.zeros(1, nsteps, hid_size)
+
+firing_delayed = torch.zeros((input.shape[0], nsteps, hid_size))
+
+for step in range(nsteps):
+        x = input[:, step, :]
+        firing, voltage, ascurrents, syncurrent = model_glif.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
+        outputs_temp[0, step, :] = firing
+np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:], delimiter=',')
 
 plot_ficurve(model_glif)
 quit()
