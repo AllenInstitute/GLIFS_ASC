@@ -311,7 +311,7 @@ for step in range(nsteps):
         x = input[:, step, :]
         firing, voltage, ascurrents, syncurrent = model_glif.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
         outputs_temp[0, step, :] = firing
-np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:])
+np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:], delimiter=',')
 quit()
 plot_ficurve(model_glif)
 quit()
