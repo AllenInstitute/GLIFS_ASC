@@ -25,18 +25,7 @@ import math
 
 #torch.autograd.set_detect_anomaly(True)
 """
-This file trains a network of rate-based GLIF neurons with after-spike currents on a pattern generation task.
-1. Single pattern generation: generate a sinusoid of a given frequency when provided with constant input
-2. Sussillo pattern generation: generate a sinusoid of a freuqency that is proportional to the amplitude of the constant input
-3. Bellec pattern generation: generation a sinusoid of a frequency that corresponds to the subset of input neurons receiving input
-
-Trained model is saved to the folder specified by model_name + date.
-Figures on learned outputs, parameters, weights, gradients, and losses over training are saved to the folder specified by fig_name + date
-
-Loss is printed on every epoch
-
-To alter model architecture, change sizes, layers, and conns dictionaries. 
-There are other specifications including amount of time, number of epochs, learning rate, etc.
+This file performs k fold cross validation on networks on the MNIST task.
 """
 
 def main():

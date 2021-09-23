@@ -186,17 +186,10 @@ def plot_ficurve(model):
     nsteps = int(sim_time / dt)
 
     # i_syns = 28 * x_ins * 0.0001
-    i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
+    # i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
     i_syns = np.arange(-10000, 10000, step=100)
 
     input = torch.zeros(1, nsteps, glif_input_size)
-    outputs = torch.zeros(len(i_syns), nsteps, hid_size)
-
-    # print(f"threshold: {model.neuron_layer.thresh[0,254]}")
-    # print(f"k_m: {torch.exp(model.neuron_layer.ln_k_m[0,254])}")
-    # print(f"asc_r: {model.neuron_layer.asc_r[:,0,254]}")
-    # print(f"asc_amp: {model.neuron_layer.asc_amp[:,0,254]}")
-    # print(f"asc_k: {torch.exp(model.neuron_layer.ln_asc_k[:,0,254])}")
 
     f_rates = np.zeros((len(i_syns), hid_size))
     for i in range(len(i_syns)):
@@ -215,7 +208,6 @@ def plot_ficurve(model):
             firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
             outputs_temp[0, step, :] = firing
         f_rates[i, :] = torch.mean(outputs_temp, 1).detach().numpy().reshape((1, -1))
-        #outputs[i,:,:] = outputs_temp[0,:,:]
 
     #f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")

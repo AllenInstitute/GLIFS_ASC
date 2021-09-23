@@ -13,6 +13,7 @@ name = "4-agn";
 clustername = "smnist-4-agn-256units-256units-0itr-allparams-clusters";
 paramname = "smnist-4-agn-256units-256units-0itr-allparams";
 initparamname = "smnist-4-agn-256units-init-256units-0itr-allparams";
+
 if strcmp(task, "smnist")
 %     slopes = xlsread("results_wkof_080821/smnist-" + name + "-ficurve-slopes.csv");
     i_syns = xlsread("results_wkof_080821/smnist-" + name + "-ficurve-isyns.csv");
@@ -52,4 +53,7 @@ for i=1:size(f_rates_init, 1)
     plot(i_syns_init, f_rates_init(:,i), 'k', 'LineWidth', linewidth)
     hold on
 end
-
+set(gca,'FontSize', fontsize);
+xlabel('current (pA)', 'FontName', 'helvetica', 'FontSize', fontsize);
+ylabel('avg. firing probability', 'FontName', 'helvetica', 'FontSize', fontsize);
+set(gca,'FontSize', fontsize);

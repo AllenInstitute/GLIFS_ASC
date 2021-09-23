@@ -10,9 +10,6 @@ import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
 
-import neurons.utils_glif_new as uts
-
-
 class BNNC(nn.Module):
         """
         Defines a single layer of RGLIF-ASC neurons
@@ -49,6 +46,7 @@ class BNNC(nn.Module):
                 self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
                 self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
 
+                # TODO: review sparseness strategy
                 num_keep = int((1 - sparseness) * (hidden_size**2))
                 self.sparseness = sparseness
                 self.weight_lat_mask = torch.from_numpy(np.array([0] * (hidden_size ** 2 - num_keep) + [1] * num_keep)).reshape(self.weight_lat.shape)
@@ -70,7 +68,7 @@ class BNNC(nn.Module):
                 else:
                     self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
                     
-                    trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))#math.log(.05)
+                    trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))
                     self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
 
                     self.trans_asc_k = Parameter(math.log(2 * dt / (1 - (2 * dt))) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
@@ -146,7 +144,7 @@ class BNNC(nn.Module):
                     with torch.no_grad():
                         self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
                 if firing_delayed is None:
-                    firing_delayed = copy(firing)
+                    firing_delayed = copy(firing) #TODO: change to clone?
                 # 1.5, -0.5 for lnasck
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 
@@ -194,7 +192,8 @@ class RNNC(nn.Module): # The true RNNC
                     #nn.init.normal_(self.weight_lat, 0, 1 / math.sqrt(hidden_size))
                     nn.init.uniform_(self.weight_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
                     nn.init.uniform_(self.weight_lat, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                    nn.init.uniform_(self.bias, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+                    if bias:
+                            nn.init.uniform_(self.bias, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
 
         def forward(self, x, hidden, hidden_delayed):
                 """
