@@ -19,6 +19,21 @@ class BNNFC(nn.Module):
                 number of neurons in hidden layer
         out_size : int
                 number of outputs
+        num_ascs : int, default 2
+                number of after-spike currents to model
+        dt : float, default 0.05
+                duration of timestep in ms
+        hetinit : boolean, default False
+                whether neuronal parameters should be initialized with
+                heterogeneity across the network
+        ascs : boolean, default True
+                whether after-spike currents should be modeled/learned
+        learnparams : boolean, default True
+                whether intrinsic parameters should be trained
+        output_weight : boolean, default True
+                whether outputs of hidden layer should be weighted
+        sparseness : float, default 0
+                how much sparsity # TODO: not supported
         """
         def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
                 super().__init__()
@@ -31,14 +46,14 @@ class BNNFC(nn.Module):
                 self.out_size = out_size
 
                 self.num_ascs = num_ascs
+                self.output_weight = output_weight
+                self.sparseness = sparseness
                 self.dt = dt
                 self.delay = int(1 / self.dt)
-                self.output_weight = output_weight
 
                 self.idx = []
 
                 self.reset_state()
-                self.sparseness = sparseness
 
         def forward(self, input, target=None, track=False):
                 """
@@ -46,7 +61,7 @@ class BNNFC(nn.Module):
 
                 Parameters
                 ----------
-                input : Tensor(batch_size, nsteps, 1, in_size)
+                input : Tensor(batch_size, nsteps, in_size)
                         input signal to be input over time
                 """
                 _, nsteps, in_size = input.shape
@@ -63,7 +78,6 @@ class BNNFC(nn.Module):
                 
                 for step in range(nsteps):
                         x = input[:, step, :]
-                        # x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent, outputs_[-delay])
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
@@ -80,8 +94,8 @@ class BNNFC(nn.Module):
                             voltages[:, step, :] = self.voltage.clone()
                             ascs[:, :, step, :] = self.ascurrents.clone()
                             syns[:, step, :] = self.syncurrent.clone()
-                        self.last_output = x
-                        outputs_.append(self.firing.clone())#copy(self.firing))
+                        # self.last_output = x
+                        outputs_.append(self.firing.clone())
                         
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
@@ -114,7 +128,7 @@ class BNNFC(nn.Module):
 
 class RNNFC(nn.Module):
         """
-        Defines a single recurrent layer network.
+        Defines a single recurrent layer network with a delay of dt.
 
         Parameters
         ----------
@@ -124,6 +138,12 @@ class RNNFC(nn.Module):
                 number of neurons in hidden layer
         out_size : int
                 number of outputs
+        dt : float, default 0.05
+                duration of timestep in ms
+        output_weight : boolean, default True
+                whether outputs of hidden layer should be weighted
+        sparseness : float, default 0
+                how much sparsity # TODO: not supported
         """
         def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, sparseness=0):
                 super().__init__()
@@ -168,7 +188,6 @@ class RNNFC(nn.Module):
 
                 for step in range(nsteps):
                         x = input[:, step, :]
-                        #x = torch.cat((x, outputs_[-delay]), dim=-1)
                         
                         self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
@@ -181,7 +200,7 @@ class RNNFC(nn.Module):
                         outputs[:, step, :] = x
                         self.firing_over_time[:, step, :] = self.firing.clone()
 
-                        outputs_.append(self.firing.clone())#copy(self.firing))
+                        outputs_.append(self.firing.clone())
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
                 return outputs
@@ -206,11 +225,17 @@ class LSTMFC(nn.Module):
                 number of neurons in hidden layer
         out_size : int
                 number of outputs
+        dt : float, default 0.05
+                duration of timestep in ms
+        output_weight : boolean, default True
+                whether outputs of hidden layer should be weighted
+        sparseness : float, default 0
+                how much sparsity # TODO: not supported
         """
         def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, sparseness=0):
                 super().__init__()
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = nn.LSTMCell(input_size = in_size, hidden_size = hid_size, bias = True)#RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
+                self.neuron_layer = nn.LSTMCell(input_size = in_size, hidden_size = hid_size, bias = True)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -238,13 +263,12 @@ class LSTMFC(nn.Module):
                 assert(in_size == self.in_size), f"input has {in_size} size but network accepts {self.in_size} inputs"
 
                 outputs = torch.empty((self.batch_size, nsteps, self.out_size))
-                outputs_ = [torch.zeros((self.batch_size, self.out_size)) for i in range(delay)]
+                outputs_ = [torch.zeros((self.batch_size, self.hid_size)) for i in range(delay)]
 
                 self.firing_over_time = torch.zeros((self.batch_size, nsteps, self.hid_size))
 
                 for step in range(nsteps):
                         x = input[:, step, :]
-                        # x = torch.cat((x, outputs_[-delay]), dim=-1)
                         self.h, self.c = self.neuron_layer(x, (self.h,self.c))
 
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
@@ -258,7 +282,7 @@ class LSTMFC(nn.Module):
 
                         self.firing_over_time[:, step, :] = self.h.clone()
 
-                        outputs_.append(x)
+                        outputs_.append(self.h.clone())
                         if len(outputs_) > delay:
                             outputs_ = outputs_[-delay:]
                 return outputs

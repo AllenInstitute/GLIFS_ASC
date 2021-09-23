@@ -3,39 +3,28 @@ matplotlib.use('Agg')
 
 # author: @chloewin
 # 03/07/21
+# Reviewed @chloewin 09/12/21
 import argparse
 import pickle
-import datetime
-import utils as ut
-import utils_train as utt
-import utils_misc as utm
-from networks import LSTMFC, RNNFC, BNNFC
-from neurons.glif_new import BNNC, RNNC
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 import torch
-import torch.optim as optim
-import torch.utils.data as tud
-import torch.nn as nn
-import math
-# import torch.utils.data.DataLoader
 
-#torch.autograd.set_detect_anomaly(True)
+import utils_train as utt
+import utils_misc as utm
+from networks import LSTMFC, RNNFC, BNNFC
+
+
 """
-This file trains a network of rate-based GLIF neurons with after-spike currents on a pattern generation task.
-1. Single pattern generation: generate a sinusoid of a given frequency when provided with constant input
-2. Sussillo pattern generation: generate a sinusoid of a freuqency that is proportional to the amplitude of the constant input
-3. Bellec pattern generation: generation a sinusoid of a frequency that corresponds to the subset of input neurons receiving input
+This file trains a network of rate-based GLIF neurons with after-spike currents on a sequential MNIST task.
+It tests the procedure on multiple random initializations.
 
-Trained model is saved to the folder specified by model_name + date.
-Figures on learned outputs, parameters, weights, gradients, and losses over training are saved to the folder specified by fig_name + date
-
+Trained models are saved to the folder specified by base_name_model.
+Accuracies and parameters are saved to the folder specified by base_name_results.
+Torch dictionaries for networks along with losses over epochs
+are saved to the folder specified by base_name_traininfo.
 Loss is printed on every epoch
-
-To alter model architecture, change sizes, layers, and conns dictionaries. 
-There are other specifications including amount of time, number of epochs, learning rate, etc.
 """
 
 def main():
@@ -70,9 +59,7 @@ def main():
         hid_size = utm.hid_size_glif(num_params=num_params, in_size=in_size, out_size=out_size, learnparams=learnparams, num_asc = args.numascs)
         print(utm.count_params_glif(in_size=in_size, hid_size=hid_size, out_size=out_size, num_asc = args.numascs, learnparams=learnparams))
 
-    #learnparams = (args.condition == "rglif")
     ascs = (args.numascs > 0)
-    #initburst = False
     dt = 0.05
     sparseness = 0
     num_ascs = args.numascs
@@ -80,8 +67,8 @@ def main():
     batch_size = 128
     num_epochs = 50
     lr = 0.001
-    itrs = 5#30
-    sgd = False#True
+    itrs = 5
+    sgd = False
     reg_lambda = 0
 
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
@@ -117,7 +104,8 @@ def main():
                 asc_parameters[:, 1] = model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[:,0,:].detach().numpy().reshape(-1)
                 asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
                 np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-init-ascparams.csv", asc_parameters, delimiter=',')
-        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, reg_lambda = reg_lambda, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
+        print(f"Training on iteration {i}")
+        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams, linebyline=True, ascs=ascs, sgd=sgd, reg_lambda=reg_lambda)#, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv", np.array(training_info["losses"]), delimiter=',')
@@ -140,9 +128,10 @@ def main():
         for pct_idx in range(len(pcts)):
             pct_remove = pcts[pct_idx]
             for trial_idx in range(ntrials):
+                print(f"Training on iteration {i}......Trial {trial_idx}...Ablating {pct_remove}")
                 idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
                 model.silence(idx)
-                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd)
+                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = False, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd)
                 ablation_results[pct_idx, trial_idx] = training_info_silence["test_accuracy"]
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv", ablation_results, delimiter=',')
 
@@ -152,7 +141,6 @@ def main():
             with open("traininfo/" + base_name_traininfo + "-" + str(i) + "itr.pickle", 'wb') as handle:
                 pickle.dump(training_info, handle)
     
-    print(accs)
     np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "accs.csv", np.array(accs), delimiter=",")
 
 if __name__ == '__main__':

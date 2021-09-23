@@ -6,3 +6,4 @@ models/saved_models
 models/traininfo
 models/MNIST
 models/data
+models/unused_files

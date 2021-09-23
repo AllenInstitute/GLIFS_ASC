@@ -1,3 +1,4 @@
+# reviewed @chloewin 09/12/21
 import matplotlib
 from torch.utils.data.dataset import TensorDataset
 # matplotlib.use('Agg')
@@ -14,9 +15,6 @@ import torch
 import torch.nn as nn
 import torch.utils.data as tud
 from torchvision import datasets, transforms
-from myterial import salmon, light_green_dark, indigo_light
-from pyrnn._plot import clean_axes
-from rich.progress import track
 
 def mnist_generator(root, batch_size):
     # def set_header_for(url, filename):
@@ -57,12 +55,13 @@ def mnist_generator(root, batch_size):
     return train_loader, test_loader
     
 def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt", trainloader = None, testloader = None, reg_lambda=0.1):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+    ### Reviewed by Chloe W. 09/12/21
     print(f"training with glifr {glifr}, linebyline {linebyline}, trainparams {trainparams}, ascs {ascs}, and sgd {sgd}")
     """
     Train RBNN model using trainloader and track metrics.
     Parameters
     ----------
-    model : RBNN
+    model : 
         network to be trained
     batch_size : int
         size of batches to be used during training
@@ -72,6 +71,29 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         learning rate to use
     glifr : boolean, optional, default True
         whether to expect fields existing in GLIFR class
+    verbose : boolean, optional, default True
+        whether to print training loss over epochs and other information
+    linebyline : boolean, optional, default True
+        whether MNIST images should be read line by line
+        as opposed to pixel by pixel
+    trainparams : boolean, optional, default True
+        whether to expect .grad on neuronal parameters
+    ascs : boolean, optional, default True
+        whether to expect trainable parameters relating to after-spike
+        currents
+    sgd : boolean, optional, default False
+        whether to use stochastic gradient descent optimizer as opposed
+        to Adam optimizer
+    output_text_filename : string, optional, default "results.txt"
+        name of file to print testing accuracy and loss to
+    trainloader : Dataloader, optional, default None
+        training loader to use; if None, default MNIST training data
+        is used
+    testloader : Dataloader, optional, default None
+        training loader to use; if None, default MNIST training data
+        is used
+    reg_lambda : float, optional, default 0
+        value to use for regularization
     
     Returns
     -------
@@ -119,6 +141,8 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         - asc_r_grads : List[List[float]]
             ith element is a list of asc_r gradients of neurons at
             the ith epoch
+        - test_accuracy : float
+            final testing accuracy achieved by trained model
     """
     training_info = {"losses": [],
                     "weights": [],
@@ -133,8 +157,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                     "asc_amp_grads": [],
                     "asc_r_grads": [],
                     "asc_k_grads": []}
-    model.eval()
-    
+
     optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     if sgd:
         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
@@ -143,19 +166,13 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
     if trainloader is None:
         root = './data/mnist'
         trainloader, testloader = mnist_generator(root, batch_size)
-    model.train()
 
-    if linebyline:
-        input_channels = 28
-    else:
-        input_channels = 1
-    seq_length = int(784/input_channels)
-    # for batch_ndx, sample in enumerate(trainloader):
+    model.train()
     for epoch in range(num_epochs):
         tot_loss = 0
         tot_pairs = 0
         loss_batch = []
-        #reg_lambda = 0.01
+
         for batch_ndx, (data,target) in enumerate(trainloader):
             target = target.long()
 
@@ -164,51 +181,36 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
                 print(f"loss of {loss_batch[-1]} on batch {batch_ndx}/{len(trainloader)}")
             for i in range(n_subiter):
                 loss = 0.0
+                # TODO: check whether this is row by row or column by column
                 # print(data.shape)
                 if linebyline:
                     data = data.view(-1, 28, 28)
                 else:
                     data = data.view(-1, 28 * 28, 1)
-
-                #optimizer.zero_grad()
-
-                _, nsteps, _ = data.shape
-                # with torch.no_grad():
-                #     for i in range(10):
-                #         a = random.randint(0, nsteps - 5)
-                #         inputs[:, a:a+5, :] = 0
-                tot_pairs += len(target)
-
+                
                 model.reset_state(len(target))
                 optimizer.zero_grad()
 
                 outputs = model(data)
                 if linebyline:
-                    ###
-                    outputs = torch.swapaxes(outputs, 1, 2)[:,:,-1]#cutputs.reshape(len(target), 10, 28)[:,:,-1]
+                    outputs = torch.swapaxes(outputs, 1, 2)[:,:,-1]
                 else:
                     outputs = outputs.reshape(len(target), 10, 28 * 28)[:,:,-1]
-                # outputs = outputs.reshape(len(target), 10, 28)[:,:,-1]#torch.mean(outputs.reshape(len(target), 10, 28), -1)
+
                 loss = loss + loss_fn(outputs, target)
-                loss = loss + reg_lambda * torch.linalg.norm(model.firing_over_time) #/ (outputs.shape[0] * outputs.shape[1] * 28)
-                #print( 0.1 * (torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * 28)))# if i % n_subiter == 0:
-                #     print(loss.item() / len(targets))
-                # if glifr:
-                #     loss = loss + aa_reg(model, reg_lambda = reg_lambda)
-                #     reg_lambda *= 0.9
-                # if glifr:
-                #     loss = loss + km_reg(model, reg_lambda)
-                loss.backward()
-    
+
+                loss.backward()    
                 optimizer.step()
                 
                 tot_loss += loss.item()
+                tot_pairs += len(target)
                 loss_batch.append(loss.item() / len(target))
         if verbose:
             print(f"epoch {epoch}/{num_epochs}: loss of {tot_loss / tot_pairs} with variance {0 if len(loss_batch) < 2 else stat.variance(loss_batch)}")
 
         training_info["losses"].append(tot_loss)
-        # training_info["weights"][0].append([model.input_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
+        # TODO: Replace with real weight
+        # # training_info["weights"][0].append([model.input_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.in_size)])
         # if glifr:
         #     training_info["weights"][1].append([model.rec_linear.weight[i,j].item() + 0.0 for i in range(model.hid_size) for j in range(model.hid_size)])
         # training_info["weights"][2].append([model.output_linear.weight[i,j].item() + 0.0 for i in range(model.out_size) for j in range(model.hid_size)])
@@ -234,9 +236,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
             training_info["asc_r_grads"].append([model.neuron_layer.trans_asc_r.grad[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             # training_info["weight_grads"].append([torch.mean(model.neuron_layer.weight_iv.grad[:,m].item())  + 0.0 for m in range(model.hid_size)])
 
-    final_outputs = []
     model.eval()
-    # torch.save(model.state_dict(), "trained_model.pt")
     
     test_loss = 0
     correct = 0
@@ -244,14 +244,15 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         for data, target in testloader:
             target = target.long()
             model.reset_state(len(target))
-            # target = torch.unsqueeze(target, -1)
+
             if linebyline:
                 data = data.view(-1, 28, 28)
             else:
                 data = data.view(-1, 28 * 28, 1)
+
             output = model(data)
             if linebyline:
-                output = torch.swapaxes(output, 1, 2)[:,:,-1]#output.reshape(len(target), 10, 28)[:,:,-1]
+                output = torch.swapaxes(output, 1, 2)[:,:,-1]
             else:
                 output = output.reshape(len(target), 10, 28 * 28)[:,:,-1]
             test_loss += loss_fn(output, target).item()
@@ -265,10 +266,9 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
 
     training_info["test_accuracy"] = correct * 1.0 / len(testloader.dataset)
 
-    original_stdout = sys.stdout # Save a reference to the original standard output
-
+    original_stdout = sys.stdout
     with open(output_text_filename, 'w') as f:
-        sys.stdout = f # Change the standard output to the file we created.
+        sys.stdout = f
         print(f"loss: {test_loss}")
         print(f"accuracy: {correct * 1.0 / len(testloader.dataset)}")
         sys.stdout = original_stdout
@@ -412,16 +412,14 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
         loss_fn = nn.CrossEntropyLoss()
     trainloader = tud.DataLoader(traindataset, batch_size = batch_size, shuffle = True)
     model.train()
-    # for batch_ndx, sample in enumerate(trainloader):
     for epoch in range(num_epochs):
         tot_loss = 0
         tot_pairs = 0
         loss_batch = []
-        reg_lambda = 0.01
 
-        if task == "copy":
-            new_dataset = data_gen()
-            trainloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
+        # if task == "copy":
+        #     new_dataset = data_gen()
+        #     trainloader = tud.DataLoader(new_dataset, batch_size = batch_size, shuffle = True)
 
         for batch_ndx, sample in enumerate(trainloader):
             n_subiter = 1
@@ -429,9 +427,9 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
                 loss = 0.0
                 inputs, targets = sample
 
-                if task == "copy":
-                    inputs = inputs.float()
-                    targets = targets.long()
+                # if task == "copy":
+                #     inputs = inputs.float()
+                #     targets = targets.long()
                 _, nsteps, _ = inputs.shape
                 tot_pairs += len(targets)
 
@@ -443,9 +441,8 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
                     
                 loss = loss + loss_fn(outputs, targets)
                 #loss = loss + torch.linalg.norm(model.firing_over_time) / (outputs.shape[0] * outputs.shape[1] * outputs.shape[2])
-                null_loss = "SORRY"
+                null_loss = ""
                 loss.backward()
-
                 optimizer.step()
 
                 if decay:
@@ -460,9 +457,7 @@ def train_rbnn(model, traindataset, batch_size, num_epochs, lr, reg_lambda=0, da
    
         if glifr and trainparams:
             training_info["k_ms"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_k_m[0,j])  + 0.0 for j in range(model.hid_size)])
-            # training_info["k_syns"].append([torch.exp(model.neuron_layer.ln_k_syn[0,j])  + 0.0 for j in range(model.hid_size)])
             training_info["threshes"].append([model.neuron_layer.thresh[0,j].item()  + 0.0 for j in range(model.hid_size)])
-            # training_info["v_resets"].append([model.neuron_layer.v_reset[0,j]  + 0.0 for j in range(model.hid_size)])
             training_info["asc_ks"].append([model.neuron_layer.transform_to_k(model.neuron_layer.trans_asc_k[j,0,m]).item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             training_info["asc_amps"].append([model.neuron_layer.asc_amp[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
             training_info["asc_rs"].append([model.neuron_layer.transform_to_asc_r(model.neuron_layer.trans_asc_r)[j,0,m].item()  + 0.0 for j in range(model.neuron_layer.num_ascs) for m in range(model.hid_size)])
