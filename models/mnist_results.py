@@ -67,7 +67,7 @@ def main():
     batch_size = 128
     num_epochs = 50
     lr = 0.001
-    itrs = 5
+    itrs = 30
     sgd = False
     reg_lambda = 0
 
