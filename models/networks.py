@@ -39,7 +39,7 @@ class BNNFC(nn.Module):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, hetinit=hetinit, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+                self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, hetinit=hetinit, ascs=ascs, learnparams=learnparams)
                 self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
@@ -48,7 +48,6 @@ class BNNFC(nn.Module):
 
                 self.num_ascs = num_ascs
                 self.output_weight = output_weight
-                self.sparseness = sparseness
                 self.dt = dt
                 self.delay = int(1 / self.dt)
 
