@@ -54,7 +54,7 @@ def mnist_generator(root, batch_size):
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
     return train_loader, test_loader
     
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt", trainloader = None, testloader = None, reg_lambda=0.1):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt", trainloader = None, testloader = None, reg_lambda=None):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     ### Reviewed by Chloe W. 09/12/21
     print(f"training with glifr {glifr}, linebyline {linebyline}, trainparams {trainparams}, ascs {ascs}, and sgd {sgd}")
     """
