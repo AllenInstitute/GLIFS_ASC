@@ -11,12 +11,12 @@ name = "4-agn";
 % initparamname = "smnist-4-agn-256units-init-256units-0itr-allparams";
 % outputsname = "smnist-4-agn-sampleoutputs";
 
-clustername = "smnist-2-agn-256units-0itr-allparams-clusters";
-paramname = "smnist-2-agn-256units-0itr-allparams";
+clustername = "smnist-4-agn-256units-256units-0itr-allfeatures-clusters";
+paramname = "smnist-4-agn-256units-256units-0itr-allparams";
 % initparamname = "smnist-2-agn-256units-init-256units-0itr-allparams";
 % outputsname = "smnist-4-agn-sampleoutputs";
 
-clusters = xlsread(strcat("results_wkof_080821/", clustername, ".csv"));
+clusters_labels = xlsread(strcat("results_wkof_080821/", clustername, ".csv"));
 parameters = xlsread(strcat("results_wkof_080821/", paramname, ".csv"));
 % outputs = xlsread(strcat("results_wkof_080821/", outputsname, ".csv"));
 % initparameters = xlsread(strcat("results_wkof_080821/", initparamname, ".csv"));
@@ -62,7 +62,7 @@ colors_rbg = [51, 34, 136;
     136, 204, 238] ./ 256;
 
 subplot(2,2,1)
-scatter(parameters(:,1), parameters(:,2), [], clusters);
+scatter(parameters(:,1), parameters(:,2), [], clusters_labels);
 xlabel('threshold (mV)', 'FontName', 'helvetica', 'FontSize', fontsize);
 ylabel('km (ms^-1)', 'FontName', 'helvetica', 'FontSize', fontsize);
 set(gca,'FontSize', fontsize);
@@ -70,7 +70,7 @@ colormap(colors_rbg)
 
 subplot(2,2,2)
 fig.Renderer='Painters';
-scatter(parameters(:,3), parameters(:,4), [], clusters);
+scatter(parameters(:,3), parameters(:,4), [], clusters_labels);
 % hold on
 % h=fill([-0.01,0.01,0.01,-0.01],[-0.01,-0.01,0.01,0.01],'red');
 % h.FaceAlpha=0.3;
@@ -80,14 +80,14 @@ set(gca,'FontSize', fontsize);
 
 subplot(2,2,3)
 fig.Renderer='Painters';
-scatter(parameters(:,5), parameters(:,6), [], clusters);
+scatter(parameters(:,5), parameters(:,6), [], clusters_labels);
 xlabel('k1', 'FontName', 'helvetica', 'FontSize', fontsize);
 ylabel('k2', 'FontName', 'helvetica', 'FontSize', fontsize);
 set(gca,'FontSize', fontsize);
 
 subplot(2,2,4)
 fig.Renderer='Painters';
-scatter(parameters(:,7), parameters(:,8), [], clusters);
+scatter(parameters(:,7), parameters(:,8), [], clusters_labels);
 % hold on
 % h=fill([-0.01,0.01,0.01,-0.01],[-0.01,-0.01,0.01,0.01],'red');
 % h.FaceAlpha=0.3;

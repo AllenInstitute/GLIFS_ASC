@@ -6,7 +6,7 @@ matplotlib.use('Agg')
 import argparse
 import pickle
 import datetime
-import utils as ut
+#import utils as ut
 import utils_train as utt
 import utils_misc as utm
 from networks import LSTMFC, RNNFC, BNNFC
@@ -64,18 +64,19 @@ def main():
     ascs = (args.numascs > 0)
     #initburst = False
     dt = 0.05
-    sparseness = 0
     num_ascs = args.numascs
 
     k_folds = 5
-    num_epochs = 40#0
+    num_epochs = 10#0
     # doppio/americano [1e-12, 1e-10, 1e-8, 1e-6, 1e-4]
     # others [1e-2, 1e0, 1e2, 1e4]
-    regs = [5e-3, 1e-2, 5e-2]#morevals: [1e-3, 1e-1, 1e1]#diffvals: [0, 1e-50, 1e-35, 1e-20, 1e-5]
+    # regs = [5e-3, 1e-2, 5e-2]#morevals: [1e-3, 1e-1, 1e1]#diffvals: [0, 1e-50, 1e-35, 1e-20, 1e-5]
     #[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     #if args.condition == "rnn":
         #regs = [0, 1e-30, 1e-27, 1e-24]
-    results = np.zeros((len(regs), k_folds))
+    dropout_probs = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    # results = np.zeros((len(regs), k_folds))
+    results = np.zeros((len(dropout_probs), k_folds))
 
     torch.manual_seed(42)
     kfold = KFold(n_splits = k_folds, shuffle = True)
@@ -83,31 +84,26 @@ def main():
     lr = 0.001
     sgd = False#True
 
-    pcts = [0,0.2,0.4,0.6,0.8,1.0]
-    ntrials = 30
-
-    accs = []
-
     root = './data/mnist'
     trainloader, testloader = utt.mnist_generator(root, batch_size)
     dataset = trainloader.dataset
 
-    for r in range(len(regs)):
+    for r in range(len(dropout_probs)):
         for fold, (train_ids, test_ids) in enumerate(kfold.split(dataset)):
-            print(f"FOLD {fold} -- on {r}th reg of {regs[r]}")
+            print(f"FOLD {fold} -- on {r}th reg of {dropout_probs[r]}")
             print("----------")
             
             if args.condition == "rnn":
                 print("using rnn")
-                model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, sparseness=sparseness)
+                model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, dropout_prob = dropout_probs[r])
             elif args.condition == "lstm":
                 print("using lstm")
-                model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
+                model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, dropout_prob = dropout_probs[r])
             else:
                 print("using glifr")
                 hetinit = (args.condition == "rglif-hetinit")
                 print(f"hetinit: {hetinit}; learnparams: {learnparams}")
-                model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, hetinit=hetinit, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+                model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, hetinit=hetinit, ascs=ascs, learnparams=learnparams, dropout_prob = dropout_probs[r])
 
             print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
 
@@ -121,13 +117,13 @@ def main():
                         dataset,
                         batch_size=batch_size, sampler=test_subsampler)
 
-            training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, trainloader=trainloader, testloader=testloader, reg_lambda=regs[r])
+            training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, trainloader=trainloader, testloader=testloader, reg_lambda=None)
 
             print(f"accuracy for fold {fold}: {training_info['test_accuracy']}")
             print("-----------------------------------------------")
             results[r, fold] = training_info["test_accuracy"]
 
-    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "kfold.csv", results, delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + "kfold-dropout.csv", results, delimiter=",")
 
 if __name__ == '__main__':
         main()
