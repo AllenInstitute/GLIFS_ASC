@@ -6,7 +6,7 @@ matplotlib.use('Agg')
 import argparse
 import pickle
 import datetime
-import utils as ut
+#import utils as ut
 import utils_train as utt
 import utils_misc as utm
 from networks import LSTMFC, RNNFC, BNNFC
