@@ -32,14 +32,15 @@ class BNNFC(nn.Module):
                 whether intrinsic parameters should be trained
         output_weight : boolean, default True
                 whether outputs of hidden layer should be weighted
-        sparseness : float, default 0
-                how much sparsity # TODO: not supported
+        dropout : float, default 0
+                probability of dropout
         """
-        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, sparseness=0):
+        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, dropout_prob=0.5):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
                 self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, hetinit=hetinit, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+                self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -80,6 +81,7 @@ class BNNFC(nn.Module):
                         x = input[:, step, :]
                         
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent, outputs_[-delay])
+                        self.firing = self.dropout_layer(self.firing)
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
                         if len(self.idx) > 0:
                             with torch.no_grad():
@@ -145,11 +147,12 @@ class RNNFC(nn.Module):
         sparseness : float, default 0
                 how much sparsity # TODO: not supported
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, sparseness=0):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, dropout_prob=0.5):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
-                self.neuron_layer = RNNC(input_size = in_size, hidden_size = hid_size, bias = True, sparseness=sparseness)
+                self.neuron_layer = RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
+                self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -190,6 +193,7 @@ class RNNFC(nn.Module):
                         x = input[:, step, :]
                         
                         self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
+                        self.firing = self.dropout_layer(self.firing)
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
                             with torch.no_grad():
                                 self.firing[:, self.idx] = 0
@@ -232,10 +236,11 @@ class LSTMFC(nn.Module):
         sparseness : float, default 0
                 how much sparsity # TODO: not supported
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, sparseness=0):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, dropout_prob=0.5):
                 super().__init__()
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
                 self.neuron_layer = nn.LSTMCell(input_size = in_size, hidden_size = hid_size, bias = True)
+                self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -270,6 +275,7 @@ class LSTMFC(nn.Module):
                 for step in range(nsteps):
                         x = input[:, step, :]
                         self.h, self.c = self.neuron_layer(x, (self.h,self.c))
+                        self.h = self.dropout_layer(self.h)
 
                         if len(self.idx) > 0: # TODO: please fix so no bad error 
                             with torch.no_grad():
