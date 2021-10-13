@@ -67,14 +67,14 @@ def main():
     num_ascs = args.numascs
 
     k_folds = 5
-    num_epochs = 10#0
+    num_epochs = 50#0
     # doppio/americano [1e-12, 1e-10, 1e-8, 1e-6, 1e-4]
     # others [1e-2, 1e0, 1e2, 1e4]
     # regs = [5e-3, 1e-2, 5e-2]#morevals: [1e-3, 1e-1, 1e1]#diffvals: [0, 1e-50, 1e-35, 1e-20, 1e-5]
     #[1e-1, 1e0, 1e1, 1e2, 1e3]#[1e-6, 1e-5, 1e-4, 1e-3, 1e-2]
     #if args.condition == "rnn":
         #regs = [0, 1e-30, 1e-27, 1e-24]
-    dropout_probs = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+    dropout_probs = [0, 0.2, 0.4, 0.6, 0.8, 1.0]#[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
     # results = np.zeros((len(regs), k_folds))
     results = np.zeros((len(dropout_probs), k_folds))
 
