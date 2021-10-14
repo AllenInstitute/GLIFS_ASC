@@ -79,7 +79,7 @@ def main():
     for i in range(itrs):
         if args.condition == "rnn":
             print("using rnn")
-            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, sparseness=sparseness)
+            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
         elif args.condition == "lstm":
             print("using lstm")
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
@@ -87,7 +87,7 @@ def main():
             print("using glifr")
             hetinit = (args.condition == "rglif-hetinit")
             print(f"hetinit: {hetinit}; learnparams: {learnparams}")
-            model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, hetinit=hetinit, ascs=ascs, learnparams=learnparams, sparseness=sparseness)
+            model = BNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, hetinit=hetinit, ascs=ascs, learnparams=learnparams)
 
         print(f"using {utm.count_parameters(model)} parameters and {hid_size} neurons")
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr-init.pt")

@@ -35,7 +35,7 @@ class BNNFC(nn.Module):
         dropout : float, default 0
                 probability of dropout
         """
-        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, dropout_prob=0.5):
+        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, dropout_prob=0.2):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
