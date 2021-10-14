@@ -239,10 +239,12 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
     
     test_loss = 0
     correct = 0
+    num_samples = 0
     with torch.no_grad():
         for data, target in testloader:
             target = target.long()
             model.reset_state(len(target))
+            num_samples += len(target)
 
             if linebyline:
                 data = data.view(-1, 28, 28)
@@ -261,9 +263,9 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
     test_loss = test_loss * 1.0 / len(testloader.dataset)
     
     print(f"testing loss: {test_loss}")
-    print(f"testing accuracy: {correct * 1.0 / len(testloader.dataset)}")
+    print(f"testing accuracy: {correct * 1.0 / num_samples}")
 
-    training_info["test_accuracy"] = correct * 1.0 / len(testloader.dataset)
+    training_info["test_accuracy"] = correct * 1.0 / num_samples
 
     original_stdout = sys.stdout
     with open(output_text_filename, 'w') as f:
