@@ -2,7 +2,6 @@ import matplotlib
 from torch.utils.data.dataset import TensorDataset
 # matplotlib.use('Agg')
 
-from hessianfree import HessianFree
 import numpy as np
 from numpy import random as rnd
 import statistics as stat

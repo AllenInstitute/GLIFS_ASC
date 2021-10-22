@@ -2,7 +2,7 @@ neg = xlsread("results_wkof_080821/sample-outputs-neg.csv");
 zero = xlsread("results_wkof_080821/sample-outputs-zero.csv");
 opp = xlsread("results_wkof_080821/sample-outputs-opp.csv");
 
-filenames = ["results_wkof_080821/sample-outputs-neg", "results_wkof_080821/sample-outputs-zero", "results_wkof_080821/sample-outputs-opp"];
+filenames = ["results_wkof_080821/sample-outputs-steps-0", "results_wkof_080821/sample-outputs-steps-1", "results_wkof_080821/sample-outputs-steps-2"];
 lists = [neg, zero, opp];
 names = ["A", "B", "C"];
 
