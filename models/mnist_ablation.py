@@ -74,9 +74,9 @@ def main():
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
     ntrials = 30
 
-    results = np.zeros((len(pcts), len(itrs)))
+    results = np.zeros((len(pcts), itrs))
 
-    for i in range(len(itrs)):
+    for i in range(itrs):
         for j in range(len(pcts)):
             pct = pcts[j]
             if args.condition == "rnn":
