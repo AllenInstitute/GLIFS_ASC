@@ -52,6 +52,7 @@ class BNNFC(nn.Module):
                 self.delay = int(1 / self.dt)
 
                 self.idx = []
+                self.silence_mult = torch.eye(self.hid_size)
 
                 self.reset_state()
 
@@ -82,9 +83,11 @@ class BNNFC(nn.Module):
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent, outputs_[-delay])
                         self.firing = self.dropout_layer(self.firing)
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
-                        if len(self.idx) > 0:
-                            with torch.no_grad():
-                                self.firing[:, self.idx] = 0
+                        self.firing = self.firing * self.silence_mult
+                        # if len(self.idx) > 0:
+                        #         ##self.firing = self.firing * 
+                        #     with torch.no_grad():
+                        #         self.firing[:, self.idx] = 0
                         if self.output_weight:
                                 x = self.output_linear(self.firing)
                         else:
@@ -126,6 +129,9 @@ class BNNFC(nn.Module):
         
         def silence(self, idx):
                 self.idx = idx
+                self.silence_mult = torch.eye(self.hid_size)
+                for i in self.idx:
+                        self.silence_mult[i, i] = 0
 
 class RNNFC(nn.Module):
         """
@@ -165,6 +171,7 @@ class RNNFC(nn.Module):
 
                 self.reset_state()
                 self.idx = []
+                self.silence_mult = torch.eye(self.hid_size)
 
         def forward(self, input):
                 """
@@ -193,9 +200,10 @@ class RNNFC(nn.Module):
                         
                         self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
                         self.firing = self.dropout_layer(self.firing)
-                        if len(self.idx) > 0: # TODO: please fix so no bad error 
-                            with torch.no_grad():
-                                self.firing[:, self.idx] = 0
+                        self.firing = self.firing * self.silence_mult
+                        # if len(self.idx) > 0: # TODO: please fix so no bad error 
+                        #     with torch.no_grad():
+                        #         self.firing[:, self.idx] = 0
                         if self.output_weight:
                                 x = self.output_linear(self.firing)
                         else:
@@ -215,6 +223,9 @@ class RNNFC(nn.Module):
 
         def silence(self, idx):
                 self.idx = idx
+                self.silence_mult = torch.eye(self.hid_size)
+                for i in self.idx:
+                        self.silence_mult[i, i] = 0
 
 class LSTMFC(nn.Module):
         """
@@ -246,12 +257,16 @@ class LSTMFC(nn.Module):
                 self.out_size = out_size
                 self.delay = 1#int(1 / self.dt)
                 self.idx = []
+                self.silence_mult = torch.eye(self.hid_size)
                 self.output_weight = output_weight
 
                 self.reset_state()
 
         def silence(self, idx):
                 self.idx = idx
+                self.silence_mult = torch.eye(self.hid_size)
+                for i in self.idx:
+                        self.silence_mult[i, i] = 0
 
         def forward(self, input):
                 """
@@ -276,9 +291,10 @@ class LSTMFC(nn.Module):
                         self.h, self.c = self.neuron_layer(x, (self.h,self.c))
                         self.h = self.dropout_layer(self.h)
 
-                        if len(self.idx) > 0: # TODO: please fix so no bad error 
-                            with torch.no_grad():
-                                self.h[:, self.idx] = 0
+                        self.firing = self.firing * self.silence_mult
+                        # if len(self.idx) > 0: # TODO: please fix so no bad error 
+                        #     with torch.no_grad():
+                        #         self.h[:, self.idx] = 0
                         if self.output_weight:
                                 x = self.output_linear(self.h)
                         else:
