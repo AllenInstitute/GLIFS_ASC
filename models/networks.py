@@ -40,7 +40,7 @@ class BNNFC(nn.Module):
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
                 self.neuron_layer = BNNC(input_size = in_size, hidden_size = hid_size, num_ascs=num_ascs, hetinit=hetinit, ascs=ascs, learnparams=learnparams)
-                self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
+                #self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -81,9 +81,9 @@ class BNNFC(nn.Module):
                         x = input[:, step, :]
                         
                         self.firing, self.voltage, self.ascurrents, self.syncurrent = self.neuron_layer(x, self.firing, self.voltage, self.ascurrents, self.syncurrent, outputs_[-delay])
-                        self.firing = self.dropout_layer(self.firing)
+                        #self.firing = self.dropout_layer(self.firing)
                         # TODO: this cutting down throws breaks the graph so need to fix that :)
-                        self.firing = self.firing * self.silence_mult
+                        self.firing = torch.matmul(self.firing, self.silence_mult)
                         # if len(self.idx) > 0:
                         #         ##self.firing = self.firing * 
                         #     with torch.no_grad():
@@ -157,7 +157,7 @@ class RNNFC(nn.Module):
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
                 self.neuron_layer = RNNC(input_size = in_size, hidden_size = hid_size, bias = True)
-                self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
+                #self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -199,8 +199,9 @@ class RNNFC(nn.Module):
                         x = input[:, step, :]
                         
                         self.firing = self.neuron_layer(x, self.firing, outputs_[-delay])
-                        self.firing = self.dropout_layer(self.firing)
-                        self.firing = self.firing * self.silence_mult
+                        #self.firing = self.dropout_layer(self.firing)
+                        self.firing = torch.matmul(self.firing, self.silence_mult)
+                        #self.firing = self.firing * self.silence_mult
                         # if len(self.idx) > 0: # TODO: please fix so no bad error 
                         #     with torch.no_grad():
                         #         self.firing[:, self.idx] = 0
@@ -250,7 +251,7 @@ class LSTMFC(nn.Module):
                 super().__init__()
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
                 self.neuron_layer = nn.LSTMCell(input_size = in_size, hidden_size = hid_size, bias = True)
-                self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
+                #self.dropout_layer = nn.Dropout(p=dropout_prob, inplace=False)
 
                 self.in_size = in_size
                 self.hid_size = hid_size
@@ -289,9 +290,10 @@ class LSTMFC(nn.Module):
                 for step in range(nsteps):
                         x = input[:, step, :]
                         self.h, self.c = self.neuron_layer(x, (self.h,self.c))
-                        self.h = self.dropout_layer(self.h)
+                        #self.h = self.dropout_layer(self.h)
 
-                        self.firing = self.firing * self.silence_mult
+                        self.firing = torch.matmul(self.firing, self.silence_mult)
+                        #self.firing = self.firing * self.silence_mult
                         # if len(self.idx) > 0: # TODO: please fix so no bad error 
                         #     with torch.no_grad():
                         #         self.h[:, self.idx] = 0
