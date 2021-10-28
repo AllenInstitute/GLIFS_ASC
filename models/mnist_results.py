@@ -33,9 +33,11 @@ def main():
     parser.add_argument("condition", help="One of ['rnn', 'lstm', 'rglif-hominit', 'rglif-hetinit']")
     parser.add_argument("learnparams", type=int, help="0 or 1 whether to learn parameters")
     parser.add_argument("numascs", type=int, help="Number of ASCs")
+    parser.add_argument("anneal", type=int, help="whether to anneal sigma_v", default=0)
  
     args = parser.parse_args()
     learnparams = (args.learnparams == 1)
+    anneal = (args.anneal == 1)
  
     main_name = args.name
     # base_name = "figures_wkof_072521/" + main_name
@@ -105,7 +107,7 @@ def main():
                 asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
                 np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-init-ascparams.csv", asc_parameters, delimiter=',')
         print(f"Training on iteration {i}")
-        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams, linebyline=True, ascs=ascs, sgd=sgd, reg_lambda=reg_lambda)#, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
+        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "rglif", verbose = True, trainparams=learnparams, linebyline=True, ascs=ascs, sgd=sgd, reg_lambda=reg_lambda, anneal=anneal)#, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv", np.array(training_info["losses"]), delimiter=',')
@@ -131,7 +133,7 @@ def main():
                 print(f"Training on iteration {i}......Trial {trial_idx}...Ablating {pct_remove}")
                 idx = np.random.choice(hid_size, int(pct_remove * hid_size), replace=False)
                 model.silence(idx)
-                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = False, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd)
+                training_info_silence = utt.train_rbnn_mnist(model, batch_size, 0, lr, args.condition[0:5] == "rglif", verbose = False, trainparams=learnparams,linebyline=True, ascs=ascs, sgd=sgd, anneal=anneal)
                 ablation_results[pct_idx, trial_idx] = training_info_silence["test_accuracy"]
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-ablation.csv", ablation_results, delimiter=',')
 

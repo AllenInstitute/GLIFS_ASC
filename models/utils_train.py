@@ -53,7 +53,7 @@ def mnist_generator(root, batch_size):
     test_loader = torch.utils.data.DataLoader(test_set, batch_size=batch_size)
     return train_loader, test_loader
     
-def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt", trainloader = None, testloader = None, reg_lambda=None):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
+def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, linebyline=True, trainparams=True, ascs=True, sgd=False, output_text_filename="results.txt", trainloader = None, testloader = None, reg_lambda=None, anneal=False):#, batch_size, num_epochs, lr, reg_lambda, verbose = True, predrive = True, glifr = True, task = "pattern"):
     ### Reviewed by Chloe W. 09/12/21
     print(f"training with glifr {glifr}, linebyline {linebyline}, trainparams {trainparams}, ascs {ascs}, and sgd {sgd}")
     """
@@ -161,6 +161,7 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
     if sgd:
         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
+    sigma_vs = np.linspace(1e-3, 1, num=num_epochs)
     
     if trainloader is None:
         root = './data/mnist'
@@ -168,6 +169,9 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
 
     model.train()
     for epoch in range(num_epochs):
+        if glifr and anneal:
+            with torch.no_grad():
+                model.neuron_layer.sigma_v = sigma_vs[-1 - epoch]
         tot_loss = 0
         tot_pairs = 0
         loss_batch = []
