@@ -67,7 +67,7 @@ def main():
     batch_size = 128
     num_epochs = 50
     lr = 0.001
-    itrs = 5
+    #itrs = 5
     sgd = False
     reg_lambda = 0
 
@@ -75,7 +75,7 @@ def main():
     ntrials = 30
     nablation = 30
 
-    results = np.zeros((len(pcts), itrs))
+    results = np.zeros((len(pcts), nablation))
 
     # for i in range(itrs):
     for j in range(len(pcts)):
