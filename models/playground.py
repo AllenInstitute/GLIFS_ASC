@@ -13,9 +13,9 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-2-agn"
+main_name = "smnist-4-anneal"#"smnist-2-agn"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-2-agn"
+base_name_model = "models_wkof_080821/" + main_name
 
 init = False
 ii = 28
@@ -208,6 +208,8 @@ def plot_overall_response(model):
 
 # Neuronal Response Curves
 def plot_responses(model):
+    filename = "sample-outputs"
+    filename_dir = "results_wkof_080821/" + main_name
     sim_time = 100
     dt = 0.05
     nsteps = int(sim_time / dt)
@@ -238,6 +240,8 @@ def plot_responses(model):
             plt.ylabel('firing rate', fontsize = fontsize)
             plt.xticks(fontsize = fontsize)
             plt.yticks(fontsize = fontsize)
+    np.savetxt("results/" + filename_dir + "-sampleresponses.csv", outputs[0,:,:], delimiter=",")
+
     plt.show()
 
 def plot_ficurve(model):
@@ -324,6 +328,19 @@ plt.show()
 print(m)
 quit()
 """
+
+input_size = ii
+hid_size = hh
+output_size = oo
+
+glif_input_size = input_size#output_size + input_size
+
+model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+
+model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
+print(f"model uses {model_glif.neuron_layer.sigma_v}")
+plot_responses(model_glif)
+quit()
 plot_example_steps()
 quit()
 
