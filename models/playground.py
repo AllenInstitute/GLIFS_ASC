@@ -213,7 +213,7 @@ def plot_responses(model):
     sim_time = 100
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = -5.5 * 0.0001 * torch.ones(1, nsteps, input_size)
+    input = 0 * -5.5 * 0.0001 * torch.ones(1, nsteps, input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
