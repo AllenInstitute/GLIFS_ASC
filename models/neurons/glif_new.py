@@ -3,6 +3,7 @@
 This file defines models for single layers of neurons.
 """
 import matplotlib.pyplot as plt
+import copy
 import math
 
 import numpy as np
@@ -144,7 +145,7 @@ class BNNC(nn.Module):
                     with torch.no_grad():
                         self.weight_lat.data = torch.mul(self.weight_lat.data, self.weight_lat_mask)
                 if firing_delayed is None:
-                    firing_delayed = copy(firing) #TODO: change to clone?
+                    firing_delayed = firing.clone() #TODO: change to clone?
                 # 1.5, -0.5 for lnasck
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 

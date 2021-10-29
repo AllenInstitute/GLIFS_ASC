@@ -213,7 +213,7 @@ def plot_responses(model):
     sim_time = 100
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = -5.5 * 0.0001 * torch.ones(1, nsteps, output_size + input_size)
+    input = -5.5 * 0.0001 * torch.ones(1, nsteps, input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -226,6 +226,7 @@ def plot_responses(model):
         firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
         outputs[:, step, :] = firing
     
+    """
     for neuron_idx in range(hid_size):
         if random.random() < 1:
             print()
@@ -240,7 +241,8 @@ def plot_responses(model):
             plt.ylabel('firing rate', fontsize = fontsize)
             plt.xticks(fontsize = fontsize)
             plt.yticks(fontsize = fontsize)
-    np.savetxt("results/" + filename_dir + "-sampleresponses.csv", outputs[0,:,:], delimiter=",")
+    """
+    np.savetxt("results/" + filename_dir + "-sampleresponses.csv", outputs[0,:,:].detach().numpy(), delimiter=",")
 
     plt.show()
 
@@ -338,6 +340,7 @@ glif_input_size = input_size#output_size + input_size
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 
 model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
+model_glif.neuron_layer.sigma_v = 1e-3
 print(f"model uses {model_glif.neuron_layer.sigma_v}")
 plot_responses(model_glif)
 quit()
