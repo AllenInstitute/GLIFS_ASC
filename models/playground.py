@@ -210,7 +210,7 @@ def plot_overall_response(model):
 def plot_responses(model):
     filename = "sample-outputs"
     filename_dir = "results_wkof_080821/" + main_name
-    sim_time = 100
+    sim_time = 5#100
     dt = 0.05
     nsteps = int(sim_time / dt)
     input = 0 * -5.5 * 0.0001 * torch.ones(1, nsteps, input_size)
