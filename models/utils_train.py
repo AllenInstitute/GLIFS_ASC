@@ -162,7 +162,8 @@ def train_rbnn_mnist(model, batch_size, num_epochs, lr, glifr, verbose = True, l
         optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=lr)
     loss_fn = nn.CrossEntropyLoss()
     sigma_vs = np.linspace(1e-3, 1, num=num_epochs)
-    
+    sigma_vs[0:int(num_epochs/2)] = 1e-3
+    sigma_vs[int(num_epochs/2):-1] = 1
     if trainloader is None:
         root = './data/mnist'
         trainloader, testloader = mnist_generator(root, batch_size)
