@@ -113,7 +113,7 @@ def plot_example_steps():
 
 def plot_examples():
     import math
-    filename = "sample-outputs"
+    filename = "sample-outputs-sigmav1e-3"
     filename_dir = "results_wkof_080821/" + filename
 
     sim_time = 40
@@ -131,26 +131,29 @@ def plot_examples():
     asc_amps = [(0, 0), (-5000, -5000), (5000, -5000)]
     asc_ks = [(0.5, 0.5), (0.5, 0.5), (0.5, 0.5)]
     names = ["zero", "neg", "opp"]
+    with torch.no_grad():
+        model_glif.neuron_layer.sigma_v = 1e-3
     
     for i in range(len(asc_rs)):
         model_glif.reset_state(1)
-        model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
-        model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
-        model_glif.neuron_layer.thresh.data *= 0
-        name = names[i]
+        with torch.no_grad():
+            model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
+            model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
+            model_glif.neuron_layer.thresh.data *= 0
+            name = names[i]
 
-        asc_r1, asc_r2 = asc_rs[i]
-        asc_amp1, asc_amp2 = asc_amps[i]
-        asc_k1, asc_k2 = asc_ks[i]
+            asc_r1, asc_r2 = asc_rs[i]
+            asc_amp1, asc_amp2 = asc_amps[i]
+            asc_k1, asc_k2 = asc_ks[i]
 
-        model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
-        model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
+            model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
+            model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
 
-        model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
-        model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
+            model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
+            model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
 
-        model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
-        model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
+            model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
+            model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
 
         outputs, voltages, ascs, syns = model_glif.forward(inputs, track=True)
         outputs = outputs.detach().numpy()
@@ -167,7 +170,8 @@ def plot_examples():
         plt.plot(outputs[0,:,0], label=name)
     plt.legend()
     plt.show()
-
+plot_examples()
+quit()
 def plot_overall_response(model):
     sim_time = 40
     dt = 0.05
