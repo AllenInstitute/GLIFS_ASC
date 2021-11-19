@@ -13,14 +13,14 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-final"#"smnist-2-agn"
+main_name = "pattern-4"#"smnist-4-final"#"smnist-2-agn"
 base_name_results = "results_wkof_080821/" + main_name
 base_name_model = "models_wkof_080821/" + main_name
 
-init = True
-ii = 28
-hh = 256
-oo = 10
+init = False
+ii = 10#28
+hh = 128#256
+oo = 1#10
 
 ficurve_simtime = 5
 
