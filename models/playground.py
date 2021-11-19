@@ -13,14 +13,14 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "pattern-4"#"smnist-4-final"#"smnist-2-agn"
+main_name = "smnist-4-final"#"smnist-2-agn"
 base_name_results = "results_wkof_080821/" + main_name
 base_name_model = "models_wkof_080821/" + main_name
 
-init = False
-ii = 10#28
-hh = 128#256
-oo = 1#10
+init = True
+ii = 28
+hh = 256
+oo = 10
 
 ficurve_simtime = 5
 
@@ -312,9 +312,9 @@ def plot_ficurve(model):
             print(f_rates_these)
             print(m)
         plt.plot(i_syns_these, f_rates_these)
-    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", np.array(slopes), delimiter=",")
-    np.savetxt("results/" + base_name_results + "-" + "isyns.csv", np.array(i_syns), delimiter=",")
-    np.savetxt("results/" + base_name_results + "-" + "frates.csv", np.array(f_rates), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + ("init-" if init else "") + "slopes.csv", np.array(slopes), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + ("init-" if init else "") + "isyns.csv", np.array(i_syns), delimiter=",")
+    np.savetxt("results/" + base_name_results + "-" + ("init-" if init else "") + "frates.csv", np.array(f_rates), delimiter=",")
     quit()
     plt.savefig("figures/sample-f-i-curves-pattern.png")
     plt.close()
