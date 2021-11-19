@@ -13,11 +13,11 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-4-anneal"#"smnist-2-agn"
+main_name = "smnist-4-final"#"smnist-2-agn"
 base_name_results = "results_wkof_080821/" + main_name
 base_name_model = "models_wkof_080821/" + main_name
 
-init = False
+init = True
 ii = 28
 hh = 256
 oo = 10
@@ -173,8 +173,8 @@ def plot_examples():
         plt.plot(outputs[0,:,0], label=name)
     plt.legend()
     plt.show()
-plot_example_steps()
-quit()
+#plot_example_steps()
+#quit()
 def plot_overall_response(model):
     sim_time = 40
     dt = 0.05
@@ -343,7 +343,7 @@ hid_size = hh
 output_size = oo
 
 glif_input_size = input_size#output_size + input_size
-
+"""
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
 
 model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
@@ -353,7 +353,7 @@ plot_responses(model_glif)
 quit()
 plot_example_steps()
 quit()
-
+"""
 input_size = ii
 hid_size = hh
 output_size = oo
@@ -387,13 +387,13 @@ ascurrents = torch.zeros((2, input.shape[0], hid_size))
 outputs_temp = torch.zeros(1, nsteps, hid_size)
 
 firing_delayed = torch.zeros((input.shape[0], nsteps, hid_size))
-
+"""
 for step in range(nsteps):
         x = input[:, step, :]
         firing, voltage, ascurrents, syncurrent = model_glif.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
         outputs_temp[0, step, :] = firing
 np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:], delimiter=',')
-
+"""
 plot_ficurve(model_glif)
 quit()
 # with torch.no_grad():
