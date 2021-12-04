@@ -1,9 +1,17 @@
-fig = figure
-fig.Renderer='Painters';
+clear all
+% % fig = figure
+% % fig.Renderer='Painters';
 
 task = "smnist"; % smnist or pattern
 fontsize = 24;
 linewidth = 2;
+
+ch_scores = xlsread("results_wkof_080821/smnist-4-final-256units-0itr-allparams-chscores.csv")
+scatter(ch_scores(:, 1), ch_scores(:, 2), 'k', 'filled');
+xlabel('# clusters', 'FontName', 'helvetica', 'FontSize', fontsize);
+ylabel('CH index', 'FontName', 'helvetica', 'FontSize', fontsize);
+set(gca,'FontSize', fontsize);
+ylim([150, 220]);
 
 name = "4-agn";
 % clustername = "smnist-4-agn-256units-256units-0itr-allparams-clusters";
@@ -11,8 +19,9 @@ name = "4-agn";
 % initparamname = "smnist-4-agn-256units-init-256units-0itr-allparams";
 % outputsname = "smnist-4-agn-sampleoutputs";
 
-clustername = "smnist-4-agn-256units-256units-0itr-allfeatures-clusters";
-paramname = "smnist-4-agn-256units-256units-0itr-allparams";
+clustername = "smnist-4-final-256units-0itr-allparams-clusters";
+paramname = "smnist-4-final-256units-0itr-allparams";
+
 % initparamname = "smnist-2-agn-256units-init-256units-0itr-allparams";
 % outputsname = "smnist-4-agn-sampleoutputs";
 
@@ -57,42 +66,42 @@ fig = figure
 fig.Renderer='Painters';
 
 colors_rbg = [51, 34, 136;
-    17, 119, 51;
     68, 170, 153;
-    136, 204, 238] ./ 256;
+    221, 204, 119;
+    204, 102, 119] ./ 256;
 
 subplot(2,2,1)
-scatter(parameters(:,1), parameters(:,2), [], clusters_labels);
-xlabel('threshold (mV)', 'FontName', 'helvetica', 'FontSize', fontsize);
-ylabel('km (ms^-1)', 'FontName', 'helvetica', 'FontSize', fontsize);
+scatter(parameters(:,1), parameters(:,2), [], clusters_labels, 'filled', 'MarkerFaceAlpha',.2);
+xlabel('thresh (mV)', 'FontName', 'helvetica', 'FontSize', fontsize);
+ylabel('k_m (1/ms)', 'FontName', 'helvetica', 'FontSize', fontsize);
 set(gca,'FontSize', fontsize);
 colormap(colors_rbg)
 
 subplot(2,2,2)
 fig.Renderer='Painters';
-scatter(parameters(:,3), parameters(:,4), [], clusters_labels);
+scatter(parameters(:,3), parameters(:,4), [], clusters_labels, 'filled', 'MarkerFaceAlpha',.2);
 % hold on
 % h=fill([-0.01,0.01,0.01,-0.01],[-0.01,-0.01,0.01,0.01],'red');
 % h.FaceAlpha=0.3;
-xlabel('r1', 'FontName', 'helvetica', 'FontSize', fontsize);
-ylabel('r2', 'FontName', 'helvetica', 'FontSize', fontsize);
+xlabel('r_1', 'FontName', 'helvetica', 'FontSize', fontsize);
+ylabel('r_2', 'FontName', 'helvetica', 'FontSize', fontsize);
 set(gca,'FontSize', fontsize);
 
 subplot(2,2,3)
 fig.Renderer='Painters';
-scatter(parameters(:,5), parameters(:,6), [], clusters_labels);
-xlabel('k1', 'FontName', 'helvetica', 'FontSize', fontsize);
-ylabel('k2', 'FontName', 'helvetica', 'FontSize', fontsize);
+scatter(parameters(:,5), parameters(:,6), [], clusters_labels, 'filled', 'MarkerFaceAlpha',.2);
+xlabel('k_1 (1/ms)', 'FontName', 'helvetica', 'FontSize', fontsize);
+ylabel('k_2 (1/ms)', 'FontName', 'helvetica', 'FontSize', fontsize);
 set(gca,'FontSize', fontsize);
 
 subplot(2,2,4)
 fig.Renderer='Painters';
-scatter(parameters(:,7), parameters(:,8), [], clusters_labels);
+scatter(parameters(:,7), parameters(:,8), [], clusters_labels, 'filled', 'MarkerFaceAlpha',.2);
 % hold on
 % h=fill([-0.01,0.01,0.01,-0.01],[-0.01,-0.01,0.01,0.01],'red');
 % h.FaceAlpha=0.3;
-xlabel('a1', 'FontName', 'helvetica', 'FontSize', fontsize);
-ylabel('a2', 'FontName', 'helvetica', 'FontSize', fontsize);
+xlabel('a_1 (pA)', 'FontName', 'helvetica', 'FontSize', fontsize);
+ylabel('a_2 (pA)', 'FontName', 'helvetica', 'FontSize', fontsize);
 set(gca,'FontSize', fontsize);
 % nbins = 20;
 % 

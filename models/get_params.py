@@ -1,23 +1,16 @@
 """
-This file is used for miscellaneous plotting and analysis.
+This file is used to save the parameters of models to a file.
 """
 
-# Reviewed @chloewin 09/12/21
-
-import matplotlib.pyplot as plt
 import numpy as np
-import random
 import torch
-import torch.nn as nn
-import torch.utils.data as tud
 
-import utils as ut
-from networks import RNNFC, BNNFC
+from models.networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-2-agn"#"smnist-4-agn-256units-init"
+main_name = "smnist-4-final"#"smnist-4-agn-256units-init"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-2-agn"#"smnist-4-agn"#2asc"
+base_name_model = "models_wkof_080821/" + main_name#"smnist-2-agn"#"smnist-4-agn"#2asc"
 
 init = False
 input_size = 28
@@ -25,7 +18,6 @@ hid_size = 256
 output_size = 10
 
 model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-# model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))
 
 if init:
     model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr-init.pt"))
@@ -42,4 +34,5 @@ parameters[:, 5] = model_glif.neuron_layer.transform_to_k(model_glif.neuron_laye
 parameters[:, 6] = model_glif.neuron_layer.asc_amp.detach().numpy()[0,0,:]
 parameters[:, 7] = model_glif.neuron_layer.asc_amp.detach().numpy()[1,0,:]
 
-np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(0) + "itr-allparams.csv", parameters, delimiter=',')
+addinit = "-init" if init else ""
+np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(0) + "itr" + addinit + "-allparams.csv", parameters, delimiter=',')

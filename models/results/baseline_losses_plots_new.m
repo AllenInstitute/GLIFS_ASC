@@ -8,27 +8,37 @@ fontsize = 24;
 
 if strcmp(task, "smnist")
     results_file = fopen("stats_smnist-overalllosses.txt", 'w');
+    data_1 = xlsread("results_wkof_080821/smnist-1-final-259units-accs.csv");
+    data_2 = xlsread("results_wkof_080821/smnist-2-final-256units-accs.csv");
+    data_3 = xlsread("results_wkof_080821/smnist-3-final-259units-accs.csv");
+    data_4 = xlsread("results_wkof_080821/smnist-4-final-256units-accs.csv");
+    data_5 = xlsread("results_wkof_080821/smnist-5-final-259units-accs.csv");
+    data_6 = xlsread("results_wkof_080821/smnist-6-final-258units-accs.csv");
+    data_7 = xlsread("results_wkof_080821/smnist-7-final-259units-accs.csv");
+    data_8 = xlsread("results_wkof_080821/smnist-8-final-258units-accs.csv");
+    data_9 = xlsread("results_wkof_080821/smnist-9-final-259units-accs.csv");
+    data_10 = xlsread("results_wkof_080821/smnist-10-final-123units-accs.csv");
     
-    data_1 = xlsread("results_wkof_080821/smnist-1-wreg-259units-accs.csv");
-    data_2 = xlsread("results_wkof_080821/smnist-2-agn-256units-accs.csv");
-    data_3 = xlsread("results_wkof_080821/smnist-3-agn-259units-accs.csv");
-    data_4 = xlsread("results_wkof_080821/smnist-4-agn-256units-accs.csv");
-    data_5 = xlsread("results_wkof_080821/smnist-5-agn-259units-accs.csv");
-    data_6 = xlsread("results_wkof_080821/smnist-6-agn-258units-accs.csv");
-    data_7 = xlsread("results_wkof_080821/smnist-7-agn-259units-accs.csv");
-    data_8 = xlsread("results_wkof_080821/smnist-8-agn-258units-accs.csv");
-    data_9 = xlsread("results_wkof_080821/smnist-9-agn-259units-accs.csv");
-    data_10 = xlsread("results_wkof_080821/smnist-10-agn-123units-accs.csv");
+%     data_1 = xlsread("results_wkof_080821/smnist-1-wreg-259units-accs.csv");
+%     data_2 = xlsread("results_wkof_080821/smnist-2-agn-256units-accs.csv");
+%     data_3 = xlsread("results_wkof_080821/smnist-3-agn-259units-accs.csv");
+%     data_4 = xlsread("results_wkof_080821/smnist-4-agn-256units-accs.csv");
+%     data_5 = xlsread("results_wkof_080821/smnist-5-agn-259units-accs.csv");
+%     data_6 = xlsread("results_wkof_080821/smnist-6-agn-258units-accs.csv");
+%     data_7 = xlsread("results_wkof_080821/smnist-7-agn-259units-accs.csv");
+%     data_8 = xlsread("results_wkof_080821/smnist-8-agn-258units-accs.csv");
+%     data_9 = xlsread("results_wkof_080821/smnist-9-agn-259units-accs.csv");
+%     data_10 = xlsread("results_wkof_080821/smnist-10-agn-123units-accs.csv");
     
     ylabel_text = "accuracy";
     offset = 0.01;
 else
     results_file = fopen("stats_pattern-overalllosses.txt", 'w');
     
-    data_1 = xlsread("results_wkof_080821/pattern-1-131units-accs.csv");
-    data_2 = xlsread("results_wkof_080821/pattern-2-128units-accs.csv");
-    data_3 = xlsread("results_wkof_080821/pattern-3-131units-accs.csv");
-    data_4 = xlsread("results_wkof_080821/pattern-4-128units-accs.csv");
+    data_1 = xlsread("paper_results/pattern_results/pattern-1/pattern-1-131units-accs.csv");
+    data_2 = xlsread("paper_results/pattern_results/pattern-2/pattern-2-128units-accs.csv");
+    data_3 = xlsread("paper_results/pattern_results/pattern-3/pattern-3-131units-accs.csv");
+    data_4 = xlsread("paper_results/pattern_results/pattern-4/pattern-4-128units-accs.csv");
     data_5 = xlsread("results_wkof_080821/pattern-5-131units-accs.csv");
     data_6 = xlsread("results_wkof_080821/pattern-6-130units-accs.csv");
     data_7 = xlsread("results_wkof_080821/pattern-7-131units-accs.csv");
@@ -158,7 +168,7 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 
 for i = 1:nbars
     x = xticks - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
-    errorbar(x, means.', stds.', 'k', 'linestyle', 'none', 'LineWidth', 1, 'HandleVisibility','off', 'CapSize', 10);
+    errorbar(x, means.', stds.', 'k', 'linestyle', 'none', 'LineWidth', 2, 'HandleVisibility','off', 'CapSize', 10);
     hold on
 end
 

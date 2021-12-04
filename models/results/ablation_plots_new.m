@@ -10,23 +10,47 @@ fontsize = 24;
 alpha = 0.05;
 
 if strcmp(task, "smnist")
-    results_file = fopen("stats_smnist.txt", 'w');
+    results_file = fopen("stats_smnist_ablation.txt", 'w');
     
-    data_1 = xlsread("results_wkof_080821/smnist-1-wreg-259units-0itr-ablation.csv");
-    data_2 = xlsread("results_wkof_080821/smnist-2-agn-256units-0itr-ablation.csv");
-    data_3 = xlsread("results_wkof_080821/smnist-3-agn-259units-0itr-ablation.csv");
-    data_4 = xlsread("results_wkof_080821/smnist-4-agn-256units-0itr-ablation.csv");
-    data_5 = xlsread("results_wkof_080821/smnist-5-agn-259units-0itr-ablation.csv");
-    data_6 = xlsread("results_wkof_080821/smnist-6-agn-258units-0itr-ablation.csv");
-    data_7 = xlsread("results_wkof_080821/smnist-7-agn-259units-0itr-ablation.csv");
-    data_8 = xlsread("results_wkof_080821/smnist-8-agn-258units-0itr-ablation.csv");
-    data_9 = xlsread("results_wkof_080821/smnist-9-agn-259units-0itr-ablation.csv");
-    data_10 = xlsread("results_wkof_080821/smnist-10-agn-123units-0itr-ablation.csv");
+    data_1 = xlsread("results_wkof_080821/smnist-1-final-259units-0itr-ablation.csv");
+    data_2 = xlsread("results_wkof_080821/smnist-2-final-256units-0itr-ablation.csv");
+    data_3 = xlsread("results_wkof_080821/smnist-3-final-259units-0itr-ablation.csv");
+    data_4 = xlsread("results_wkof_080821/smnist-4-final-256units-0itr-ablation.csv");
+    data_5 = xlsread("results_wkof_080821/smnist-5-final-259units-0itr-ablation.csv");
+    data_6 = xlsread("results_wkof_080821/smnist-6-final-258units-0itr-ablation.csv");
+    data_7 = xlsread("results_wkof_080821/smnist-7-final-259units-0itr-ablation.csv");
+    data_8 = xlsread("results_wkof_080821/smnist-8-final-258units-0itr-ablation.csv");
+    data_9 = xlsread("results_wkof_080821/smnist-9-final-259units-0itr-ablation.csv");
+    data_10 = xlsread("results_wkof_080821/smnist-10-final-123units-0itr-ablation.csv");
+    
+    for i = [1:29]
+        data_1 = cat(2, data_1,  xlsread("results_wkof_080821/smnist-1-final-259units-" + i + "itr-ablation.csv"));
+        data_2 = cat(2, data_2,  xlsread("results_wkof_080821/smnist-2-final-256units-" + i + "itr-ablation.csv"));
+        data_3 = cat(2, data_3,  xlsread("results_wkof_080821/smnist-3-final-259units-" + i + "itr-ablation.csv"));
+        data_4 = cat(2, data_4,  xlsread("results_wkof_080821/smnist-4-final-256units-" + i + "itr-ablation.csv"));
+        data_5 = cat(2, data_5,  xlsread("results_wkof_080821/smnist-5-final-259units-" + i + "itr-ablation.csv"));
+        data_6 = cat(2, data_6,  xlsread("results_wkof_080821/smnist-6-final-258units-" + i + "itr-ablation.csv"));
+        data_7 = cat(2, data_7,  xlsread("results_wkof_080821/smnist-7-final-259units-" + i + "itr-ablation.csv"));
+        data_8 = cat(2, data_8,  xlsread("results_wkof_080821/smnist-8-final-258units-" + i + "itr-ablation.csv"));
+        data_9 = cat(2, data_9,  xlsread("results_wkof_080821/smnist-9-final-259units-" + i + "itr-ablation.csv"));
+        data_10 = cat(2, data_10,  xlsread("results_wkof_080821/smnist-10-final-123units-" + i + "itr-ablation.csv"));
+    end
+%     data_1 = xlsread("results_wkof_080821/smnist-1-wreg-259units-0itr-ablation.csv");
+%     data_2 = xlsread("results_wkof_080821/smnist-2-agn-256units-0itr-ablation.csv");
+%     data_3 = xlsread("results_wkof_080821/smnist-3-agn-259units-0itr-ablation.csv");
+%     data_4 = xlsread("results_wkof_080821/smnist-4-agn-256units-0itr-ablation.csv");
+%     data_5 = xlsread("results_wkof_080821/smnist-5-agn-259units-0itr-ablation.csv");
+%     data_6 = xlsread("results_wkof_080821/smnist-6-agn-258units-0itr-ablation.csv");
+%     data_7 = xlsread("results_wkof_080821/smnist-7-agn-259units-0itr-ablation.csv");
+%     data_8 = xlsread("results_wkof_080821/smnist-8-agn-258units-0itr-ablation.csv");
+%     data_9 = xlsread("results_wkof_080821/smnist-9-agn-259units-0itr-ablation.csv");
+%     data_10 = xlsread("results_wkof_080821/smnist-10-agn-123units-0itr-ablation.csv");
     
     ylabel_text = "accuracy";
     offset = 0.01;
 else
     results_file = fopen("stats_pattern.txt", 'w');
+    % data shape = [num_pcts, num_trials]
     
     data_1 = xlsread("results_wkof_080821/pattern-1-woreg-131units-0itr-ablation.csv");
     data_2 = xlsread("results_wkof_080821/pattern-2-woreg-128units-0itr-ablation.csv");
@@ -157,13 +181,13 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 
 for i = 1:nbars
     x = xticks - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
-    errorbar(x, means(:,i), stds(:,i), 'k', 'LineWidth', 0.5, 'linestyle', 'none', 'HandleVisibility','off');
+    errorbar(x, means(:,i), stds(:,i), 'k', 'LineWidth', 1, 'CapSize', 10, 'linestyle', 'none', 'HandleVisibility','off');
     hold on
     
     for j = 1:ngroups
-        if p_values(j, i) < alpha && p_values(j, i) ~= 0
-            text(x(j), means(j,i) + stds(j,i) + offset, "*", 'FontName', 'helvetica', 'FontSize', fontsize-2, 'HorizontalAlignment', 'center');
-        end
+%         if p_values(j, i) < alpha && p_values(j, i) ~= 0
+%             text(x(j), means(j,i) + stds(j,i) + offset, "*", 'FontName', 'helvetica', 'FontSize', fontsize-2, 'HorizontalAlignment', 'center');
+%         end
     end
 end
 
