@@ -13,14 +13,14 @@ import utils as ut
 from networks import RNNFC, BNNFC
 
 fontsize = 18
-main_name = "smnist-2-agn"
+main_name = "pattern-4"#"smnist-4-final"#"smnist-2-agn"
 base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + "smnist-2-agn"
+base_name_model = "models_wkof_080821/" + main_name
 
 init = False
-ii = 28
-hh = 256
-oo = 10
+ii = 1#28
+hh = 128#256
+oo = 1#10
 
 ficurve_simtime = 5
 
@@ -52,7 +52,7 @@ ficurve_simtime = 5
 
 def plot_example_steps():
     import math
-    filename = "sample-outputs-steps"
+    filename = "sample-outputs-steps-sigmav1-3"
     filename_dir = "results_wkof_080821/" + filename
 
     sim_time = 40
@@ -66,6 +66,8 @@ def plot_example_steps():
     inputs = torch.ones(1, nsteps, input_size)
 
     model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, output_weight=False)
+    with torch.no_grad():
+        model_glif.neuron_layer.sigma_v = 1e-3
     asc_rs = (-(1-1e-10), 1-1e-10)
     asc_amps = (50, -50)
     asc_ks = (.2, .2)
@@ -78,22 +80,23 @@ def plot_example_steps():
         inputs_here = inputs * scale_factor
 
         model_glif.reset_state(1)
-        model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
-        model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
-        model_glif.neuron_layer.thresh.data *= 0
+        with torch.no_grad():
+            model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
+            model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
+            model_glif.neuron_layer.thresh.data *= 0
 
-        asc_r1, asc_r2 = asc_rs
-        asc_amp1, asc_amp2 = asc_amps
-        asc_k1, asc_k2 = asc_ks
+            asc_r1, asc_r2 = asc_rs
+            asc_amp1, asc_amp2 = asc_amps
+            asc_k1, asc_k2 = asc_ks
 
-        model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
-        model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
+            model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
+            model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
 
-        model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
-        model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
+            model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
+            model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
 
-        model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
-        model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
+            model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
+            model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
 
         outputs, voltages, ascs, syns = model_glif.forward(inputs_here, track=True)
         outputs = outputs.detach().numpy()
@@ -113,7 +116,7 @@ def plot_example_steps():
 
 def plot_examples():
     import math
-    filename = "sample-outputs"
+    filename = "sample-outputs-sigmav1e-3"
     filename_dir = "results_wkof_080821/" + filename
 
     sim_time = 40
@@ -131,26 +134,29 @@ def plot_examples():
     asc_amps = [(0, 0), (-5000, -5000), (5000, -5000)]
     asc_ks = [(0.5, 0.5), (0.5, 0.5), (0.5, 0.5)]
     names = ["zero", "neg", "opp"]
+    with torch.no_grad():
+        model_glif.neuron_layer.sigma_v = 1e-3
     
     for i in range(len(asc_rs)):
         model_glif.reset_state(1)
-        model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
-        model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
-        model_glif.neuron_layer.thresh.data *= 0
-        name = names[i]
+        with torch.no_grad():
+            model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
+            model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
+            model_glif.neuron_layer.thresh.data *= 0
+            name = names[i]
 
-        asc_r1, asc_r2 = asc_rs[i]
-        asc_amp1, asc_amp2 = asc_amps[i]
-        asc_k1, asc_k2 = asc_ks[i]
+            asc_r1, asc_r2 = asc_rs[i]
+            asc_amp1, asc_amp2 = asc_amps[i]
+            asc_k1, asc_k2 = asc_ks[i]
 
-        model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
-        model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
+            model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
+            model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
 
-        model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
-        model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
+            model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
+            model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
 
-        model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
-        model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
+            model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
+            model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
 
         outputs, voltages, ascs, syns = model_glif.forward(inputs, track=True)
         outputs = outputs.detach().numpy()
@@ -167,7 +173,8 @@ def plot_examples():
         plt.plot(outputs[0,:,0], label=name)
     plt.legend()
     plt.show()
-
+#plot_example_steps()
+#quit()
 def plot_overall_response(model):
     sim_time = 40
     dt = 0.05
@@ -208,10 +215,12 @@ def plot_overall_response(model):
 
 # Neuronal Response Curves
 def plot_responses(model):
-    sim_time = 100
+    filename = "sample-outputs"
+    filename_dir = "results_wkof_080821/" + main_name
+    sim_time = 5#100
     dt = 0.05
     nsteps = int(sim_time / dt)
-    input = -5.5 * 0.0001 * torch.ones(1, nsteps, output_size + input_size)
+    input = 0 * -5.5 * 0.0001 * torch.ones(1, nsteps, input_size)
     outputs = torch.zeros(1, nsteps, hid_size)
 
     firing = torch.zeros((1, hid_size))
@@ -224,6 +233,7 @@ def plot_responses(model):
         firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
         outputs[:, step, :] = firing
     
+    """
     for neuron_idx in range(hid_size):
         if random.random() < 1:
             print()
@@ -238,6 +248,9 @@ def plot_responses(model):
             plt.ylabel('firing rate', fontsize = fontsize)
             plt.xticks(fontsize = fontsize)
             plt.yticks(fontsize = fontsize)
+    """
+    np.savetxt("results/" + filename_dir + "-sampleresponses.csv", outputs[0,:,:].detach().numpy(), delimiter=",")
+
     plt.show()
 
 def plot_ficurve(model):
@@ -324,9 +337,23 @@ plt.show()
 print(m)
 quit()
 """
+
+input_size = ii
+hid_size = hh
+output_size = oo
+
+glif_input_size = input_size#output_size + input_size
+"""
+model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+
+model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
+model_glif.neuron_layer.sigma_v = 1e-3
+print(f"model uses {model_glif.neuron_layer.sigma_v}")
+plot_responses(model_glif)
+quit()
 plot_example_steps()
 quit()
-
+"""
 input_size = ii
 hid_size = hh
 output_size = oo
@@ -360,13 +387,13 @@ ascurrents = torch.zeros((2, input.shape[0], hid_size))
 outputs_temp = torch.zeros(1, nsteps, hid_size)
 
 firing_delayed = torch.zeros((input.shape[0], nsteps, hid_size))
-
+"""
 for step in range(nsteps):
         x = input[:, step, :]
         firing, voltage, ascurrents, syncurrent = model_glif.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
         outputs_temp[0, step, :] = firing
 np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:], delimiter=',')
-
+"""
 plot_ficurve(model_glif)
 quit()
 # with torch.no_grad():

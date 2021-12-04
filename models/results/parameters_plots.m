@@ -8,7 +8,7 @@ fontsize = 24;
 % MEM: thresh, k_m
 % ASC: k, r, amp
 
-specname = "4-agn-256units";
+specname = "4-anneal-256units";
 if strcmp(task, "smnist")
     mem_params = xlsread("results_wkof_080821/smnist-" + specname + "-0itr-membraneparams.csv");
     asc_params = xlsread("results_wkof_080821/smnist-" + specname + "-0itr-ascparams.csv");
