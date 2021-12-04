@@ -1,7 +1,58 @@
+"""
+This file contains helper functions to create data for the pattern generation task
+and related tasks not explored in the paper.
+"""
+
+
 import numpy as np
 import torch
 import torch.utils.data as tud
 
+
+def create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs):
+    """
+    Create a dataset of different frequency sinusoids adapted  and simplified from
+    (David Sussillo, Omri Barak, 2013) pattern generation task
+    Parameters
+    ----------
+    sim_time : float
+        number of ms of total simulation time
+    dt : float
+        number of ms in each timestep
+    amp : float
+        amplitude of the sinusoid
+    noise_mean : float
+        mean of noise added to sinusoid
+    noise_std : float
+        std of noise added to sinusoid
+    freqs : List
+        list of frequencies (1/ms or kHz) of sinusoids
+    Returns
+    -------
+    Numpy Array(nsteps, len(freqs))
+        input sequences (all 1-D)
+    Numpy Arryay(nsteps, len(freqs))
+        target sequences (all 1-D)
+    """
+    n = len(freqs)
+    nsteps = int(sim_time / dt)
+    time = np.arange(start = 0, stop = sim_time, step = dt)
+
+    targets = np.empty((nsteps, n))
+    inputs = np.empty((nsteps, n))
+
+    for i in range(n):
+        offset = (i / n) + 0.25
+        noise = np.random.normal(noise_mean, noise_std, nsteps)
+        freq = 2 * np.pi * freqs[i]
+        
+        targets[:, i] = amp * np.sin(freq * time) + noise + offset
+        inputs[:,i] = offset
+
+    inputs = np.expand_dims(inputs, -1)
+    targets = np.expand_dims(targets, -1)
+
+    return inputs, targets
 
 def create_dataset(inputs, targets):
     """
@@ -16,6 +67,10 @@ def create_dataset(inputs, targets):
         numpy array containing n target samples, each with
         nsteps timesteps and a dimension of input_size
         and corresponding to inputs
+    
+    Returns
+    -------
+    Torch Dataset
     """
     nsteps, n, input_size = inputs.shape
 
@@ -126,62 +181,3 @@ def create_sines_cued(sim_time, dt, amp, noise_mean, noise_std, freqs, input_siz
 
     return inputs, targets
 
-def create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs):
-    """
-    Create a dataset of different frequency sinusoids based on (David Sussillo, Omri Barak, 2013) pattern generation task
-    Parameters
-    ----------
-    sim_time : float
-        number of ms of total simulation time
-    dt : float
-        number of ms in each timestep
-    amp : float
-        amplitude of the sinusoid
-    noise_mean : float
-        mean of noise added to sinusoid
-    noise_std : float
-        std of noise added to sinusoid
-    freqs : List
-        list of frequencies (1/ms or kHz) of sinusoids
-    input_size : int
-        number of input signals
-    Returns
-    -------
-    Numpy Array(nsteps, len(freqs))
-        input sequences (all 1-D)
-    Numpy Arryay(nsteps, len(freqs))
-        target sequences (all 1-D)
-    """
-    n = len(freqs)
-    nsteps = int(sim_time / dt)
-    time = np.arange(start = 0, stop = sim_time, step = dt)
-
-    targets = np.empty((nsteps, n))
-    inputs = np.empty((nsteps, n))
-
-    # nsteps_pre = max([min(200,int((1 / (freq)) / dt)) for freq in freqs])
-    # targets_pre = np.empty((nsteps_pre + 1, n))
-    # inputs_pre = np.empty((nsteps_pre + 1, n))
-
-    for i in range(n):
-        offset = (i / n) + 0.25
-        noise = np.random.normal(noise_mean, noise_std, nsteps)
-        freq = 2 * np.pi * freqs[i]
-        
-        targets[:, i] = amp * np.sin(freq * time) + noise + offset
-        inputs[:,i] = offset
-
-        
-        # period = min(int((1 / freqs[i]) / dt), 200)
-        # noise = np.random.normal(noise_mean, noise_std, period)
-        # time_pre =np.linspace(-1 / freqs[i], 0, num = period, endpoint = False)# np.arange(start = -1 / freqs[i], stop = 0, step = dt)
-        # inputs_pre[-period:, i] = offset
-        # print((amp * np.sin(freq * time_pre) + noise + offset).shape)
-        # targets_pre[-period:, i] = (amp * np.sin(2 * np.pi * freqs[i] * time_pre) + noise + offset)[-period:]
-
-    inputs = np.expand_dims(inputs, -1)
-    targets = np.expand_dims(targets, -1)
-    # inputs_pre = np.expand_dims(inputs_pre, -1)
-    # targets_pre = np.expand_dims(targets_pre, -1)
-
-    return inputs, targets

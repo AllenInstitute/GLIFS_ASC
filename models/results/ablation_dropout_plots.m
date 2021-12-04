@@ -5,7 +5,7 @@ fig.Renderer='Painters';
 
 task = "smnist"; % smnist or pattern
 
-results_file = fopen("stats_pattern.txt", 'w');
+results_file = fopen("stats_smnist_dropout.txt", 'w');
 fontsize = 24;
 alpha = 0.05;
 
@@ -157,14 +157,14 @@ groupwidth = min(0.8, nbars/(nbars + 1.5));
 
 for i = 1:nbars
     x = xticks - groupwidth/2 + (2*i-1) * groupwidth / (2*nbars);
-    errorbar(x, means(:,i), stds(:,i), 'k', 'LineWidth', 0.5, 'linestyle', 'none', 'HandleVisibility','off');
+    errorbar(x(2:5), means(2:5,i), stds(2:5,i), 'k', 'LineWidth', 1, 'CapSize', 10, 'linestyle', 'none', 'HandleVisibility','off');
     hold on
     
-    for j = 1:ngroups
-        if p_values(j, i) < alpha && p_values(j, i) ~= 0
-            text(x(j), means(j,i) + stds(j,i) + offset, "*", 'FontName', 'helvetica', 'FontSize', fontsize-2, 'HorizontalAlignment', 'center');
-        end
-    end
+%     for j = 1:ngroups
+%         if p_values(j, i) < alpha && p_values(j, i) ~= 0
+%             text(x(j), means(j,i) + stds(j,i) + offset, "*", 'FontName', 'helvetica', 'FontSize', fontsize-2, 'HorizontalAlignment', 'center');
+%         end
+%     end
 end
 
 colors = ["#332288", "#117733", "#44AA99", "#88CCEE", "#DDCC77", "#CC6677", "#AA4499", "#882255", "#72B803", "#109EC4", "#4DB8F6", "#4E1D87"];

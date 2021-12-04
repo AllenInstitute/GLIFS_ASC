@@ -4,13 +4,12 @@ This file is used for miscellaneous plotting and analysis.
 
 import matplotlib.pyplot as plt
 import numpy as np
-import random
 import torch
 import torch.nn as nn
 import torch.utils.data as tud
-
-import utils as ut
-from networks import RNNFC, BNNFC
+import math
+from models.networks import RNNFC, BNNFC
+import utils_task as utta 
 
 fontsize = 18
 main_name = "smnist-4-final"#"smnist-2-agn"
@@ -18,42 +17,19 @@ base_name_results = "results_wkof_080821/" + main_name
 base_name_model = "models_wkof_080821/" + main_name
 
 init = True
-ii = 28
-hh = 256
-oo = 10
+input_size = 28 # 1 for pattern
+hid_size = 256 # 128 for pattern
+output_size = 10 # 1 for pattern
 
 ficurve_simtime = 5
 
-# folder_loss = "traininfo_wkof_053021/"
-# losses_rnn = torch.load("traininfo/" + folder_loss + "5dsine_rrnn_short060621_10ms_spontaneous_losses.pt")
-# losses_glif = torch.load("traininfo/" + folder_loss + "5dsine_brnn_short060621_10ms_spontaneous_losses.pt")
-# plt.plot(losses_rnn, color = 'orange', label = "RNN")
-# plt.plot(losses_glif, 'purple', label = "GLIF_ASC")
-# losses_rnn = torch.load("traininfo/" + folder_loss + "rnn200_sussillo8_batched_hisgmav_predrive_scaleasc_losses.pt")
-# losses_glif = torch.load("traininfo/" + folder_loss + "brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_agn_nodivstart_losses.pt")
-# losses_glifwt = torch.load("traininfo/" + folder_loss + "brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_wtonly_agn_nodivstart_losses.pt")
-# # losses_glifpar = torch.load("traininfo/" + folder_loss + "brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_paramonly_losses.pt")
-# losses_noasc = torch.load("traininfo/" + folder_loss + "brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_noasc_losses.pt")
-
-# # plt.plot(losses_rnn, label = "RNN-weights")
-# plt.plot(losses_glif, 'purple', label = "GLIF_ASC-both")
-# plt.plot(losses_glifwt, 'orange', label = "GLIF_ASC-weights")
-# # plt.plot(losses_glifpar, label = "GLIF_ASC-parameters")
-# plt.plot(losses_noasc, 'green', label = "LIF-both")
-
-# plt.legend(fontsize = fontsize - 2)
-# plt.xticks(fontsize = fontsize)
-# plt.yticks(fontsize = fontsize)
-# plt.xlim([0,250]) # TODO: please change as needed
-# plt.xlabel("epoch #", fontsize = fontsize)
-# plt.ylabel("mse loss", fontsize = fontsize)
-# plt.show()
-
-
 def plot_example_steps():
-    import math
+    # Simulates single neuron responding to constant input of different magnitudes
     filename = "sample-outputs-steps-sigmav1-3"
     filename_dir = "results_wkof_080821/" + filename
+
+    sigma_v = 1e-3 # 1
+    scale_factors = [0.1, 1, 10]
 
     sim_time = 40
     dt = 0.05
@@ -64,15 +40,16 @@ def plot_example_steps():
     hid_size = 1
 
     inputs = torch.ones(1, nsteps, input_size)
+    # Uncomment next two lines to explore step-like input rather than constant input
+    # inputs = torch.zeros(1, nsteps, input_size)
+    # inputs[:, 100:700, :] = 1
 
     model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, output_weight=False)
     with torch.no_grad():
-        model_glif.neuron_layer.sigma_v = 1e-3
+        model_glif.neuron_layer.sigma_v = sigma_v
     asc_rs = (-(1-1e-10), 1-1e-10)
     asc_amps = (50, -50)
     asc_ks = (.2, .2)
-
-    scale_factors = [0.1, 1, 10]
     
     model_glif.eval()
     for i in range(len(scale_factors)):
@@ -114,8 +91,101 @@ def plot_example_steps():
     plt.legend()
     plt.show()
 
+def plot_example_step():
+    # Simulates single neuron responding to step-like current
+    filename = "sample-outputs-step"
+    filename_dir = "results_wkof_080821/" + filename
+    name = filename
+
+    sim_time = 40
+    dt = 0.05
+    nsteps = int(sim_time / dt)
+
+    input_size = 1
+    output_size = 1
+    hid_size = 1
+
+    inputs = torch.zeros(1, nsteps, input_size)
+    inputs[:, 100:400, :] = 1
+
+    model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, output_weight=False)
+    asc_r = (-(1 - 1e-10), -(1 - 1e-10))
+    asc_amp = (-5000, -5000)
+    asc_k = (0.5, 0.5)
+    
+    model_glif.reset_state(1)
+    with torch.no_grad():
+        model_glif.neuron_layer.weight_iv.data = torch.ones((input_size, hid_size))
+        model_glif.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
+        model_glif.neuron_layer.thresh.data *= 0
+
+        asc_r1, asc_r2 = asc_r
+        asc_amp1, asc_amp2 = asc_amp
+        asc_k1, asc_k2 = asc_k
+
+        model_glif.neuron_layer.trans_asc_r[0,0,0] = math.log((1 - asc_r1) / (1 + asc_r1))
+        model_glif.neuron_layer.trans_asc_r[1,0,0] = math.log((1 - asc_r2) / (1 + asc_r2))
+
+        model_glif.neuron_layer.asc_amp[0,0,0] = asc_amp1
+        model_glif.neuron_layer.asc_amp[1,0,0] = asc_amp2
+
+        model_glif.neuron_layer.trans_asc_k[0,0,0] = math.log(asc_k1 * dt / (1 - (asc_k1 * dt))) 
+        model_glif.neuron_layer.trans_asc_k[1,0,0] = math.log(asc_k2 * dt / (1 - (asc_k2 * dt))) 
+
+    outputs, voltages, ascs, syns = model_glif.forward(inputs, track=True)
+    outputs = outputs.detach().numpy()
+    voltages = voltages.detach().numpy()
+    ascs = ascs.detach().numpy()
+    syns = syns.detach().numpy()
+
+    np.savetxt("results/" + filename_dir + "-" + name + ".csv", outputs[0,:,0], delimiter=",")
+    np.savetxt("results/" + filename_dir + "-" + name + "syn.csv", syns[0,:,0], delimiter=",")
+    np.savetxt("results/" + filename_dir + "-" + name + "voltage.csv", voltages[0,:,0], delimiter=",")
+    np.savetxt("results/" + filename_dir + "-" + name + "asc.csv", ascs[:,0,:,0], delimiter=",")
+    np.savetxt("results/" + filename_dir + "-" + name + "in.csv", inputs[0,:,0], delimiter=",")
+
+    plt.plot(outputs[0,:,0], label=name)
+    plt.legend()
+    plt.show()
+
+def plot_example_step_rnn():
+    # Simulate response of RNN to step-like input
+    filename = "sample-outputs-step-rnn"
+    filename_dir = "results_wkof_080821/" + filename
+    name = filename
+
+    sim_time = 40
+    dt = 0.05
+    nsteps = int(sim_time / dt)
+
+    input_size = 1
+    output_size = 1
+    hid_size = 1
+
+    inputs = torch.zeros(1, nsteps, input_size)
+    inputs[:, 100:400, :] = 10
+
+    model_rnn = RNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size, output_weight=False)
+    
+    model_rnn.reset_state(1)
+    with torch.no_grad():
+        model_rnn.neuron_layer.weight_ih.data = torch.ones((input_size, hid_size))
+        model_rnn.neuron_layer.weight_lat.data = torch.zeros((hid_size, hid_size))
+
+    outputs, voltages = model_rnn.forward(inputs, track=True)
+    outputs = outputs.detach().numpy()
+    voltages = voltages.detach().numpy()
+
+    np.savetxt("results/" + filename_dir + "-" + name + ".csv", outputs[0,:,0], delimiter=",")
+    np.savetxt("results/" + filename_dir + "-" + name + "voltage.csv", voltages[0,:,0], delimiter=",")
+    np.savetxt("results/" + filename_dir + "-" + name + "in.csv", inputs[0,:,0], delimiter=",")
+
+    plt.plot(outputs[0,:,0], label=name)
+    plt.legend()
+    plt.show()
+
 def plot_examples():
-    import math
+    # Simulate response of several neurons to constant input
     filename = "sample-outputs-sigmav1e-3"
     filename_dir = "results_wkof_080821/" + filename
 
@@ -134,8 +204,6 @@ def plot_examples():
     asc_amps = [(0, 0), (-5000, -5000), (5000, -5000)]
     asc_ks = [(0.5, 0.5), (0.5, 0.5), (0.5, 0.5)]
     names = ["zero", "neg", "opp"]
-    with torch.no_grad():
-        model_glif.neuron_layer.sigma_v = 1e-3
     
     for i in range(len(asc_rs)):
         model_glif.reset_state(1)
@@ -173,102 +241,21 @@ def plot_examples():
         plt.plot(outputs[0,:,0], label=name)
     plt.legend()
     plt.show()
-#plot_example_steps()
-#quit()
-def plot_overall_response(model):
-    sim_time = 40
-    dt = 0.05
-    nsteps = int(sim_time / dt)
 
-    num_freqs = 10#8
-    freq_min = 0.01#01
-    freq_max = 0.6
-    
-    freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
-
-    hid_size = 128#64
-    input_size = 20#8
-    output_size = 1
-    inputs, targets = ut.create_sines_cued(sim_time, dt, amp = 1, noise_mean = 0, noise_std = 0, freqs = freqs, input_size = input_size)
-    traindataset = ut.create_dataset(inputs, targets, input_size)
-
-    # inputs, targets = ut.create_multid_pattern(sim_time, dt, 1, 0, 0, freqs, input_size)
-    # traindataset = ut.create_dataset(inputs, targets, input_size, output_size)
-
-    trainloader = tud.DataLoader(traindataset, batch_size = 1)
-
-    for batch_ndx, sample in enumerate(trainloader):
-        input, target = sample
-        model.reset_state(1)
-        with torch.no_grad():
-            output = model(input)
-        # output = model(input)
-        for j in range(1):
-            plt.plot(np.arange(len(output[0])) * dt, output[0,:,j].detach().numpy(), 'k', label=f"predicted")
-            plt.plot(np.arange(len(output[0])) * dt, target[0,:,j], 'k--', label = "target")
-            plt.xlabel('time (ms)', fontsize = fontsize)
-            plt.ylabel('firing', fontsize = fontsize)
-            plt.legend(fontsize = fontsize - 2)
-            plt.xticks(fontsize = fontsize)
-            plt.yticks(fontsize = fontsize)
-            plt.show()
-
-# Neuronal Response Curves
-def plot_responses(model):
-    filename = "sample-outputs"
-    filename_dir = "results_wkof_080821/" + main_name
-    sim_time = 5#100
-    dt = 0.05
-    nsteps = int(sim_time / dt)
-    input = 0 * -5.5 * 0.0001 * torch.ones(1, nsteps, input_size)
-    outputs = torch.zeros(1, nsteps, hid_size)
-
-    firing = torch.zeros((1, hid_size))
-    voltage = torch.zeros((1, hid_size))
-    syncurrent = torch.zeros((1, hid_size))
-    ascurrents = torch.zeros((2, 1, hid_size))
-
-    for step in range(nsteps):
-        x = input[:, step, :]
-        firing, voltage, ascurrents, syncurrent = model.neuron_layer(x, firing, voltage, ascurrents, syncurrent)
-        outputs[:, step, :] = firing
-    
-    """
-    for neuron_idx in range(hid_size):
-        if random.random() < 1:
-            print()
-            print(torch.exp(model.neuron_layer.ln_k_m[0,neuron_idx]))
-            print(model.neuron_layer.thresh[0,neuron_idx])
-            print(torch.exp(model.neuron_layer.ln_asc_k[:,0,neuron_idx]))
-            print(model.neuron_layer.asc_r[:,0,neuron_idx])
-            print(model.neuron_layer.asc_amp[:,0,neuron_idx])
-
-            plt.plot(np.arange(0, sim_time, step = dt), outputs.detach().numpy()[0, :, neuron_idx])
-            plt.xlabel('time (ms)', fontsize = fontsize)
-            plt.ylabel('firing rate', fontsize = fontsize)
-            plt.xticks(fontsize = fontsize)
-            plt.yticks(fontsize = fontsize)
-    """
-    np.savetxt("results/" + filename_dir + "-sampleresponses.csv", outputs[0,:,:].detach().numpy(), delimiter=",")
-
-    plt.show()
 
 def plot_ficurve(model):
-    # x_ins = np.arange(-100,100,1)
+    # Produces firing rates and input currents needed for a f-I curve
 
-    sim_time = ficurve_simtime#1000
+    sim_time = ficurve_simtime
     dt = 0.05
     nsteps = int(sim_time / dt)
 
-    # i_syns = 28 * x_ins * 0.0001
-    # i_syns = np.arange(-0.1, 0.1, step=0.01)#step=0.001)
     i_syns = np.arange(-10000, 10000, step=100)
 
-    input = torch.zeros(1, nsteps, glif_input_size)
+    input = torch.zeros(1, nsteps, input_size)
 
     f_rates = np.zeros((len(i_syns), hid_size))
     for i in range(len(i_syns)):
-        print(f"working on #{i}")
         firing = torch.zeros((input.shape[0], hid_size))
         voltage = torch.zeros((input.shape[0], hid_size))
         syncurrent = torch.zeros((input.shape[0], hid_size))
@@ -284,7 +271,6 @@ def plot_ficurve(model):
             outputs_temp[0, step, :] = firing
         f_rates[i, :] = torch.mean(outputs_temp, 1).detach().numpy().reshape((1, -1))
 
-    #f_rates = torch.mean(outputs, dim=1).detach().numpy()
     print(f"f_rates.shape = {f_rates.shape}")
 
     slopes = []#np.zeros(hid_size)
@@ -299,13 +285,11 @@ def plot_ficurve(model):
         i_syns_these = i_syns_these[f_rates_these > 0.01]
         f_rates_these = f_rates_these[f_rates_these > 0.01] * sim_time / dt
 
-        #print(f_rates_these)
 
         A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
         m, c = np.linalg.lstsq(A, f_rates_these)[0]
         if len(f_rates_these) > 0:
             slopes.append(m)
-            #slopes[i] = m
 
         if m < 0:
             print(f"found negative slope in neuron {i}")
@@ -315,203 +299,72 @@ def plot_ficurve(model):
     np.savetxt("results/" + base_name_results + "-" + ("init-" if init else "") + "slopes.csv", np.array(slopes), delimiter=",")
     np.savetxt("results/" + base_name_results + "-" + ("init-" if init else "") + "isyns.csv", np.array(i_syns), delimiter=",")
     np.savetxt("results/" + base_name_results + "-" + ("init-" if init else "") + "frates.csv", np.array(f_rates), delimiter=",")
-    quit()
-    plt.savefig("figures/sample-f-i-curves-pattern.png")
-    plt.close()
-    
-    plt.hist(slopes, color = 'k', bins = 50)
-    plt.xlabel('f-i curve slope', fontsize = fontsize)
-    plt.ylabel('counts', fontsize = fontsize)
 
-    np.savetxt("results/" + base_name_results + "-" + "slopes.csv", slopes)
-    #plt.savefig("figures/figures_wkof_071821/f-i-curve-slopes_brnn-withdelay_smnist_withburst_lateralconns_0722.png")
-"""
-i_syns_these = np.arange(-10, 10, step=0.01)
-f_rates_these = torch.sigmoid(torch.from_numpy(i_syns_these)).detach().numpy()
-A = np.vstack([i_syns_these, np.ones_like(i_syns_these)]).T
-m, c = np.linalg.lstsq(A, f_rates_these)[0]
+def plot_pattern_responses():
+    base_name = "saved_models/models_wkof_080821"
+    filenames = ["pattern-1-131units-5itr.pt", "pattern-2-128units-0itr.pt", "pattern-3-131units-0itr.pt", "pattern-4-128units-5itr.pt", "pattern-5-131units-5itr.pt", "pattern-6-130units-5itr.pt", "pattern-7-131units-5itr.pt", "pattern-8-130units-5itr.pt", "pattern-9-131units-5itr.pt", "pattern-10-64units-5itr.pt"]
+    output_base_name = "results/results_wkof_080821"
+    output_filenames = ["pattern-1-5itr", "pattern-2-0itr", "pattern-3-0itr", "pattern-4-5itr", "pattern-5-5itr", "pattern-6-5itr", "pattern-7-5itr", "pattern-8-5itr", "pattern-9-5itr", "pattern-10-5itr"]
 
-plt.plot(i_syns_these, f_rates_these)
-plt.plot(i_syns_these, m * i_syns_these)
-plt.show()
-print(m)
-quit()
-"""
+    # Task parameters
+    sim_time = 5
+    dt = 0.05
+    num_freqs = 6
+    freq_min = 0.08
+    freq_max = 0.6
+    amp = 1
+    noise_mean = 0
+    noise_std = 0
 
-input_size = ii
-hid_size = hh
-output_size = oo
-
-glif_input_size = input_size#output_size + input_size
-"""
-model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-
-model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
-model_glif.neuron_layer.sigma_v = 1e-3
-print(f"model uses {model_glif.neuron_layer.sigma_v}")
-plot_responses(model_glif)
-quit()
-plot_example_steps()
-quit()
-"""
-input_size = ii
-hid_size = hh
-output_size = oo
-
-glif_input_size = input_size#output_size + input_size
-
-# hid_size = 128#64
-# input_size = 20#8
-# output_size = 1
-
-model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-# model_glif.load_state_dict(torch.load("saved_models/models_wkof_071121/rnn-wodel_103units_smnist_linebyline.pt"))
-
-if init:
-    model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr-init.pt"))
-else:
-    model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
+    freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
 
-nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
+    inputs, targets = utta.create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs)
+    traindataset = utta.create_dataset(inputs, targets)
+    init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
 
-sim_time = ficurve_simtime#1000
-dt = 0.05
-nsteps = int(sim_time / dt)
+    for i in range(10):
+        model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+        model_glif.load_state_dict(torch.load(base_name + "/" + filenames[i]))
+        model_glif.eval()
 
-input = torch.ones((1, nsteps, glif_input_size))
-firing = torch.zeros((input.shape[0], hid_size))
-voltage = torch.zeros((input.shape[0], hid_size))
-syncurrent = torch.zeros((input.shape[0], hid_size))
-ascurrents = torch.zeros((2, input.shape[0], hid_size))
-outputs_temp = torch.zeros(1, nsteps, hid_size)
+        final_outputs = np.zeros((nsteps, len(init_dataloader)))
+        targets = np.zeros((nsteps, len(init_dataloader)))
+        for idx, sample in enumerate(init_dataloader):
+            inputs, targets = sample
+            _, nsteps, _ = inputs.shape
+            model_glif.reset_state()
+            outputs = model_glif.forward(inputs)[0, -nsteps:, :]
+            final_outputs[:, idx] = outputs.numpy()
+            targets[:, idx] = targets.numpy()
+        np.savetxt(output_base_name + "/" + output_filenames[i] + "-targets.csv", targets, delimiter=',')
+        np.savetxt(output_base_name + "/" + output_filenames[i] + "-learnedoutputs.csv", final_outputs, delimiter=',')
 
-firing_delayed = torch.zeros((input.shape[0], nsteps, hid_size))
-"""
-for step in range(nsteps):
-        x = input[:, step, :]
-        firing, voltage, ascurrents, syncurrent = model_glif.neuron_layer(x, firing, voltage, ascurrents, syncurrent, firing_delayed[:, step, :])
-        outputs_temp[0, step, :] = firing
-np.savetxt("results/" + base_name_results + "-" + "sampleoutputs.csv", outputs_temp.detach().numpy()[0,:,:], delimiter=',')
-"""
-plot_ficurve(model_glif)
-quit()
-# with torch.no_grad():
-#     nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
-#     # nn.init.constant_(model_glif.neuron_layer.asc_amp, 10e-5)
-#     plot_responses(model_glif)
-#     quit()
-
-plt.hist(model_glif.neuron_layer.thresh[0,:].detach().numpy(), color = 'k', bins=50)
-plt.xlabel('threshold (mV)', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-# plt.xlim([-0.5,0.5])
-plt.savefig("figures/figures_wkof_071821/threshold_initwithburst_256units_smnist_linebyline_lateralconns.png")
-plt.close()
-
-plt.hist(torch.exp(model_glif.neuron_layer.ln_k_m[0,:]).detach().numpy() * model_glif.neuron_layer.R, color = 'k', bins=50)
-plt.xlabel('capacitance (pF)', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-# plt.xlim([-0.5,0.5])
-plt.savefig("figures/figures_wkof_071821/capacitance_initwithburst_256units_smnist_linebyline_lateralconns.png")
-plt.close()
-
-plt.hist(torch.cat((model_glif.neuron_layer.asc_amp[0, 0,:], model_glif.neuron_layer.asc_amp[1, 0,:]), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('a_j', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-plt.savefig("figures/figures_wkof_071821/asc_amp_initwithburst_256units_smnist_linebyline_lateralconns.png")
-plt.close()
-
-plt.hist(torch.cat((model_glif.neuron_layer.asc_r[0, 0,:], model_glif.neuron_layer.asc_amp[1, 0,:]), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('r_j', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-plt.savefig("figures/figures_wkof_071821/asc_r_initwithburst_256units_smnist_linebyline_lateralconns.png")
-plt.close()
-
-plt.hist(1 / torch.cat((torch.exp(model_glif.neuron_layer.ln_asc_k[0, 0,:]), torch.exp(model_glif.neuron_layer.ln_asc_k[1, 0,:])), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('asc_tau (ms)', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-plt.savefig("figures/figures_wkof_071821/asc_tau_initwithburst_256units_smnist_linebyline_lateralconns.png")
-plt.close()
-
-nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
-
-plot_ficurve(model_glif)
-quit()
-# plt.hist(torch.cat((model_glif.neuron_layer.weight_ih.reshape(-1,1), model_glif.neuron_layer.weight_hh.reshape(-1,1), model_glif.output_linear.weight.reshape(-1, 1)), axis = 0).detach().numpy(), color = 'k', bins = 50)
-# plt.xlabel('weights', fontsize = fontsize)
-# plt.ylabel('counts', fontsize = fontsize)
-# plt.show()
-
-with torch.no_grad():
-    nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
-    # nn.init.constant_(model_glif.neuron_layer.asc_amp, 10e-5)
-    plot_responses(model_glif)
-
-quit()
-# with torch.no_grad():
-#     plot_overall_response(model_glif)
-
-# input_size = 16
-# hid_size = 200
-# output_size = 1
-
-
-# x = np.arange(-10, 10, step = 0.1)
-# y = torch.tanh(torch.from_numpy(x).float())
-# plt.plot(x, y.detach().numpy(), 'o')
-# plt.show()
-
-# x = np.arange(-10, 10, step = 0.1)
-# y = torch.relu(torch.from_numpy(x).float())
-# plt.plot(x, y.detach().numpy(), 'o')
-# plt.show()
-
-# x = np.arange(-10, 10, step = 0.1)
-# y = torch.from_numpy(x > 0)#torch.sign(torch.from_numpy(x).float())
-# plt.plot(x, y.detach().numpy(), 'o')
-# plt.vlines(0,0,1, linestyles='dashed')
-# plt.show()
-
+## Gather results for f-I curves
 # model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
-# model_glif.load_state_dict(torch.load("saved_models/models_wkof_051621/brnn200_sussillo8_batched_hisgmav_predrive_scaleasc_agn_nodivstart.pt"))
 
-# plot_overall_response(model_glif)
-# print(torch.exp(model_glif.neuron_layer.ln_k_m).shape)
-plt.hist(torch.exp(model_glif.neuron_layer.ln_k_m[0,:]).detach().numpy(), color = 'k', bins=50)
-plt.xlabel('k_m (ms)', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-# plt.xlim([0,0.05])
-plt.show()
+# if init:
+#     model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr-init.pt"))
+# else:
+#     model_glif.load_state_dict(torch.load("saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(0) + "itr.pt"))
 
-# plt.hist(torch.exp(model_glif.neuron_layer.ln_k_syn[0,:]).detach().numpy(), color = 'k', bins=50)
-# plt.xlabel('k_syn', fontsize = fontsize)
-# plt.ylabel('counts', fontsize = fontsize)
-# # plt.xlim([0,0.05])
-# plt.show()
 
-plt.hist(model_glif.neuron_layer.thresh[0,:].detach().numpy(), color = 'k', bins=50)
-plt.xlabel('threshold (mV)', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-# plt.xlim([-0.5,0.5])
-plt.show()
+# nn.init.constant_(model_glif.neuron_layer.weight_iv, 1)
 
-plt.hist(torch.cat((model_glif.neuron_layer.asc_amp[0, 0,:], model_glif.neuron_layer.asc_amp[1, 0,:]), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('a_j', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-plt.show()
+# sim_time = ficurve_simtime
+# dt = 0.05
+# nsteps = int(sim_time / dt)
 
-plt.hist(torch.cat((model_glif.neuron_layer.asc_r[0, 0,:], model_glif.neuron_layer.asc_amp[1, 0,:]), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('r_j', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-plt.show()
+# input = torch.ones((1, nsteps, input_size))
+# firing = torch.zeros((input.shape[0], hid_size))
+# voltage = torch.zeros((input.shape[0], hid_size))
+# syncurrent = torch.zeros((input.shape[0], hid_size))
+# ascurrents = torch.zeros((2, input.shape[0], hid_size))
+# outputs_temp = torch.zeros(1, nsteps, hid_size)
 
-plt.hist(torch.cat((torch.exp(model_glif.neuron_layer.ln_asc_k[0, 0,:]), torch.exp(model_glif.neuron_layer.ln_asc_k[1, 0,:])), axis = 0).detach().numpy(), color = 'k', bins = 50)
-plt.xlabel('k_j (ms)', fontsize = fontsize)
-plt.ylabel('counts', fontsize = fontsize)
-plt.show()
+# firing_delayed = torch.zeros((input.shape[0], nsteps, hid_size))
 
-print(torch.mean(model_glif.neuron_layer.weight_iv))
-with torch.no_grad():
-    nn.init.constant_(model_glif.neuron_layer.weight_iv, 0.01)
-    plot_responses(model_glif)
+# plot_ficurve(model_glif)
+
+# Simply call any of the other functions
+plot_pattern_responses()
