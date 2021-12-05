@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.utils.data as tud
 import math
-from models.networks import RNNFC, BNNFC
+from models.networks import RNNFC, BNNFC, LSTMFC
 import utils_task as utta 
 
 fontsize = 18
@@ -305,10 +305,12 @@ def plot_pattern_responses():
     filenames = ["pattern-1-131units-5itr.pt", "pattern-2-128units-0itr.pt", "pattern-3-131units-0itr.pt", "pattern-4-128units-5itr.pt", "pattern-5-131units-5itr.pt", "pattern-6-130units-5itr.pt", "pattern-7-131units-5itr.pt", "pattern-8-130units-5itr.pt", "pattern-9-131units-5itr.pt", "pattern-10-64units-5itr.pt"]
     output_base_name = "results/results_wkof_080821"
     output_filenames = ["pattern-1-5itr", "pattern-2-0itr", "pattern-3-0itr", "pattern-4-5itr", "pattern-5-5itr", "pattern-6-5itr", "pattern-7-5itr", "pattern-8-5itr", "pattern-9-5itr", "pattern-10-5itr"]
+    hid_sizes = [131, 128, 131, 128, 131, 130, 131, 130, 131, 64]
 
     # Task parameters
     sim_time = 5
     dt = 0.05
+    nsteps = int(sim_time / dt)
     num_freqs = 6
     freq_min = 0.08
     freq_max = 0.6
@@ -318,25 +320,34 @@ def plot_pattern_responses():
 
     freqs = 10 ** np.linspace(np.log10(freq_min), np.log10(freq_max), num=num_freqs)
 
-
     inputs, targets = utta.create_sines_amp(sim_time, dt, amp, noise_mean, noise_std, freqs)
     traindataset = utta.create_dataset(inputs, targets)
     init_dataloader = tud.DataLoader(traindataset, batch_size=1, shuffle=False)
-
+    
+    hetinit_nums = [0, 1, 4, 5]
+    learnparams_nums = [1, 3, 5, 7]
     for i in range(10):
-        model_glif = BNNFC(in_size = input_size, hid_size = hid_size, out_size = output_size)
+        print(f"on {i}")
+        model_glif = BNNFC(in_size = 1, hid_size = hid_sizes[i], out_size = 1, dt=dt, hetinit=(i in hetinit_nums), ascs=(i > 3), learnparams=(i in learnparams_nums))
+        if i == 8:
+            model_glif = RNNFC(in_size = 1, hid_size = hid_sizes[i], out_size = 1, dt=dt)
+        elif i == 9:
+            model_glif = LSTMFC(in_size = 1, hid_size = hid_sizes[i], out_size = 1, dt=dt)
         model_glif.load_state_dict(torch.load(base_name + "/" + filenames[i]))
         model_glif.eval()
 
         final_outputs = np.zeros((nsteps, len(init_dataloader)))
-        targets = np.zeros((nsteps, len(init_dataloader)))
+        final_targets = np.zeros((nsteps, len(init_dataloader)))
         for idx, sample in enumerate(init_dataloader):
             inputs, targets = sample
             _, nsteps, _ = inputs.shape
             model_glif.reset_state()
-            outputs = model_glif.forward(inputs)[0, -nsteps:, :]
-            final_outputs[:, idx] = outputs.numpy()
-            targets[:, idx] = targets.numpy()
+            outputs = model_glif.forward(inputs)
+            outputs = outputs[0, -nsteps:, 0]
+            targets = targets[0, -nsteps:, 0]
+
+            final_outputs[:, idx] = outputs.detach().numpy()
+            final_targets[:, idx] = targets.detach().numpy()
         np.savetxt(output_base_name + "/" + output_filenames[i] + "-targets.csv", targets, delimiter=',')
         np.savetxt(output_base_name + "/" + output_filenames[i] + "-learnedoutputs.csv", final_outputs, delimiter=',')
 

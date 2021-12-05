@@ -8,7 +8,7 @@ import torch.nn as nn
 
 from copy import copy
 
-from neurons import RNNC, GLIFR
+from models.neurons import RNNC, GLIFR
 
 class BNNFC(nn.Module):
         """
