@@ -348,7 +348,7 @@ def plot_pattern_responses():
 
             final_outputs[:, idx] = outputs.detach().numpy()
             final_targets[:, idx] = targets.detach().numpy()
-        np.savetxt(output_base_name + "/" + output_filenames[i] + "-targets.csv", final_targets, delimiter=',')
+        np.savetxt(output_base_name + "/" + output_filenames[i] + "-targetsl.csv", final_targets, delimiter=',')
         np.savetxt(output_base_name + "/" + output_filenames[i] + "-learnedoutputs.csv", final_outputs, delimiter=',')
 
 ## Gather results for f-I curves
