@@ -57,3 +57,24 @@ outputs = neuron(inputs)
 - ```learnparams```: whether neuronal parameters should retain gradients
 
 Both smnist_results and pattern_results use command line arguments to run training simulations on the RNN, BNNFC, and LSTM networks.
+In order to run these files, users should modify the file directories in the code and then use the following arguments:
+- ```name```: base filename to use
+- ```condition```: "rnn" to train an RNN, "lstm" to train an LSTM, "glifr-hetinit" to train a heterogeneously initialized BNNFC, and "glifr-hominit" to train a homogeneously initialized BNNFC
+- ```learnparams```: 1 if intrinsic neuronal parameters should be trained, 0 otherwise
+- ```numascs```: number of after-spike currents should be modeled (assuming condition starts with glifr)
+
+The paper refers to a number of types of network settings, and these are the corresponding arguments. Note that name can be chosen to user preference.
+| Network type | name | condition | learnparams | num_ascs |
+|--------------|------|-----------|-------------|----------|
+| RNN | rnn | rnn | 0 | 0 |
+| LSTM | lstm | lstm | 0 | 0 |
+| Hom | smnist-7 | glifr-hominit | 0 | 0 |
+| HomA | smnist-3 | glifr-hominit | 0 | 2 |
+| LHet | smnist-8 | glifr-hominit | 1 | 0 |
+| LHetA | smnist-4 | glifr-hominit | 1 | 2 |
+| FHet | smnist-5 | glifr-hetinit | 0 | 0 |
+| FHetA | smnist-1 | glifr-hetinit | 0 | 2 |
+| RHet | smnist-6 | glifr-hetinit | 1 | 0 |
+| RHetA | smnist-2 | glifr-hetinit | 1 | 2 |
+
+The results we obtained are stored in main/results/paper_results, and this is self sufficient for the plotting code.
