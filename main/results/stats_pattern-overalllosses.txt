@@ -1,0 +1,21 @@
+RNN vs het-nofurther:9.646995e-21
+RNN vs het-further:6.839369e-22
+RNN vs hom-further:4.704881e-23
+RNN vs hom-further:1.569207e-23
+RNN vs het-nofurther-noasc:3.271567e-21
+RNN vs het-further-noasc:1.823152e-21
+RNN vs hom-nofurther-noasc:4.826716e-23
+RNN vs hom-further-noasc:1.721034e-23
+RNN vs LSTM:4.503931e-24
+het-nofurther vs het-further:2.998730e-04
+hom-nofurther vs hom-further:1.525162e-12
+het-nofurther vs het-nofurther-noasc:1.721797e-01
+het-further vs het-further-noasc:3.260388e-01
+hom-nofurther vs hom-nofurther-noasc:8.768058e-01
+hom-further vs hom-further-noasc:4.204908e-01
+het-nofurther vs hom-nofurther:2.415389e-13
+het-further vs hom-further:2.306905e-14
+het-nofurther-noasc vs hom-nofurther-noasc:1.419932e-12
+het-further-noasc vs hom-further-noasc:1.327683e-10
+het-nofurther vs hom-further:4.699897e-17
+
