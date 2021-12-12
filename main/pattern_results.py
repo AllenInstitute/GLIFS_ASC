@@ -4,11 +4,34 @@ matplotlib.use('Agg')
 This file trains a network of rate-based GLIF neurons with after-spike currents on a pattern generation task.
 Sussillo pattern generation: generate a sinusoid of a freuqency that is proportional to the amplitude of the constant input
 
-Trained models are saved to the folder specified by base_name_model (within saved_models).
-Accuracies and parameters are saved to the folder specified by base_name_results (within results).
-Torch dictionaries for networks along with losses over epochs
-are saved to the folder specified by base_name_traininfo (within traininfo).
-Loss is printed on every epoch
+For each iteration i (0 indexed), membrane parameters are saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-init-membraneparams.csv" before training
+f"results/{base_name_results}-{hid_size}units-{i}itr-membraneparams.csv" after training
+where the first column lists thresh and the second column lists k_m
+
+For each iteration i (0 indexed), after-spike current parameters are saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-init-ascparams.csv" before training
+f"results/{base_name_results}-{hid_size}units-{i}itr-ascparams.csv" after training
+where the first column lists k_j, the second column lists r_j, and the third column lists a_j.
+
+For each iteration i (0-indexed), the MSE loss on each epoch is saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-losses.csv"
+
+For each iteration i (0-indexed), the accuracies on the testing set when different percentages of
+neurons are ablated are saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-ablation.csv"
+where each row corresponds to a number of trials using a single percentage of neurons silenced.
+
+For each iteration i (0-indexed), the accuracies on the testing set for the number of trials are saved to
+f"results/{base_name_results}-{hid_size}units-accs.csv"
+
+For each iteration i (0-indexed), the PyTorch model dictionary is saved to
+f"saved_models/{base_name_model}-{hid_size}units-{i}itr-init.pt" before training
+f"saved_models/{base_name_model}-{hid_size}units-{i}itr.pt" after training
+
+For each iteration i (0-indexed), the dictionary of parameters, gradients, etc. collected
+over training is stored to
+f"traininfo/{base_name_traininfo}-itr.pickle"
 """
 
 import argparse
@@ -33,10 +56,10 @@ def main():
     args = parser.parse_args()
  
     main_name = args.name
-    base_name = "figures_wkof_080821/" + main_name
-    base_name_traininfo = "traininfo_wkof_080821/" + main_name
-    base_name_model = "models_wkof_080821/" + main_name
-    base_name_results = "results_wkof_080821/" + main_name
+    base_name = "test/" + main_name
+    base_name_traininfo = "test/" + main_name
+    base_name_model = "test/" + main_name
+    base_name_results = "test/" + main_name
 
     learnparams = (args.learnparams == 1)
 

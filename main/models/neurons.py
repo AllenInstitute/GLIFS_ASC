@@ -24,6 +24,8 @@ class GLIFR(nn.Module):
                 number of after-spike currents to model
         dt : float
                 duration of timestep
+        tau : float, defaults to dt
+                conceptually the number of times the voltage and threshold are compared
         hetinit : boolean
                 whether parameters should be heterogeneously initialized
         ascs : boolean
@@ -31,12 +33,15 @@ class GLIFR(nn.Module):
         learnparams : boolean
                 whether parameters should be learned
         """
-        def __init__(self, input_size, hidden_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True):
+        def __init__(self, input_size, hidden_size, num_ascs=2, dt=0.05, tau=None, hetinit=False, ascs=True, learnparams=True):
                 super().__init__()
                 self.input_size = input_size
                 self.hidden_size = hidden_size
 
                 self.num_ascs = num_ascs
+                self.tau = tau
+                if self.tau is None:
+                        self.tau = dt
 
                 self.ascs = ascs
                 self.learnparams = learnparams
@@ -149,9 +154,9 @@ class GLIFR(nn.Module):
                 syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
                 
                 if self.ascs:
-                        ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_asc_r) + self.asc_amp) * firing + (1 - self.dt * self.transform_to_k(self.trans_asc_k)) * ascurrent
+                        ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_asc_r) + self.asc_amp) * firing * (self.dt/self.tau) + (1 - self.dt * self.transform_to_k(self.trans_asc_k)) * ascurrent
                 
-                voltage = syncurrent + self.dt * self.transform_to_k(self.trans_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * self.transform_to_k(self.trans_k_m)) * voltage - firing * (voltage - self.v_reset)
+                voltage = syncurrent + self.dt * self.transform_to_k(self.trans_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * self.transform_to_k(self.trans_k_m)) * voltage - (self.dt / self.tau) * firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
                 return firing, voltage, ascurrent, syncurrent
         

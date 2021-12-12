@@ -4,11 +4,36 @@ matplotlib.use('Agg')
 This file trains a network of rate-based GLIF neurons with after-spike currents on a sequential MNIST task.
 It tests the procedure on multiple random initializations.
 
-Trained models are saved to the folder specified by base_name_model (within saved_models).
-Accuracies and parameters are saved to the folder specified by base_name_results (within results).
-Torch dictionaries for networks along with losses over epochs
-are saved to the folder specified by base_name_traininfo (within traininfo).
-Loss is printed on every epoch
+For each iteration i (0 indexed), membrane parameters are saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-init-membraneparams.csv" before training
+f"results/{base_name_results}-{hid_size}units-{i}itr-membraneparams.csv" after training
+where the first column lists thresh and the second column lists k_m
+
+For each iteration i (0 indexed), after-spike current parameters are saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-init-ascparams.csv" before training
+f"results/{base_name_results}-{hid_size}units-{i}itr-ascparams.csv" after training
+where the first column lists k_j, the second column lists r_j, and the third column lists a_j.
+
+For each iteration i (0-indexed), the CrossEntropy loss on each epoch is saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-losses.csv"
+
+For each iteration i (0-indexed), the accuracies on the testing set when different percentages of
+neurons are ablated are saved to
+f"results/{base_name_results}-{hid_size}units-{i}itr-ablation.csv"
+where each row corresponds to a number of trials using a single percentage of neurons silenced.
+
+For each iteration i (0-indexed), the accuracies on the testing set for the number of trials are saved to
+f"results/{base_name_results}-{hid_size}units-accs.csv"
+
+For each iteration i (0-indexed), the PyTorch model dictionary is saved to
+f"saved_models/{base_name_model}-{hid_size}units-{i}itr-init.pt" before training
+f"saved_models/{base_name_model}-{hid_size}units-{i}itr.pt" after training
+
+For each iteration i (0-indexed), the dictionary of parameters, gradients, etc. collected
+over training is stored to
+f"traininfo/{base_name_traininfo}-itr.pickle"
+
+NOTE: Requires a data folder populated with MNIST data.
 """
 
 import argparse
@@ -36,9 +61,9 @@ def main():
     anneal = (args.anneal == 1)
  
     main_name = args.name
-    base_name_traininfo = "traininfo_wkof_080821/" + main_name
-    base_name_model = "models_wkof_080821/" + main_name
-    base_name_results = "results_wkof_080821/" + main_name
+    base_name_traininfo = "test/" + main_name
+    base_name_model = "test/" + main_name
+    base_name_results = "test/" + main_name
 
     in_size = 28
     out_size = 10
@@ -67,7 +92,6 @@ def main():
     lr = 0.001
     itrs = 30
     sgd = False
-    reg_lambda = 0
 
     # Experiment parameters
     pcts = [0,0.2,0.4,0.6,0.8,1.0]
@@ -106,8 +130,9 @@ def main():
                 asc_parameters[:, 2] = model.neuron_layer.asc_amp[:,0,:].detach().numpy().reshape(-1)
                 np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-init-ascparams.csv", asc_parameters, delimiter=',')
         print(f"Training on iteration {i}")
+        
         # Train network
-        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "glifr", verbose = True, trainparams=learnparams, linebyline=True, ascs=ascs, sgd=sgd, reg_lambda=reg_lambda, anneal=anneal)
+        training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "glifr", verbose = True, trainparams=learnparams, linebyline=True, ascs=ascs, sgd=sgd, anneal=anneal)
 
         torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(i) + "itr.pt")
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(i) + "itr-losses.csv", np.array(training_info["losses"]), delimiter=',')

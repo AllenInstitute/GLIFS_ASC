@@ -1,19 +1,29 @@
 """
 This file is used to save the parameters of models to a file.
+In order to use it, replace base_name_results and base_name_model
+to point to the beginning of the output results file and the input saved
+model name respectively.
+
+Parameters of model will be saved to 
+f""results/{base_name_results}-{hid_size}units-0itr-init-allparams.csv" if init is True
+f""results/{base_name_results}-{hid_size}units-0itr-allparams.csv"
+Parameters will be taken from model
+f""saved_models/{base_name_model}-{hid_size}units-0itr-init.pt" if init is True
+f""saved_models/{base_name_model}-{hid_size}units-0itr.pt"
 """
 
 import numpy as np
 import torch
 
-from models.networks import RNNFC, BNNFC
+from models.networks import BNNFC
 
 fontsize = 18
-main_name = "smnist-4-final"#"smnist-4-agn-256units-init"
+main_name = "smnist-4-final"
 base_name_results = "results/paper_results/smnist_results/" + main_name
-base_name_model = "models_wkof_080821/" + main_name#"smnist-2-agn"#"smnist-4-agn"#2asc"
+base_name_model = "models_wkof_080821/" + main_name
 
 init = False
-input_size = 28
+input_size = 28 
 hid_size = 256
 output_size = 10
 

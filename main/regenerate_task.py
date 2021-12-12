@@ -1,11 +1,38 @@
 """
 This file trains a single rate-based GLIF neuron with after-spike currents to produce realizable outputs.
 
-Trained models are saved to the folder specified by base_name_model (within saved_models).
-Performance and parameters are saved to the folder specified by base_name_results (within results).
-Torch dictionaries for parameters and losses over epochs
-are saved to the folder specified by base_name_traininfo (within traininfo).
-Loss is printed on every epoch
+Initial output of neuron saved to
+f"results/{base_name_results}-initialoutputs.csv"
+
+Final output of neuron saved to
+f"results/{base_name_results}-finaloutputs.csv"
+
+Target output for neuron saved to
+f"results/{base_name_results}-targets.csv"
+
+Final membrane parameters are saved to
+f"results/{base_name_results}-membraneparams.csv"
+where the first column lists thresh and the second column lists k_m
+
+Final after-spike current related parameters are saved to
+f"results/{base_name_results}-ascparams.csv"
+where the first column lists k_j, the second column lists r_j, and the third column lists a_j.
+
+Values of * over training are saved to
+f"results/{base_name_results}-{hid_size}units-{*}overlearning.csv"
+where * can be any of ["km", "thresh", "asck", "ascr", "ascamp"]
+
+MSE losses over training are saved to
+f"results/{base_name_results}-{hid_size}units-losses.csv"
+
+PyTorch model dictionary for trained learning model saved to
+f"saved_models/{base_name_model}_learned.pt"
+
+PyTorch model dictionary for target model saved to
+f"saved_models/{base_name_model}_target.pt"
+
+Dictionary with information over training is saved to
+f"traininfo/{base_name_save}.pickle"
 """
 
 import pickle
@@ -20,11 +47,11 @@ import torch.nn as nn
 import math
 
 def main():
-    main_name = "brnn_learnrealizable-allparams-longer-agn"
+    main_name = "test"
 
-    base_name_save = "traininfo_wkof_072521/" + main_name
-    base_name_model = "models_wkof_072521/" + main_name
-    base_name_results = "results_wkof_080121/" + main_name
+    base_name_save = "test/" + main_name
+    base_name_model = "test/" + main_name
+    base_name_results = "test/" + main_name
 
     training_info = {"losses": [],
         "weights": [],

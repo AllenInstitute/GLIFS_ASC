@@ -12,9 +12,11 @@ from models.networks import RNNFC, BNNFC, LSTMFC
 import utils_task as utta 
 
 fontsize = 18
-main_name = "smnist-4-final"#"smnist-2-agn"
-base_name_results = "results_wkof_080821/" + main_name
-base_name_model = "models_wkof_080821/" + main_name
+
+# NOTE: must change below lines to point to appropriate files
+main_name = "smnist-4-final"
+base_name_results = "test/" + main_name
+base_name_model = "test/" + main_name
 
 init = True
 input_size = 28 # 1 for pattern

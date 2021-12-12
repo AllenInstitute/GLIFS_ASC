@@ -4,19 +4,35 @@ matplotlib.use('Agg')
 """
 This file trains a network of rate-based GLIF neurons with after-spike currents on a sequential MNIST task.
 It tests the procedure on multiple random initializations where the network is subject
-to dropout during training. Random subsets of neurons are then silenced during inference.
+to dropout during training (one random initialization per dropout percentage). 
+Random subsets of neurons are then silenced during inference.
 
-Trained models are saved to the folder specified by base_name_model (within saved_models).
-Accuracies and parameters are saved to the folder specified by base_name_results (within results).
-Torch dictionaries for networks along with losses over epochs
-are saved to the folder specified by base_name_traininfo (within traininfo).
-Accuracies over different proportions of dropout+silencing are saved to
-base_name_results (within results)
-Loss is printed on every epoch
+For each iteration with percentage pct, membrane parameters are saved to
+f"results/{base_name_results}-{hid_size}units-{pct}ablated-init-membraneparams.csv" before training
+f"results/{base_name_results}-{hid_size}units-{pct}ablated-membraneparams.csv" after training
+where the first column lists thresh and the second column lists k_m
+
+For each iteration with percentage pct, after-spike current parameters are saved to
+f"results/{base_name_results}-{hid_size}units-{pct}ablated-init-ascparams.csv" before training
+f"results/{base_name_results}-{hid_size}units-{pct}ablated-ascparams.csv" after training
+where the first column lists k_j, the second column lists r_j, and the third column lists a_j.
+
+For each iteration with percentage pct, the CrossEntropy loss on each epoch is saved to
+f"results/{base_name_results}-{hid_size}units-{pct}ablated-losses.csv"
+
+The accuracies on the testing set for the number of trials are saved to
+f"results/{base_name_results}-{hid_size}units-ablated-accs.csv"
+where each row corresponds to a different dropout probability and the columns represent the multiple
+random subsets chosen to be ablated during inference for that given trained network.
+
+For each iteration with percentage pct, the PyTorch model dictionary is saved to
+f"saved_models/{base_name_model}-{hid_size}units-{pct}ablated-init.pt" before training
+f"saved_models/{base_name_model}-{hid_size}units-{pct}ablated.pt" after training
+
+NOTE: Requires a data folder populated with MNIST data.
 """
 
 import argparse
-import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -38,10 +54,8 @@ def main():
     learnparams = (args.learnparams == 1)
  
     main_name = args.name
-    # base_name = "figures_wkof_072521/" + main_name
-    base_name_traininfo = "traininfo_wkof_080821/" + main_name
-    base_name_model = "models_wkof_080821/" + main_name
-    base_name_results = "results_wkof_080821/" + main_name
+    base_name_model = "test/" + main_name
+    base_name_results = "test/" + main_name
 
     in_size = 28
     out_size = 10
@@ -109,7 +123,7 @@ def main():
         print(f"Training on pct {j}")
         training_info = utt.train_rbnn_mnist(model, batch_size, num_epochs, lr, args.condition[0:5] == "glifr", verbose = True, trainparams=learnparams, linebyline=True, ascs=ascs, sgd=sgd)#, output_text_filename = "results/" + base_name_results + "_" + str(i) + "itr_performance.txt")
 
-        torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + ".pt")
+        torch.save(model.state_dict(), "saved_models/" + base_name_model + "-" + str(hid_size) + "units-" + str(pct) + "ablated" + ".pt")
         np.savetxt("results/" + base_name_results + "-" + str(hid_size) + "units-" + str(pct) + "ablated-losses.csv", np.array(training_info["losses"]), delimiter=',')
         
         if args.condition[0:5] == "glifr":
