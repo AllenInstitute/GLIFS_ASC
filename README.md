@@ -1,7 +1,7 @@
-# GLIFR
-Generalized-leaky-integrate-and-firing-rate (GLIFR) models
+# Neuronal Heterogeneity Learned by Gradient Descent Improves Performance on Temporally Challenging Tasks
+This repository contains code for the models and analysis used in the paper, "Neuronal Heterogeneity Learned by Gradient Descent Improves Performance on Temporally Challenging Tasks."
 
-Goal: To create a rate-based neuronal model that incorporates after-spike currents, to connect these in networks, and to train the model on tasks, learning neuronal parameters (e.g., threshold, after-spike current related terms) in addition to synaptic weights.
+We develop a differentiable rate-based neuronal model that incorporates after-spike currents and term it the "generalized-leaky-integrate-and-firing-rate" model. We create networks using this model and train them on tasks, optimizing both neuronal parameters underlying intrinsic dynamics (e.g., threshold, membrane time constant) and synaptic weights.
 
 ## Structure of codebase:
 - main: contains all code
@@ -12,8 +12,9 @@ Goal: To create a rate-based neuronal model that incorporates after-spike curren
 - main/models/neurons: defines a GLIFR class for the rate based neuronal model, and a RNNC class for a vanilla RNN cell
 - main/models/networks: defines a neural network using GLIFRs, a neural network using RNNCs, and a neural network using LSTMCell
 - main/utils_train: contains utils functions that demonstrate how to train networks
-- main/pattern_generation.py: program for testing sinusoid generation
-- main/smnist.py: program for testing SMNIST
+- main/pattern_results.py: program for testing sinusoid generation
+- main/mnist_results.py: program for testing SMNIST
+- main/mnist_ablation.py: program for testing SMNIST with dropout
 
 ## Usage
 The GLIFR class enables creation and usage of a differentiable layer of neurons that express biological dynamics including after-spike currents in a rate-based manner. One may optimize the neuron's intrinsic parameters (i.e., V_th, k_m, a_j, r_j, k_j) using standard gradient descent.
@@ -56,8 +57,8 @@ outputs = neuron(inputs)
 - ```ascs```: whether after-spike currents should be modeled
 - ```learnparams```: whether neuronal parameters should retain gradients
 
-Both smnist_results and pattern_results use command line arguments to run training simulations on the RNN, BNNFC, and LSTM networks.
-In order to run these files, users should modify the file directories in the code and then use the following arguments:
+Both smnist_results and pattern_results use command line arguments to run training simulations on the RNN, BNNFC, and LSTM networks. The smnist_results assumes a data directory containing the MNIST dataset in standard format. Both programs also assume the following directories within ```main```: ```results```, ```figures```, ```saved_models```, and ```traininfo```.
+In order to run these files, users should modify the file directories in the code, paying attention to the comments, and then use the following arguments:
 - ```name```: base filename to use
 - ```condition```: "rnn" to train an RNN, "lstm" to train an LSTM, "glifr-hetinit" to train a heterogeneously initialized BNNFC, and "glifr-hominit" to train a homogeneously initialized BNNFC
 - ```learnparams```: 1 if intrinsic neuronal parameters should be trained, 0 otherwise
@@ -78,4 +79,4 @@ The paper refers to a number of types of network settings, and these are the cor
 | RHet | smnist-6 | glifr-hetinit | 1 | 0 |
 | RHetA | smnist-2 | glifr-hetinit | 1 | 2 |
 
-The results we obtained are stored in main/results/paper_results, and this is self sufficient for the plotting code.
+The results we obtained are stored in main/results/paper_results, and the plotting and analysis code may be run with that.
