@@ -66,7 +66,7 @@ In order to run these files, users should modify the file directories in the cod
 - [only for smnist_results] ```anneal```: whether to anneal sigma_V over training
 
 The paper refers to a number of types of network settings, and these are the corresponding arguments. Note that name can be chosen to user preference.
-| Network type | name | condition | learnparams | num_ascs |
+| network type | name | condition | learnparams | num_ascs |
 |--------------|------|-----------|-------------|----------|
 | RNN | smnist-9 | rnn | 0 | 0 |
 | LSTM | smnist-10 | lstm | 0 | 0 |
