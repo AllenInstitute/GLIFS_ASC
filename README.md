@@ -62,6 +62,7 @@ In order to run these files, users should modify the file directories in the cod
 - ```condition```: "rnn" to train an RNN, "lstm" to train an LSTM, "glifr-hetinit" to train a heterogeneously initialized BNNFC, and "glifr-hominit" to train a homogeneously initialized BNNFC
 - ```learnparams```: 1 if intrinsic neuronal parameters should be trained, 0 otherwise
 - ```numascs```: number of after-spike currents should be modeled (assuming condition starts with glifr)
+- [only for smnist_results] ```anneal```: whether to anneal sigma_V over training
 
 The paper refers to a number of types of network settings, and these are the corresponding arguments. Note that name can be chosen to user preference.
 | Network type | name | condition | learnparams | num_ascs |
