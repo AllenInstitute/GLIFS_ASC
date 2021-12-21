@@ -37,8 +37,10 @@ class BNNFC(nn.Module):
                 whether outputs of hidden layer should be weighted
         dropout_prob : float, default 0
                 probability of dropout
+        delay : float, default 1
+                number of ms to use for synaptic delay
         """
-        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, dropout_prob=0):
+        def __init__(self, in_size, hid_size, out_size, num_ascs=2, dt=0.05, hetinit=False, ascs=True, learnparams=True, output_weight=True, dropout_prob=0, delay=1):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
@@ -52,7 +54,7 @@ class BNNFC(nn.Module):
                 self.num_ascs = num_ascs
                 self.output_weight = output_weight
                 self.dt = dt
-                self.delay = int(1 / self.dt)
+                self.delay = int(delay / self.dt)
 
                 self.idx = []
                 self.silence_mult = torch.eye(self.hid_size)
@@ -181,8 +183,10 @@ class RNNFC(nn.Module):
                 whether outputs of hidden layer should be weighted
         dropout_prob : float, default 0
                 probability of dropout
+        delay : float, default 0.05
+                number of ms to use as synaptic delay
         """
-        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, dropout_prob=0):
+        def __init__(self, in_size, hid_size, out_size, dt=0.05, output_weight=True, dropout_prob=0, delay=0.05):
                 super().__init__()
 
                 self.output_linear = nn.Linear(in_features = hid_size, out_features = out_size, bias = True)
@@ -196,7 +200,7 @@ class RNNFC(nn.Module):
                 self.num_ascs = 2
 
                 self.dt = dt
-                self.delay = 1
+                self.delay = int(delay / self.dt)
                 self.output_weight = output_weight
 
                 self.reset_state()

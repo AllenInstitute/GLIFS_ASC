@@ -103,7 +103,7 @@ def main():
     for i in range(itrs):
         if args.condition == "rnn":
             print("using rnn")
-            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
+            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, delay=1)
         elif args.condition == "lstm":
             print("using lstm")
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)

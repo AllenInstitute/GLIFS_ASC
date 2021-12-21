@@ -177,7 +177,7 @@ def main():
         colors = ["sienna", "gold", "chartreuse", "darkgreen", "lightseagreen", "deepskyblue", "blue", "darkorchid", "plum", "darkorange", "fuchsia", "tomato", "cyan", "greenyellow", "cornflowerblue", "limegreen", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen", "aquamarine", "springgreen", "green", "lightgreen"]
 
        # Visualize
-        final_outputs_driven = training_info["final_outputs_driven"]
+        final_outputs_driven = training_info["final_outputs"]
         for j in range(num_freqs):
             plt.plot(np.arange(len(final_outputs_driven[j][0])) * dt, final_outputs_driven[j][0,:,0], c = colors[j % len(colors)], label=f"freq {freqs[j]}")
             plt.plot(np.arange(len(final_outputs_driven[j][0])) * dt, targets[:, j], '--', c = colors[j % len(colors)])
