@@ -56,10 +56,10 @@ def main():
     args = parser.parse_args()
  
     main_name = args.name
-    base_name = "test/" + main_name
-    base_name_traininfo = "test/" + main_name
-    base_name_model = "test/" + main_name
-    base_name_results = "test/" + main_name
+    base_name = "pattern_extra/" + main_name
+    base_name_traininfo = "pattern_extra/" + main_name
+    base_name_model = "pattern_extra/" + main_name
+    base_name_results = "pattern_extra/" + main_name
 
     learnparams = (args.learnparams == 1)
 
@@ -88,7 +88,7 @@ def main():
     batch_size = 2
     num_epochs = 5000
     lr = 0.0001
-    itrs = 10
+    itrs = 30
     sgd = False
 
     # Task parameters
@@ -115,7 +115,7 @@ def main():
 
         if args.condition == "rnn":
             print("using rnn")
-            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
+            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, delay=1)
         elif args.condition == "lstm":
             print("using lstm")
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
