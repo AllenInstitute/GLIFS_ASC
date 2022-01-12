@@ -61,9 +61,9 @@ def main():
     anneal = (args.anneal == 1)
  
     main_name = args.name
-    base_name_traininfo = "test/" + main_name
-    base_name_model = "test/" + main_name
-    base_name_results = "test/" + main_name
+    base_name_traininfo = "smnist_extra/" + main_name
+    base_name_model = "smnist_extra/" + main_name
+    base_name_results = "smnist_extra/" + main_name
 
     in_size = 28
     out_size = 10
@@ -85,6 +85,7 @@ def main():
     ascs = (args.numascs > 0)
     dt = 0.05
     num_ascs = args.numascs
+    rnn_delay = 1
 
     # Training parameters
     batch_size = 128
@@ -103,7 +104,7 @@ def main():
     for i in range(itrs):
         if args.condition == "rnn":
             print("using rnn")
-            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
+            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, delay=rnn_delay)
         elif args.condition == "lstm":
             print("using lstm")
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)

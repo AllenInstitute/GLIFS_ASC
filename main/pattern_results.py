@@ -83,6 +83,7 @@ def main():
     ascs = (args.numascs > 0)
     dt = 0.05
     num_ascs = args.numascs
+    rnn_delay = 1
 
     # Training parameters
     batch_size = 2
@@ -115,7 +116,7 @@ def main():
 
         if args.condition == "rnn":
             print("using rnn")
-            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, delay=1)
+            model = RNNFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt, delay=rnn_delay)
         elif args.condition == "lstm":
             print("using lstm")
             model = LSTMFC(in_size = in_size, hid_size = hid_size, out_size = out_size, dt=dt)
