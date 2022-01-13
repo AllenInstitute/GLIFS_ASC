@@ -1,11 +1,8 @@
 """
 This file defines models for single layers of neurons.
 """
-import matplotlib.pyplot as plt
-import copy
 import math
 
-import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
@@ -22,15 +19,15 @@ class GLIFR(nn.Module):
                 number of neurons
         num_ascs : int
                 number of after-spike currents to model
-        dt : float
+        dt : float, default 0.05
                 duration of timestep
         tau : float, defaults to dt
                 conceptually the number of times the voltage and threshold are compared
-        hetinit : boolean
+        hetinit : boolean, default False
                 whether parameters should be heterogeneously initialized
-        ascs : boolean
-                whether after-spike currents should be maintained
-        learnparams : boolean
+        ascs : boolean, default True
+                whether after-spike currents and related parameter gradients should be maintained
+        learnparams : boolean, default True
                 whether parameters should be learned
         """
         def __init__(self, input_size, hidden_size, num_ascs=2, dt=0.05, tau=None, hetinit=False, ascs=True, learnparams=True):
@@ -46,8 +43,8 @@ class GLIFR(nn.Module):
                 self.ascs = ascs
                 self.learnparams = learnparams
 
-                self.weight_iv = Parameter(torch.randn((input_size, hidden_size)))
-                self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
+                self.weight_iv = Parameter(torch.randn((input_size, hidden_size))) # incoming weights
+                self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size))) # lateral connections (i.e., among neurons in same layer)
 
                 if hetinit:
                     self.thresh = Parameter(-1 + 2 * torch.rand((1, hidden_size), dtype=torch.float), requires_grad=True)
@@ -134,7 +131,7 @@ class GLIFR(nn.Module):
                         previous ascurrent
                 syncurrent : torch tensor (n, ndims)
                         previous syncurrent
-                firing_delayed: torch tensor (n, ndims)
+                firing_delayed: torch tensor (n, ndims), default None (identical to firing)
                         firing rate to use when propagating lateral connections
 
                 Returns
@@ -174,7 +171,7 @@ class GLIFR(nn.Module):
 
 class RNNC(nn.Module): 
         """
-        Defines single recurrent layer
+        Defines single recurrent layer ("recurrent neural network cell")
 
         Parameters
         ----------
@@ -182,7 +179,7 @@ class RNNC(nn.Module):
                 number of dimensions in input
         hidden_size : int
                 number of neurons
-        bias : boolean
+        bias : boolean, default False
                 whether bias should be used
         """
         def __init__(self, input_size, hidden_size, bias = True):
@@ -211,6 +208,8 @@ class RNNC(nn.Module):
                         input signal
                 hidden : torch tensor (n, ndim)
                         previous hidden state
+                track : bool, default False
+                        whether to return pre-activation hidden state as well
                 
                 Return
                 ------

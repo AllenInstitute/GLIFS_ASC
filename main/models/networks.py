@@ -2,7 +2,6 @@
 This file contains classes for the different networks that we used.
 """
 
-import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 
@@ -12,6 +11,7 @@ from models.neurons import RNNC, GLIFR
 
 class BNNFC(nn.Module):
         """
+        Fully connected biological neural network.
         Defines a single recurrent layer network of GLIFR neurons with a synaptic delay.
 
         Parameters
@@ -69,7 +69,7 @@ class BNNFC(nn.Module):
                 ----------
                 input : Tensor(batch_size, nsteps, in_size)
                         input signal to be input over time
-                track : bool
+                track : bool, default False
                         whether voltages, after-spike currents, and synaptic currents
                         over time should be returned in addition to network output
                 
@@ -127,9 +127,9 @@ class BNNFC(nn.Module):
 
                 Parameters
                 ----------
-                batch_size : int
+                batch_size : int, default 1
                         batch size to be used subsequently
-                full_reset : boolean
+                full_reset : boolean, default True
                         whether internal states should be re-initialized
                 """
                 self.batch_size = batch_size
@@ -167,6 +167,7 @@ class BNNFC(nn.Module):
 
 class RNNFC(nn.Module):
         """
+        Fully connected recurrent neural network.
         Defines a single recurrent layer network with a delay of dt.
 
         Parameters
@@ -215,7 +216,7 @@ class RNNFC(nn.Module):
                 ----------
                 input : Tensor(batch_size, nsteps, in_size)
                         input signal to be input over time
-                track : bool
+                track : bool, default False
                         whether voltages, after-spike currents, and synaptic currents
                         over time should be returned in addition to network output
                 
@@ -267,10 +268,8 @@ class RNNFC(nn.Module):
 
                 Parameters
                 ----------
-                batch_size : int
+                batch_size : int, default 1
                         batch size to be used subsequently
-                full_reset : boolean
-                        whether internal states should be re-initialized
                 """
                 self.batch_size = batch_size
 
@@ -293,6 +292,7 @@ class RNNFC(nn.Module):
 
 class LSTMFC(nn.Module):
         """
+        Fully connected LSTM network.
         Defines a single layer LSTM network with a synaptic delay of dt.
 
         Parameters
@@ -369,10 +369,8 @@ class LSTMFC(nn.Module):
 
                 Parameters
                 ----------
-                batch_size : int
+                batch_size : int, default 1
                         batch size to be used subsequently
-                full_reset : boolean
-                        whether internal states should be re-initialized
                 """
                 self.batch_size = batch_size
 
