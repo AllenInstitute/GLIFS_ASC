@@ -1,0 +1,28 @@
+mnist_type: pixel
+mnist_path: ./../data/mnist
+
+# Network structure
+input_size: 1
+output_size: 10
+hidden_size: {rnn: 256, glifr_lheta: 252, glifr_lhet: 255, glifr_rheta: 252, glifr_rhet: 255, glifr_fheta: 256, glifr_fhet: 256, glifr_homa: 256, glifr_hom: 256, lstmn: 128}
+output_weight: true
+
+# Neuron parameters
+# dropout_prob: 0
+synaptic_delay: 15
+# synaptic_delay: 0
+dt: 0.05
+tau: 0.05
+
+# Training parameters
+lr: 0.0001
+batch_size: 512
+loss_fn: cross_entropy_one_hot
+optimizer: torch.optim.Adam
+log_accuracy: true
+final_reduction: last 
+
+# Parameters for trainer
+num_sanity_val_steps: 0
+max_epochs: 50
+check_val_every_n_epoch: 100000000000000000000000000000

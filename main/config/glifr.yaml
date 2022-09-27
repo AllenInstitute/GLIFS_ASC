@@ -1,0 +1,8 @@
+num_ascs: 2
+sigma_v: 1
+R: 0.1
+I0: 0
+v_reset: 0
+
+# Trainer params
+callbacks: [MetricTracker, ParameterTracker, create_model_checkpoint]

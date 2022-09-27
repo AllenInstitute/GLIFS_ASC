@@ -1,0 +1,33 @@
+# Task setup
+nmnist_path: /home/chloewin/N-MNIST
+#/gscratch/deepthought/chloewin/N-MNIST
+#/home/chloewin/468j46mzdv-1/
+num_timesteps: 15
+duration_timestep: 1
+
+# Network structure
+input_size: 2312
+output_size: 10
+# hidden_size: {rnn: 32, glifr_lheta: 32, glifr_lhet: 32, glifr_rheta: 32, glifr_rhet: 255, glifr_fheta: 32, glifr_fhet: 32, glifr_homa: 32, glifr_hom: 32, lstmn: 32}
+hidden_size: {rnn: 256, glifr_lheta: 252, glifr_lhet: 255, glifr_rheta: 252, glifr_rhet: 255, glifr_fheta: 256, glifr_fhet: 256, glifr_homa: 256, glifr_hom: 256, lstmn: 128}
+output_weight: true
+
+# Neuron parameters
+dropout_prob: 0
+synaptic_delay: 0
+dt: 1
+tau: 1
+
+# Training parameters
+lr: 0.001
+batch_size: 512
+loss_fn: cross_entropy_one_hot
+optimizer: torch.optim.Adam
+log_accuracy: true
+final_reduction: last 
+
+# Parameters for trainer
+num_sanity_val_steps: 0
+max_epochs: 30
+check_val_every_n_epoch: 100000000000000000000000000000
+# profiler: advanced

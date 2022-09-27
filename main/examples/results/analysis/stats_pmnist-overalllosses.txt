@@ -1,0 +1,10 @@
+rnn: 2.564000e-01 ( 0.001049)
+glifr_lheta: 6.167800e-01 ( 0.022113)
+glifr_rheta: 6.720900e-01 ( 0.014571)
+
+rnn vs glifr_lheta: t(18.000000) =-51.477651 p = 5.388317e-21
+rnn vs glifr_rheta: t(18.000000) =-89.982509 p = 2.413438e-25
+glifr_lheta vs rnn: t(18.000000) =51.477651 p = 5.388317e-21
+glifr_lheta vs glifr_rheta: t(18.000000) =-6.604617 p = 3.346631e-06
+glifr_rheta vs rnn: t(18.000000) =89.982509 p = 2.413438e-25
+glifr_rheta vs glifr_lheta: t(18.000000) = 6.604617 p = 3.346631e-06

@@ -1,0 +1,2 @@
+# Trainer params
+callbacks: [MetricTracker, create_model_checkpoint]

@@ -1,0 +1,101 @@
+rnn: 5.607758e-02 ( 0.083320)
+lstmn: 9.355760e-03 ( 0.006892)
+glifr_hom: 3.475218e-02 ( 0.006819)
+glifr_homa: 3.088209e-02 ( 0.006971)
+glifr_lhet: 2.326069e-02 ( 0.006965)
+glifr_lheta: 2.269710e-02 ( 0.004682)
+glifr_fhet: 1.636076e-02 ( 0.003559)
+glifr_fheta: 1.658486e-02 ( 0.003171)
+glifr_rhet: 1.146426e-02 ( 0.001981)
+glifr_rheta: 1.208272e-02 ( 0.001696)
+
+rnn vs lstmn: t(18.000000) = 1.767225 p = 9.414020e-02
+rnn vs glifr_hom: t(18.000000) = 0.806679 p = 4.303817e-01
+rnn vs glifr_homa: t(18.000000) = 0.952929 p = 3.532482e-01
+rnn vs glifr_lhet: t(18.000000) = 1.241190 p = 2.304685e-01
+rnn vs glifr_lheta: t(18.000000) = 1.264914 p = 2.220340e-01
+rnn vs glifr_fhet: t(18.000000) = 1.506023 p = 1.494091e-01
+rnn vs glifr_fheta: t(18.000000) = 1.497806 p = 1.515151e-01
+rnn vs glifr_rhet: t(18.000000) = 1.692757 p = 1.077379e-01
+rnn vs glifr_rheta: t(18.000000) = 1.669417 p = 1.123336e-01
+lstmn vs rnn: t(18.000000) =-1.767225 p = 9.414020e-02
+lstmn vs glifr_hom: t(18.000000) =-8.283273 p = 1.487809e-07
+lstmn vs glifr_homa: t(18.000000) =-6.943754 p = 1.730500e-06
+lstmn vs glifr_lhet: t(18.000000) =-4.487306 p = 2.848659e-04
+lstmn vs glifr_lheta: t(18.000000) =-5.063294 p = 8.097219e-05
+lstmn vs glifr_fhet: t(18.000000) =-2.855655 p = 1.050314e-02
+lstmn vs glifr_fheta: t(18.000000) =-3.013142 p = 7.468795e-03
+lstmn vs glifr_rhet: t(18.000000) =-0.929735 p = 3.648101e-01
+lstmn vs glifr_rheta: t(18.000000) =-1.214895 p = 2.401031e-01
+glifr_hom vs rnn: t(18.000000) =-0.806679 p = 4.303817e-01
+glifr_hom vs lstmn: t(18.000000) = 8.283273 p = 1.487809e-07
+glifr_hom vs glifr_homa: t(18.000000) = 1.254970 p = 2.255395e-01
+glifr_hom vs glifr_lhet: t(18.000000) = 3.728072 p = 1.539335e-03
+glifr_hom vs glifr_lheta: t(18.000000) = 4.608707 p = 2.180351e-04
+glifr_hom vs glifr_fhet: t(18.000000) = 7.561017 p = 5.422603e-07
+glifr_hom vs glifr_fheta: t(18.000000) = 7.639446 p = 4.696450e-07
+glifr_hom vs glifr_rhet: t(18.000000) =10.370812 p = 5.085039e-09
+glifr_hom vs glifr_rheta: t(18.000000) =10.202070 p = 6.558551e-09
+glifr_homa vs rnn: t(18.000000) =-0.952929 p = 3.532482e-01
+glifr_homa vs lstmn: t(18.000000) = 6.943754 p = 1.730500e-06
+glifr_homa vs glifr_hom: t(18.000000) =-1.254970 p = 2.255395e-01
+glifr_homa vs glifr_lhet: t(18.000000) = 2.445616 p = 2.496849e-02
+glifr_homa vs glifr_lheta: t(18.000000) = 3.082141 p = 6.425368e-03
+glifr_homa vs glifr_fhet: t(18.000000) = 5.866590 p = 1.482793e-05
+glifr_homa vs glifr_fheta: t(18.000000) = 5.903278 p = 1.374716e-05
+glifr_homa vs glifr_rhet: t(18.000000) = 8.472440 p = 1.072260e-07
+glifr_homa vs glifr_rheta: t(18.000000) = 8.285744 p = 1.481414e-07
+glifr_lhet vs rnn: t(18.000000) =-1.241190 p = 2.304685e-01
+glifr_lhet vs lstmn: t(18.000000) = 4.487306 p = 2.848659e-04
+glifr_lhet vs glifr_hom: t(18.000000) =-3.728072 p = 1.539335e-03
+glifr_lhet vs glifr_homa: t(18.000000) =-2.445616 p = 2.496849e-02
+glifr_lhet vs glifr_lheta: t(18.000000) = 0.212355 p = 8.342166e-01
+glifr_lhet vs glifr_fhet: t(18.000000) = 2.789498 p = 1.210601e-02
+glifr_lhet vs glifr_fheta: t(18.000000) = 2.758432 p = 1.293741e-02
+glifr_lhet vs glifr_rhet: t(18.000000) = 5.151229 p = 6.700308e-05
+glifr_lhet vs glifr_rheta: t(18.000000) = 4.930725 p = 1.078835e-04
+glifr_lheta vs rnn: t(18.000000) =-1.264914 p = 2.220340e-01
+glifr_lheta vs lstmn: t(18.000000) = 5.063294 p = 8.097219e-05
+glifr_lheta vs glifr_hom: t(18.000000) =-4.608707 p = 2.180351e-04
+glifr_lheta vs glifr_homa: t(18.000000) =-3.082141 p = 6.425368e-03
+glifr_lheta vs glifr_lhet: t(18.000000) =-0.212355 p = 8.342166e-01
+glifr_lheta vs glifr_fhet: t(18.000000) = 3.406902 p = 3.143089e-03
+glifr_lheta vs glifr_fheta: t(18.000000) = 3.418015 p = 3.066654e-03
+glifr_lheta vs glifr_rhet: t(18.000000) = 6.986676 p = 1.593686e-06
+glifr_lheta vs glifr_rheta: t(18.000000) = 6.740184 p = 2.566225e-06
+glifr_fhet vs rnn: t(18.000000) =-1.506023 p = 1.494091e-01
+glifr_fhet vs lstmn: t(18.000000) = 2.855655 p = 1.050314e-02
+glifr_fhet vs glifr_hom: t(18.000000) =-7.561017 p = 5.422603e-07
+glifr_fhet vs glifr_homa: t(18.000000) =-5.866590 p = 1.482793e-05
+glifr_fhet vs glifr_lhet: t(18.000000) =-2.789498 p = 1.210601e-02
+glifr_fhet vs glifr_lheta: t(18.000000) =-3.406902 p = 3.143089e-03
+glifr_fhet vs glifr_fheta: t(18.000000) =-0.148659 p = 8.834755e-01
+glifr_fhet vs glifr_rhet: t(18.000000) = 3.801053 p = 1.308318e-03
+glifr_fhet vs glifr_rheta: t(18.000000) = 3.431173 p = 2.978514e-03
+glifr_fheta vs rnn: t(18.000000) =-1.497806 p = 1.515151e-01
+glifr_fheta vs lstmn: t(18.000000) = 3.013142 p = 7.468795e-03
+glifr_fheta vs glifr_hom: t(18.000000) =-7.639446 p = 4.696450e-07
+glifr_fheta vs glifr_homa: t(18.000000) =-5.903278 p = 1.374716e-05
+glifr_fheta vs glifr_lhet: t(18.000000) =-2.758432 p = 1.293741e-02
+glifr_fheta vs glifr_lheta: t(18.000000) =-3.418015 p = 3.066654e-03
+glifr_fheta vs glifr_fhet: t(18.000000) = 0.148659 p = 8.834755e-01
+glifr_fheta vs glifr_rhet: t(18.000000) = 4.330463 p = 4.029529e-04
+glifr_fheta vs glifr_rheta: t(18.000000) = 3.958833 p = 9.204844e-04
+glifr_rhet vs rnn: t(18.000000) =-1.692757 p = 1.077379e-01
+glifr_rhet vs lstmn: t(18.000000) = 0.929735 p = 3.648101e-01
+glifr_rhet vs glifr_hom: t(18.000000) =-10.370812 p = 5.085039e-09
+glifr_rhet vs glifr_homa: t(18.000000) =-8.472440 p = 1.072260e-07
+glifr_rhet vs glifr_lhet: t(18.000000) =-5.151229 p = 6.700308e-05
+glifr_rhet vs glifr_lheta: t(18.000000) =-6.986676 p = 1.593686e-06
+glifr_rhet vs glifr_fhet: t(18.000000) =-3.801053 p = 1.308318e-03
+glifr_rhet vs glifr_fheta: t(18.000000) =-4.330463 p = 4.029529e-04
+glifr_rhet vs glifr_rheta: t(18.000000) =-0.749791 p = 4.630685e-01
+glifr_rheta vs rnn: t(18.000000) =-1.669417 p = 1.123336e-01
+glifr_rheta vs lstmn: t(18.000000) = 1.214895 p = 2.401031e-01
+glifr_rheta vs glifr_hom: t(18.000000) =-10.202070 p = 6.558551e-09
+glifr_rheta vs glifr_homa: t(18.000000) =-8.285744 p = 1.481414e-07
+glifr_rheta vs glifr_lhet: t(18.000000) =-4.930725 p = 1.078835e-04
+glifr_rheta vs glifr_lheta: t(18.000000) =-6.740184 p = 2.566225e-06
+glifr_rheta vs glifr_fhet: t(18.000000) =-3.431173 p = 2.978514e-03
+glifr_rheta vs glifr_fheta: t(18.000000) =-3.958833 p = 9.204844e-04
+glifr_rheta vs glifr_rhet: t(18.000000) = 0.749791 p = 4.630685e-01

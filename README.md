@@ -5,25 +5,34 @@ We develop a differentiable rate-based neuronal model that incorporates after-sp
 
 ## Structure of codebase:
 - main: contains all code
-- main/models: contains all modeling code
-- main/results: contains plotting code and results presented in paper
+- main/config: contains configuration files for examples
+- main/data: folder to store data for training/testing
+- main/datasets: code to process training/testing data
+- main/examples: all code used for training/testing described in paper, including plotting code for generating figures
+- main/figures: supplementary figures and figures used in paper
+- main/models: main code for model utilization
+- main/training: utils functions for training
+- main/utils: other basic utils functions
 
 ## Important files:
-- main/models/neurons: defines a GLIFR class for the rate based neuronal model, and a RNNC class for a vanilla RNN cell
-- main/models/networks: defines a neural network using GLIFRs, a neural network using RNNCs, and a neural network using LSTMCell
-- main/utils_train: contains utils functions that demonstrate how to train networks
-- main/pattern_results.py: program for testing sinusoid generation
-- main/mnist_results.py: program for testing SMNIST
-- main/mnist_ablation.py: program for testing SMNIST with dropout
+- main/models/neurons.py: defines a GLIFR class for the rate based neuronal model, and a RNNC class for a vanilla RNN cell
+- main/models/pl_modules.py: defines a neural network using GLIFRs, a neural network using RNNCs, and a neural network using LSTMCell
+- main/utils/types.py: defines named tuples used as parameters in model code
+- main/models/analyzer.py: defines an analyzer class to run certain analyses on trained models
+- main/examples/train.py: main training code used in paper
 
 ## Usage
 The GLIFR class enables creation and usage of a differentiable layer of neurons that express biological dynamics including after-spike currents in a rate-based manner. One may optimize the neuron's intrinsic parameters (i.e., V_th, k_m, a_j, r_j, k_j) using standard gradient descent.
 
 ```
 from models.neurons import GLIFR
-neuron = GLIFR(input_size, hidden_size, num_ascs, hetinit, ascs, learnparams)
-inputs = torch.randn(1, nsteps, input_size)
+from utils.types import StructureParameters, NeuronParameters
 
+structure_parameters = StructureParameters(input_size, hidden_size, output_size)
+neuron_parameters = NeuronParameters(dt, tau)
+neuron = GLIFR(structure_parameters, neuron_parameters)
+
+inputs = torch.randn(1, nsteps, input_size)
 firing = torch.zeros((1, hidden_size))
 voltage = torch.zeros((1, hidden_size))
 syncurrent = torch.zeros((1, hidden_size))
@@ -35,48 +44,25 @@ for i in range(nsteps):
   firing, voltage, ascurrents, syncurrent = neuron(x, firing, voltage, ascurrents, syncurrent, outputs_[-delay]) # Set firing_delayed (i.e., last argument) to incorporate synaptic delay
   outputs.append(firing.clone())
 ```
-- ```input_size```: the number of inputs the layer should expect
-- ```hidden_size```: the number of neurons in the layer
-- ```num_ascs```: the number of after-spike currents to be modeled
-- ```het_init```: whether the intrinsic neuronal parameters should be initialized heterogeneously
-- ```ascs```: whether after-spike currents should be modeled
-- ```learnparams```: whether neuronal parameters should retain gradients
 
-The BNNFC class enables creation and usage of a single layer network of GLIF neurons in which inputs are weighted, propagated through a single layer of GLIFR neurons, and finally weighted.
+The GLIFRN class enables creation and usage of a single layer network of GLIF neurons in which inputs are weighted, propagated through a single layer of GLIFR neurons, and finally weighted. This class can also be used with PytorchLightning.
 
 ```
-from models.networks import BNNFC
-net = BNNFC(in_size, hid_size, out_size, dt, hetinit, ascs, learnparams)
+from models.pl_modules import GLIFRN
+parser = ArgumentParser()
+add_structure_args(parser)
+add_general_model_args(parser)
+GLIFRN.add_model_specific_args(parser)
+args = parser.parse_args()
+
+net = GLIFRN(**vars(args))
 inputs = torch.randn(1, nsteps, input_size)
 outputs = neuron(inputs)
 ```
-- ```in_size```: the number of inputs the network receives
-- ```hidden_size```: the number of neurons in the hidden layer
-- ```num_ascs```: the number of after-spike currents to be modeled
-- ```het_init```: whether the intrinsic neuronal parameters should be initialized heterogeneously
-- ```ascs```: whether after-spike currents should be modeled
-- ```learnparams```: whether neuronal parameters should retain gradients
 
-Both smnist_results and pattern_results use command line arguments to run training simulations on the RNN, BNNFC, and LSTM networks. The smnist_results assumes a data directory containing the MNIST dataset in standard format. Both programs also assume the following directories within ```main```: ```results```, ```figures```, ```saved_models```, and ```traininfo```.
-In order to run these files, users should modify the file directories in the code, paying attention to the comments, and then use the following arguments:
-- ```name```: base filename to use
-- ```condition```: "rnn" to train an RNN, "lstm" to train an LSTM, "glifr-hetinit" to train a heterogeneously initialized BNNFC, and "glifr-hominit" to train a homogeneously initialized BNNFC
-- ```learnparams```: 1 if intrinsic neuronal parameters should be trained, 0 otherwise
-- ```numascs```: number of after-spike currents should be modeled (assuming condition starts with glifr)
-- [only for smnist_results] ```anneal```: whether to anneal sigma_V over training
+The file examples/train.py use command line arguments and the config files in main/config, which can be edited by the user, to run training simulations on the RNN, GLIFRN, and LSTM networks. The MNIST related tasks assume a data directory containing the MNIST dataset in standard format. Below are some example commands.
 
-The paper refers to a number of types of network settings, and these are the corresponding arguments. Note that name can be chosen to user preference.
-| network type | name | condition | learnparams | num_ascs |
-|--------------|------|-----------|-------------|----------|
-| RNN | smnist-9 | rnn | 0 | 0 |
-| LSTM | smnist-10 | lstm | 0 | 0 |
-| Hom | smnist-7 | glifr-hominit | 0 | 0 |
-| HomA | smnist-3 | glifr-hominit | 0 | 2 |
-| LHet | smnist-8 | glifr-hominit | 1 | 0 |
-| LHetA | smnist-4 | glifr-hominit | 1 | 2 |
-| FHet | smnist-5 | glifr-hetinit | 0 | 0 |
-| FHetA | smnist-1 | glifr-hetinit | 0 | 2 |
-| RHet | smnist-6 | glifr-hetinit | 1 | 0 |
-| RHetA | smnist-2 | glifr-hetinit | 1 | 2 |
+- python3 train.py --task lmnist --ntrials 10 --num_workers 8 --accelerator gpu --gpus 2 --strategy ddp_find_unused_parameters_false # Runs 10 trials of LMNIST training using 8 workers on the GPU (using 2 devices)
+- python3 train.py --task sine --ntrials 10 # Runs 10 trails of sine training on the CPU
 
-The results we obtained are stored in main/results/paper_results, and the plotting and analysis code may be run with that.
+The results we obtained are stored in main/examples/results, and the plotting and analysis code (main/examples/results/analysis) may be run with that.

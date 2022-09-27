@@ -1,0 +1,34 @@
+# Task setup
+sim_time: 5
+num_freqs: 6
+freq_min: 0.08
+freq_max: 0.6
+amp: 1
+noise_mean: 0
+noise_std: 0
+
+# Network structure
+input_size: 1
+output_size: 1
+hidden_size: {rnn: 128, glifr_lheta: 124, glifr_lhet: 127, glifr_rheta: 124, glifr_rhet: 127, glifr_fheta: 128, glifr_fhet: 128, glifr_homa: 128, glifr_hom: 128, lstmn: 63}
+output_weight: true
+
+# Neuron parameters
+dropout_prob: 0
+# synaptic_delay: 0
+synaptic_delay: 1
+dt: 0.05
+tau: 0.05
+
+# Training parameters
+lr: 0.0001
+batch_size: 6
+loss_fn: F.mse_loss
+optimizer: torch.optim.Adam
+log_accuracy: false
+final_reduction: none 
+
+# Parameters for trainer
+num_sanity_val_steps: 0
+max_epochs: 5000
+check_val_every_n_epoch: 100000000000000000000000000000

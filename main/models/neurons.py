@@ -1,102 +1,112 @@
 """
 This file defines models for single layers of neurons.
 """
+import logging
 import math
 
 import torch
 import torch.nn as nn
 from torch.nn.parameter import Parameter
+from utils.types import NeuronParameters, StructureParameters
 
 class GLIFR(nn.Module):
         """
         Defines a single layer of GLIFR-ASC neurons
-
         Parameters
         ----------
-        input_size : int
-                number of dimensions of input
-        hidden_size : int
-                number of neurons
-        num_ascs : int
-                number of after-spike currents to model
-        dt : float, default 0.05
-                duration of timestep
-        tau : float, defaults to dt
-                conceptually the number of times the voltage and threshold are compared
-        hetinit : boolean, default False
-                whether parameters should be heterogeneously initialized
-        ascs : boolean, default True
-                whether after-spike currents and related parameter gradients should be maintained
-        learnparams : boolean, default True
-                whether parameters should be learned
         """
-        def __init__(self, input_size, hidden_size, num_ascs=2, dt=0.05, tau=None, hetinit=False, ascs=True, learnparams=True):
+        def __init__(self, structure_params: StructureParameters, neuron_params: NeuronParameters):
                 super().__init__()
-                self.input_size = input_size
-                self.hidden_size = hidden_size
+                self.input_size = structure_params.input_size
+                self.hidden_size = structure_params.hidden_size
+                self.num_ascs = neuron_params.num_ascs
 
-                self.num_ascs = num_ascs
-                self.tau = tau
+                self.dt = neuron_params.dt
+                self.tau = neuron_params.tau
                 if self.tau is None:
-                        self.tau = dt
+                        self.tau = self.dt
+                self.sigma_v = neuron_params.sigma_v
 
-                self.ascs = ascs
-                self.learnparams = learnparams
+                self.weight_iv = Parameter(torch.randn((self.input_size, self.hidden_size))) # incoming weights
+                self.weight_lat = Parameter(torch.randn((self.hidden_size, self.hidden_size))) # lateral connections (i.e., among neurons in same layer              
+                self.thresh = Parameter(torch.randn((1, self.hidden_size)))
+                self.trans_k_m = Parameter(torch.randn((1, self.hidden_size)))
+                if self.num_ascs > 0:
+                        self.trans_k_j = Parameter(torch.randn((self.num_ascs, 1, self.hidden_size)))
+                        self.trans_r_j = Parameter(torch.randn((self.num_ascs, 1, self.hidden_size)))
+                        self.a_j = Parameter(torch.randn((self.num_ascs, 1, self.hidden_size)))
+                self.v_reset = neuron_params.v_reset
 
-                self.weight_iv = Parameter(torch.randn((input_size, hidden_size))) # incoming weights
-                self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size))) # lateral connections (i.e., among neurons in same layer)
+                self.R = neuron_params.R
+                self.I0 = neuron_params.I0
+                
+                # Freeze parameters
+                if neuron_params.num_ascs == 0:
+                        self.freeze_params_(self.asc_param_names_())
 
-                if hetinit:
-                    self.thresh = Parameter(-1 + 2 * torch.rand((1, hidden_size), dtype=torch.float), requires_grad=True)
-                    
-                    k_m = 0.04 + 0.02 * torch.rand((1, hidden_size), dtype=torch.float)
-                    self.trans_k_m = Parameter(torch.log((k_m * dt) / (1 - (k_m * dt))), requires_grad=True)
+        # def het_init_(self):
+                # with torch.no_grad():
+                #         nn.init.uniform_(self.thresh, -1, 1)
+                #         nn.init.zeros_(self.trans_k_m)
+                #         k_m = 0.04 + 0.02 * torch.rand((1, self.hidden_size), dtype=torch.float)
+                #         self.trans_k_m += torch.log((k_m * self.dt) / (1 - (k_m * self.dt)))
+                        
+                #         if self.num_ascs > 0:
+                #                 nn.init.zeros_(self.trans_k_j)
+                #                 k_j = 1.5 + torch.rand((self.num_ascs, 1, self.hidden_size), dtype=torch.float)
+                #                 self.trans_k_j += torch.log((k_j * self.dt) / (1 - (k_j * self.dt)))
 
-                    k_asc = 1.5 + torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
-                    self.trans_asc_k = Parameter(torch.log((k_asc * dt) / (1 - (k_asc * dt))), requires_grad=True)
+                #                 nn.init.zeros_(self.trans_r_j)
+                #                 r_j = -0.1 + 0.2 * torch.rand((self.num_ascs, 1, self.hidden_size), dtype=torch.float)
+                #                 self.trans_r_j += torch.log((1 - r_j) / (1 + r_j))
 
-                    asc_r = -0.1 + 0.2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
-                    self.trans_asc_r = Parameter(torch.log((1 - asc_r) / (1 + asc_r)), requires_grad=True)
+                #                 nn.init.uniform_(self.a_j, -0.1, 0.1)
 
-                    self.asc_amp = Parameter(-0.1 + 0.2 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-                else:
-                    self.thresh = Parameter(torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-                    
-                    trans_k_m = math.log(0.05 * dt / (1 - (0.05 * dt)))
-                    self.trans_k_m = Parameter(trans_k_m * torch.ones((1, hidden_size), dtype=torch.float), requires_grad=True)
-
-                    self.trans_asc_k = Parameter(math.log(2 * dt / (1 - (2 * dt))) * torch.ones((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-
-                    asc_r = -0.01 + 0.02 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float)
-                    self.trans_asc_r = Parameter(torch.log((1 - asc_r) / (1 + asc_r)), requires_grad=True)
-
-                    self.asc_amp = Parameter(-0.01 + 0.02 * torch.rand((self.num_ascs, 1, hidden_size), dtype=torch.float), requires_grad=True)
-
-                self.v_reset = 0
-
-                if not learnparams:
-                    self.thresh.requires_grad = False
-                    self.trans_k_m.requires_grad = False
-                    self.asc_amp.requires_grad = False
-                    self.trans_asc_k.requires_grad = False
-                    self.trans_asc_r.requires_grad = False
-
-                if not ascs:
-                    self.asc_amp.requires_grad = False
-                    self.trans_asc_k.requires_grad = False
-                    self.trans_asc_r.requires_grad = False
-
-                self.sigma_v = 1
-                self.gamma = 1
-                self.dt = dt
-
-                self.R = 0.1
-                self.I0 = 0
-
-                # randomly initializes incoming weights
+                #         nn.init.uniform_(self.weight_iv, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
+                #         nn.init.uniform_(self.weight_lat, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
+        
+        def hom_init_(self):
                 with torch.no_grad():
-                        nn.init.uniform_(self.weight_iv, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                        nn.init.uniform_(self.weight_lat, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+                        nn.init.ones_(self.thresh)
+                        nn.init.constant_(self.trans_k_m, math.log(self.dt * 0.05 / (1 - (0.05 * 0.05))))
+                       
+                        if self.num_ascs > 0:
+                                nn.init.constant_(self.trans_k_j, math.log((0.1 / self.dt) * self.dt / (1 - ((0.1 / self.dt) * self.dt))))
+                        
+                                nn.init.zeros_(self.trans_r_j)
+                                r_j = -0.01 + 0.02 * torch.rand((self.num_ascs, 1, self.hidden_size), dtype=torch.float)
+                                self.trans_r_j += torch.log((1 - r_j) / (1 + r_j))
+
+                                nn.init.uniform_(self.a_j, -0.01, 0.01)
+
+                        nn.init.uniform_(self.weight_iv, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
+                        nn.init.uniform_(self.weight_lat, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
+        
+        def freeze_params_(self, param_names):
+                found = []
+                for name, param in self.named_parameters():
+                        if name in param_names:
+                                found.append(name)
+                                param.requires_grad = False
+                for name in param_names:
+                        if name not in found:
+                                logging.error(f"{name} was not frozen")
+
+        def learnable_params_(self):
+                found = []
+                for name, param in self.named_parameters():
+                        if param.requires_grad:
+                                found.append(name)
+                return found
+
+        def membrane_param_names_(self):
+                return ["thresh", "trans_k_m"]
+
+        def asc_param_names_(self):
+                return ["trans_k_j", "trans_r_j", "a_j"]
+
+        def dynamics_param_names_(self):
+                return ["thresh", "trans_k_m", "trans_k_j", "trans_r_j", "a_j"]
 
         def spike_fn(self, x):
                 """
@@ -112,7 +122,7 @@ class GLIFR(nn.Module):
                 Tensor(same size as x)
                         output of spiking function
                 """
-                activation = self.gamma * (x - self.thresh) / self.sigma_v
+                activation = (x - self.thresh) / self.sigma_v
                 return torch.sigmoid(activation)
         
         def forward(self, x, firing, voltage, ascurrent, syncurrent, firing_delayed=None):
@@ -133,7 +143,6 @@ class GLIFR(nn.Module):
                         previous syncurrent
                 firing_delayed: torch tensor (n, ndims), default None (identical to firing)
                         firing rate to use when propagating lateral connections
-
                 Returns
                 -------
                 firing : torch tensor (n, ndims)
@@ -148,15 +157,27 @@ class GLIFR(nn.Module):
                 if firing_delayed is None:
                     firing_delayed = firing.clone() 
 
-                syncurrent = x @ self.weight_iv + firing_delayed @ self.weight_lat
+                syncurrent = x @ self.weight_iv 
+                if firing_delayed is not None:
+                        syncurrent = syncurrent + firing_delayed @ self.weight_lat
                 
-                if self.ascs:
-                        ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_asc_r) + self.asc_amp) * firing * (self.dt/self.tau) + (1 - self.dt * self.transform_to_k(self.trans_asc_k)) * ascurrent
-                
+                # TODO: Incorporate without asc
+                if self.num_ascs > 0:
+                        ascurrent = (ascurrent * self.transform_to_asc_r(self.trans_r_j) + self.a_j) * firing * (self.dt/self.tau) + (1 - self.dt * self.transform_to_k(self.trans_k_j)) * ascurrent
+                else:
+                        ascurrent = ascurrent * 0
+
                 voltage = syncurrent + self.dt * self.transform_to_k(self.trans_k_m) * self.R * (torch.sum(ascurrent, dim=0) + self.I0) + (1 - self.dt * self.transform_to_k(self.trans_k_m)) * voltage - (self.dt / self.tau) * firing * (voltage - self.v_reset)
                 firing = self.spike_fn(voltage)
                 return firing, voltage, ascurrent, syncurrent
         
+        def init_states(self, batch_size):
+                firing = torch.zeros((batch_size, self.hidden_size))
+                voltage = torch.zeros((batch_size, self.hidden_size))
+                syncurrent = torch.zeros((batch_size, self.hidden_size))
+                ascurrents = torch.zeros((self.num_ascs, batch_size, self.hidden_size))
+                return firing, voltage, syncurrent, ascurrents
+                
         def transform_to_asc_r(self, param):
                 """
                 Transforms parameter to asc_r used in neuronal model
@@ -168,6 +189,12 @@ class GLIFR(nn.Module):
                 Transforms parameter to k used in neuronal model
                 """
                 return torch.sigmoid(param) / self.dt
+
+
+# class ConvGLIFR(GLIFR):
+#         def __init__(self, structure_params: StructureParameters, neuron_params: NeuronParameters):
+#                 super().__init__(structure_params=structure_params, neuron_params=neuron_params)
+
 
 class RNNC(nn.Module): 
         """
@@ -182,21 +209,24 @@ class RNNC(nn.Module):
         bias : boolean, default False
                 whether bias should be used
         """
-        def __init__(self, input_size, hidden_size, bias = True):
+        def __init__(self, structure_params: StructureParameters, bias = True):
                 super().__init__()
-                self.weight_ih = Parameter(torch.randn((input_size, hidden_size)))
-                self.weight_lat = Parameter(torch.randn((hidden_size, hidden_size)))
+                self.input_size = structure_params.input_size
+                self.hidden_size = structure_params.hidden_size
+
+                self.weight_ih = Parameter(torch.randn((self.input_size, self.hidden_size)))
+                self.weight_lat = Parameter(torch.randn((self.hidden_size, self.hidden_size)))
 
                 if bias:
-                        self.bias = Parameter(torch.zeros((1, hidden_size)))
+                        self.bias = Parameter(torch.zeros((1, self.hidden_size)))
                 else:
-                        self.bias = torch.zeros((1, hidden_size))
+                        self.bias = torch.zeros((1, self.hidden_size))
 
                 with torch.no_grad():
-                    nn.init.uniform_(self.weight_ih, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
-                    nn.init.uniform_(self.weight_lat, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+                    nn.init.uniform_(self.weight_ih, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
+                    nn.init.uniform_(self.weight_lat, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
                     if bias:
-                            nn.init.uniform_(self.bias, -math.sqrt(1 / hidden_size), math.sqrt(1 / hidden_size))
+                            nn.init.uniform_(self.bias, -math.sqrt(1 / self.hidden_size), math.sqrt(1 / self.hidden_size))
 
         def forward(self, x, hidden, hidden_delayed, track = False):
                 """
@@ -218,8 +248,13 @@ class RNNC(nn.Module):
                 hidden : torch tensor (n, ndim) [if track is True]
                         hidden state pre-activation
                 """
-                hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_lat) + self.bias
+                if hidden_delayed is not None:
+                        hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden_delayed, self.weight_lat) + self.bias
+                else:
+                        hidden = torch.mm(x, self.weight_ih) + torch.mm(hidden, self.weight_lat) + self.bias
                 out = torch.tanh(hidden)
                 if track:
                         return out, hidden
                 return out
+        def learnable_params_(self):
+            return [] #TODO
